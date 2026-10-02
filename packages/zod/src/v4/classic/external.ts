@@ -27,31 +27,31 @@ export {
   util,
   NEVER,
   INVALID,
-  toZod,
+  toSchema,
   compile,
   withParser,
-  ZodCompileAsyncError,
-  ZodCompileUnsupportedError,
+  SchemaCompileAsyncError,
+  SchemaCompileUnsupportedError,
   getDiscriminatedOption,
 } from "../core/index.js";
 export { toJSONSchema } from "../core/json-schema-processors.js";
-export { fromJSONSchema } from "./from-json-schema.js";
+export { fromJSONSchema } from "./from-json-Schema.js";
 export { deepPartial } from "./deep-partial.js";
 // Types and values both, from one module — re-exporting the types from core would collide.
 export { input, output } from "./in-out.js";
 
 export * as locales from "../locales/index.js";
 
-// iso must be exported from top-level https://github.com/colinhacks/zod/issues/4491
-export { ZodISODateTime, ZodISODate, ZodISOTime, ZodISODuration } from "./iso.js";
+// iso must be exported from top-level https://github.com/colinhacks/schema/issues/4491
+export { SchemaISODateTime, SchemaISODate, SchemaISOTime, SchemaISODuration } from "./iso.js";
 export * as iso from "./iso.js";
 
 // coerce
 export type {
-  ZodCoercedString,
-  ZodCoercedNumber,
-  ZodCoercedBigInt,
-  ZodCoercedBoolean,
-  ZodCoercedDate,
+  SchemaCoercedString,
+  SchemaCoercedNumber,
+  SchemaCoercedBigInt,
+  SchemaCoercedBoolean,
+  SchemaCoercedDate,
 } from "./coerce.js";
 export * as coerce from "./coerce.js";

@@ -1,8 +1,8 @@
-import * as z from "valibot";
+import * as Schema from "valibot";
 
-const schema = z.object({ a: z.string(), b: z.number(), c: z.boolean() });
+const schema = Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean() });
 console.log(
-  z.parse(schema, {
+  Schema.parse(schema, {
     a: "asdf",
     b: 123,
     c: true,

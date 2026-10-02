@@ -1,5 +1,5 @@
-import * as z4 from "zod/v4";
-import * as z4core from "zod/v4/core";
+import * as z4 from "schema/v4";
+import * as z4core from "schema/v4/core";
 import { metabench } from "./metabench.js";
 
 // Tuple without rest
@@ -19,18 +19,18 @@ const invalidWithRest = Array.from({ length: 1000 }, () => ["hello", 42, true, f
 
 // Verify correctness
 console.log("=== Correctness Check ===");
-console.log("No Rest - valid:", aotNoRest(validNoRest[0]), "Zod:", tupleNoRest.safeParse(validNoRest[0]).success);
-console.log("No Rest - invalid:", aotNoRest(invalidNoRest[0]), "Zod:", tupleNoRest.safeParse(invalidNoRest[0]).success);
+console.log("No Rest - valid:", aotNoRest(validNoRest[0]), "Schema:", tupleNoRest.safeParse(validNoRest[0]).success);
+console.log("No Rest - invalid:", aotNoRest(invalidNoRest[0]), "Schema:", tupleNoRest.safeParse(invalidNoRest[0]).success);
 console.log(
   "With Rest - valid:",
   aotWithRest(validWithRest[0]),
-  "Zod:",
+  "Schema:",
   tupleWithRest.safeParse(validWithRest[0]).success
 );
 console.log(
   "With Rest - invalid:",
   aotWithRest(invalidWithRest[0]),
-  "Zod:",
+  "Schema:",
   tupleWithRest.safeParse(invalidWithRest[0]).success
 );
 console.log("");

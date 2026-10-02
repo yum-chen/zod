@@ -1,12 +1,12 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
-import * as core from "zod/v4/core";
+import * as Schema from "schema/v4";
+import * as core from "schema/v4/core";
 
 const { allowsEval } = core.util;
 
 // Regression test for the CSP feature-probe issue (#4461, #5414):
 // `allowsEval` used to always invoke `new Function("")` even when the
-// user had opted into `z.config({ jitless: true })`, producing a
+// user had opted into `Schema.config({ jitless: true })`, producing a
 // `securitypolicyviolation` report on strict-CSP pages (no 'unsafe-eval')
 // that Chrome DevTools surfaces as an Issue.
 //
@@ -14,7 +14,7 @@ const { allowsEval } = core.util;
 
 test("globalConfig.jitless=true short-circuits the allowsEval probe", () => {
   // Set BEFORE first access to allowsEval.value — the getter is memoised via `cached()`, so the contract is "configure at app entry".
-  z.config({ jitless: true });
+  Schema.config({ jitless: true });
 
   // Sanity: config is wired
   expect(core.globalConfig.jitless).toBe(true);

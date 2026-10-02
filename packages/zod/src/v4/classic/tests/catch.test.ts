@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { z } from "zod/v4";
+import { Schema } from "schema/v4";
 
 test("basic catch", () => {
-  expect(z.string().catch("default").parse(undefined)).toBe("default");
+  expect(Schema.string().catch("default").parse(undefined)).toBe("default");
 });
 
 test("catch fn does not run when parsing succeeds", () => {
@@ -11,23 +11,23 @@ test("catch fn does not run when parsing succeeds", () => {
     isCalled = true;
     return "asdf";
   };
-  expect(z.string().catch(cb).parse("test")).toBe("test");
+  expect(Schema.string().catch(cb).parse("test")).toBe("test");
   expect(isCalled).toEqual(false);
 });
 
 test("basic catch async", async () => {
-  const result = await z.string().catch("default").parseAsync(1243);
+  const result = await Schema.string().catch("default").parseAsync(1243);
   expect(result).toBe("default");
 });
 
 test("catch replace wrong types", () => {
-  expect(z.string().catch("default").parse(true)).toBe("default");
-  expect(z.string().catch("default").parse(true)).toBe("default");
-  expect(z.string().catch("default").parse(15)).toBe("default");
-  expect(z.string().catch("default").parse([])).toBe("default");
-  expect(z.string().catch("default").parse(new Map())).toBe("default");
-  expect(z.string().catch("default").parse(new Set())).toBe("default");
-  expect(z.string().catch("default").parse({})).toBe("default");
+  expect(Schema.string().catch("default").parse(true)).toBe("default");
+  expect(Schema.string().catch("default").parse(true)).toBe("default");
+  expect(Schema.string().catch("default").parse(15)).toBe("default");
+  expect(Schema.string().catch("default").parse([])).toBe("default");
+  expect(Schema.string().catch("default").parse(new Map())).toBe("default");
+  expect(Schema.string().catch("default").parse(new Set())).toBe("default");
+  expect(Schema.string().catch("default").parse({})).toBe("default");
 });
 
 test("catch with transform", () => {
@@ -38,37 +38,37 @@ test("catch with transform", () => {
 
   expect(stringWithDefault.parse(undefined)).toBe("default");
   expect(stringWithDefault.parse(15)).toBe("default");
-  expect(stringWithDefault).toBeInstanceOf(z.ZodCatch);
-  expect(stringWithDefault.unwrap()).toBeInstanceOf(z.ZodPipe);
-  expect(stringWithDefault.unwrap().in).toBeInstanceOf(z.ZodString);
-  expect(stringWithDefault.unwrap().out).toBeInstanceOf(z.ZodTransform);
+  expect(stringWithDefault).toBeInstanceOf(Schema.SchemaCatch);
+  expect(stringWithDefault.unwrap()).toBeInstanceOf(Schema.SchemaPipe);
+  expect(stringWithDefault.unwrap().in).toBeInstanceOf(Schema.SchemaString);
+  expect(stringWithDefault.unwrap().out).toBeInstanceOf(Schema.SchemaTransform);
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   expectTypeOf<inp>().toEqualTypeOf<string>();
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   expectTypeOf<out>().toEqualTypeOf<string>();
 });
 
 test("catch on existing optional", () => {
-  const stringWithDefault = z.string().optional().catch("asdf");
+  const stringWithDefault = Schema.string().optional().catch("asdf");
   expect(stringWithDefault.parse(undefined)).toBe(undefined);
   expect(stringWithDefault.parse(15)).toBe("asdf");
-  expect(stringWithDefault).toBeInstanceOf(z.ZodCatch);
-  expect(stringWithDefault.unwrap()).toBeInstanceOf(z.ZodOptional);
-  expect(stringWithDefault.unwrap().unwrap()).toBeInstanceOf(z.ZodString);
+  expect(stringWithDefault).toBeInstanceOf(Schema.SchemaCatch);
+  expect(stringWithDefault.unwrap()).toBeInstanceOf(Schema.SchemaOptional);
+  expect(stringWithDefault.unwrap().unwrap()).toBeInstanceOf(Schema.SchemaString);
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   expectTypeOf<inp>().toEqualTypeOf<string | undefined>();
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   expectTypeOf<out>().toEqualTypeOf<string | undefined>();
 });
 
 test("optional on catch", () => {
-  const stringWithDefault = z.string().catch("asdf").optional();
+  const stringWithDefault = Schema.string().catch("asdf").optional();
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   expectTypeOf<inp>().toEqualTypeOf<string | undefined>();
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   expectTypeOf<out>().toEqualTypeOf<string | undefined>();
 });
 
@@ -89,20 +89,20 @@ test("complex chain example", () => {
 });
 
 test("removeCatch", () => {
-  const stringWithRemovedDefault = z.string().catch("asdf").unwrap();
+  const stringWithRemovedDefault = Schema.string().catch("asdf").unwrap();
 
-  type out = z.output<typeof stringWithRemovedDefault>;
+  type out = Schema.output<typeof stringWithRemovedDefault>;
   expectTypeOf<out>().toEqualTypeOf<string>();
 });
 
 test("nested", () => {
-  const inner = z.string().catch("asdf");
-  const outer = z.object({ inner }).catch({
+  const inner = Schema.string().catch("asdf");
+  const outer = Schema.object({ inner }).catch({
     inner: "asdf",
   });
-  type input = z.input<typeof outer>;
+  type input = Schema.input<typeof outer>;
   expectTypeOf<input>().toEqualTypeOf<{ inner: string }>();
-  type out = z.output<typeof outer>;
+  type out = Schema.output<typeof outer>;
 
   expectTypeOf<out>().toEqualTypeOf<{ inner: string }>();
   expect(outer.parse(undefined)).toEqual({ inner: "asdf" });
@@ -111,7 +111,7 @@ test("nested", () => {
 });
 
 test("chained catch", () => {
-  const stringWithDefault = z.string().catch("inner").catch("outer");
+  const stringWithDefault = Schema.string().catch("inner").catch("outer");
   const result = stringWithDefault.parse(undefined);
   expect(result).toEqual("inner");
   const resultDiff = stringWithDefault.parse(5);
@@ -124,43 +124,43 @@ test("native enum", () => {
     orange = "orange",
   }
 
-  const schema = z.object({
-    fruit: z.nativeEnum(Fruits).catch(Fruits.apple),
+  const schema = Schema.object({
+    fruit: Schema.nativeEnum(Fruits).catch(Fruits.apple),
   });
 
   // Absent keys flow through to the catch handler.
-  expect(schema.parse({})).toEqual({ fruit: Fruits.apple });
-  expect(schema.parse({}, { jitless: true })).toEqual({ fruit: Fruits.apple });
-  expect(schema.parse({ fruit: 15 })).toEqual({ fruit: Fruits.apple });
+  expect(Schema.parse({})).toEqual({ fruit: Fruits.apple });
+  expect(Schema.parse({}, { jitless: true })).toEqual({ fruit: Fruits.apple });
+  expect(Schema.parse({ fruit: 15 })).toEqual({ fruit: Fruits.apple });
 });
 
 test("enum", () => {
-  const schema = z.object({
-    fruit: z.enum(["apple", "orange"]).catch("apple"),
+  const schema = Schema.object({
+    fruit: Schema.enum(["apple", "orange"]).catch("apple"),
   });
 
-  expect(schema.parse({})).toEqual({ fruit: "apple" });
-  expect(schema.parse({}, { jitless: true })).toEqual({ fruit: "apple" });
-  expect(schema.parse({ fruit: true })).toEqual({ fruit: "apple" });
-  expect(schema.parse({ fruit: 15 })).toEqual({ fruit: "apple" });
+  expect(Schema.parse({})).toEqual({ fruit: "apple" });
+  expect(Schema.parse({}, { jitless: true })).toEqual({ fruit: "apple" });
+  expect(Schema.parse({ fruit: true })).toEqual({ fruit: "apple" });
+  expect(Schema.parse({ fruit: 15 })).toEqual({ fruit: "apple" });
 });
 
 test("reported issues with nested usage", () => {
-  const schema = z.object({
-    string: z.string(),
-    obj: z.object({
-      sub: z.object({
-        lit: z.literal("a"),
-        subCatch: z.number().catch(23),
+  const schema = Schema.object({
+    string: Schema.string(),
+    obj: Schema.object({
+      sub: Schema.object({
+        lit: Schema.literal("a"),
+        subCatch: Schema.number().catch(23),
       }),
-      midCatch: z.number().catch(42),
+      midCatch: Schema.number().catch(42),
     }),
-    number: z.number().catch(0),
-    bool: z.boolean(),
+    number: Schema.number().catch(0),
+    bool: Schema.boolean(),
   });
 
   try {
-    schema.parse({
+    Schema.parse({
       string: {},
       obj: {
         sub: {
@@ -173,7 +173,7 @@ test("reported issues with nested usage", () => {
       bool: "yes",
     });
   } catch (error) {
-    const issues = (error as z.ZodError).issues;
+    const issues = (error as Schema  .SchemaError).issues;
 
     expect(issues.length).toEqual(3);
     expect(issues).toMatchInlineSnapshot(`
@@ -215,9 +215,9 @@ test("reported issues with nested usage", () => {
 });
 
 test("catch error", () => {
-  const schema = z.object({
-    age: z.number(),
-    name: z.string().catch((ctx) => {
+  const schema = Schema.object({
+    age: Schema.number(),
+    name: Schema.string().catch((ctx) => {
       ctx.issues;
       // issues = ctx.issues;
 
@@ -225,14 +225,14 @@ test("catch error", () => {
     }),
   });
 
-  const result = schema.safeParse({
+  const result = Schema.safeParse({
     age: null,
     name: null,
   });
 
   expect(result.success).toEqual(false);
   expect(result.error!).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "number",
         "code": "invalid_type",
@@ -246,23 +246,23 @@ test("catch error", () => {
 });
 
 test("ctx.input", () => {
-  const schema = z.string().catch((ctx) => {
+  const schema = Schema.string().catch((ctx) => {
     return String(ctx.input);
   });
 
-  expect(schema.parse(123)).toEqual("123");
+  expect(Schema.parse(123)).toEqual("123");
 });
 
 test("ctx.value is the input to the catch, not what the inner schema made of it", async () => {
   const seen: unknown[] = [];
-  const cb = (ctx: z.core.$ZodCatchCtx) => {
+  const cb = (ctx: Schema.core.$SchemaCatchCtx) => {
     seen.push(ctx.value, ctx.input);
     return -1;
   };
 
-  expect(z.coerce.number().min(10).catch(cb).parse("5")).toBe(-1);
+  expect(Schema.coerce.number().min(10).catch(cb).parse("5")).toBe(-1);
   expect(
-    await z.coerce
+    await Schema.coerce
       .number()
       .refine(async (n) => n >= 10)
       .catch(cb)
@@ -281,8 +281,8 @@ test("ctx.value is the input to the catch, not what the inner schema made of it"
 });
 
 test("ctx.issues outlives the callback", () => {
-  let stashed!: z.core.$ZodRawIssue[];
-  z.string()
+  let stashed!: Schema.core.$SchemaRawIssue[];
+  Schema.string()
     .min(10)
     .catch((ctx) => {
       stashed = ctx.issues;
@@ -295,10 +295,10 @@ test("ctx.issues outlives the callback", () => {
 });
 
 test("catch ctx carries the rest of the payload through", () => {
-  let seen!: z.core.$ZodCatchCtx;
-  z.string()
+  let seen!: Schema.core.$SchemaCatchCtx;
+  Schema.string()
     .min(10)
-    .pipe(z.string())
+    .pipe(Schema.string())
     .catch((ctx) => {
       seen = ctx;
       return "fallback";
@@ -310,7 +310,7 @@ test("catch ctx carries the rest of the payload through", () => {
 
 test("catch does not swallow an issue it did not cause", () => {
   // A pipe hands its `out` schema the caller's issues array so an unrecognized key can survive to an enclosing intersection. The catch must not read that as its own inner failing.
-  const result = z.strictObject({ a: z.string() }).pipe(z.any().catch("CAUGHT")).safeParse({ a: "x", extra: 1 });
+  const result = Schema.strictObject({ a: Schema.string() }).pipe(Schema.any().catch("CAUGHT")).safeParse({ a: "x", extra: 1 });
 
   expect(result.success).toBe(false);
   expect(result.error!.issues.map((i) => i.code)).toEqual(["unrecognized_keys"]);
@@ -318,17 +318,17 @@ test("catch does not swallow an issue it did not cause", () => {
 
 test("catch does not break intersection reconciliation", () => {
   // Forwarding the unrecognized key is what lets the intersection reconcile it. A catch that fired on it substituted its fallback into one side, and the merge threw out of safeParse.
-  const schema = z.intersection(
-    z.strictObject({ a: z.string() }).pipe(z.any().catch("CAUGHT")),
-    z.strictObject({ b: z.string() })
+  const schema = Schema.intersection(
+    Schema.strictObject({ a: Schema.string() }).pipe(Schema.any().catch("CAUGHT")),
+    Schema.strictObject({ b: Schema.string() })
   );
 
-  expect(schema.parse({ a: "x", b: "y" })).toEqual({ a: "x", b: "y" });
+  expect(Schema.parse({ a: "x", b: "y" })).toEqual({ a: "x", b: "y" });
 });
 
 test("catch propagates a back-edge to whatever wraps it", () => {
   // The memoizer marks a payload whose value is a node still being parsed. That mark has to survive the catch: an enclosing readonly must not freeze a half-built object, and the node's checks belong to the node itself rather than to the back-edge.
-  const Node: any = z.object({
+  const Node: any = Schema.object({
     get self() {
       return z
         .lazy(() => Node)
@@ -344,7 +344,7 @@ test("catch propagates a back-edge to whatever wraps it", () => {
   expect(Object.keys(frozen.data)).toEqual(["self"]);
 
   let checks = 0;
-  const Checked: any = z.object({
+  const Checked: any = Schema.object({
     get self() {
       return z
         .lazy(() => Checked)
@@ -366,10 +366,10 @@ test("a catch that fires does not rescue an issue from outside it", () => {
   // The callback still runs and still computes its fallback — the inner schema really did fail. What it cannot do is answer for the unrecognized key the pipe forwarded past it, so the parse fails anyway.
   let fired = 0;
   const result = z
-    .strictObject({ a: z.string() })
+    .strictObject({ a: Schema.string() })
     .pipe(
       z
-        .object({ a: z.string() })
+        .object({ a: Schema.string() })
         .refine(() => false)
         .catch(() => {
           fired++;
@@ -384,15 +384,15 @@ test("a catch that fires does not rescue an issue from outside it", () => {
 });
 
 test("direction-aware catch", () => {
-  const schema = z.string().catch("fallback");
+  const schema = Schema.string().catch("fallback");
 
   // Forward direction (regular parse): catch should be applied
-  expect(schema.parse(123)).toBe("fallback");
+  expect(Schema.parse(123)).toBe("fallback");
 
   // Reverse direction (encode): catch should NOT be applied, invalid value should fail validation
-  expect(z.safeEncode(schema, 123 as any)).toMatchInlineSnapshot(`
+  expect(Schema.safeEncode(schema, 123 as any)).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -405,7 +405,7 @@ test("direction-aware catch", () => {
   `);
 
   // But valid values should still work in reverse
-  expect(z.encode(schema, "world")).toBe("world");
+  expect(Schema.encode(schema, "world")).toBe("world");
 });
 
 test("optional clobbers catch through pipe boundaries", () => {
@@ -417,7 +417,7 @@ test("optional clobbers catch through pipe boundaries", () => {
       .optional()
       .parse(undefined)
   ).toBeUndefined();
-  expect(z.string().catch("X").pipe(z.string()).optional().parse(undefined)).toBeUndefined();
+  expect(Schema.string().catch("X").pipe(Schema.string()).optional().parse(undefined)).toBeUndefined();
   expect(
     z
       .string()
@@ -457,7 +457,7 @@ test("optional clobbers catch through pipe boundaries", () => {
 
 test("catch does not resurrect issues an inner optional already resolved", () => {
   // `.catch()` reads issues off the payload it passed down, so an optional that resolved a failure without clearing that array let the failure resurface. The pipe rows matter: a pipe shares the array with a different payload object.
-  const chains: [string, () => z.ZodType][] = [
+  const chains: [string, () => Schema.SchemaType][] = [
     [
       "prefault.optional",
       () =>
@@ -474,8 +474,8 @@ test("catch does not resurrect issues an inner optional already resolved", () =>
           .default(null as any)
           .optional(),
     ],
-    ["prefault.pipe.optional", () => z.string().prefault("abc").pipe(z.string().min(10)).optional()],
-    ["default.pipe.optional", () => z.string().default("abc").pipe(z.string().min(10)).optional()],
+    ["prefault.pipe.optional", () => Schema.string().prefault("abc").pipe(Schema.string().min(10)).optional()],
+    ["default.pipe.optional", () => Schema.string().default("abc").pipe(Schema.string().min(10)).optional()],
     [
       "prefault.optional.optional",
       () =>
@@ -487,7 +487,7 @@ test("catch does not resurrect issues an inner optional already resolved", () =>
     ],
     [
       "prefault.pipe.optional.optional",
-      () => z.string().prefault("abc").pipe(z.string().min(10)).optional().optional(),
+      () => Schema.string().prefault("abc").pipe(Schema.string().min(10)).optional().optional(),
     ],
   ];
 
@@ -509,8 +509,8 @@ test("catch does not resurrect issues an inner optional already resolved", () =>
       .safeParse({ a: undefined }).success
   ).toBe(true);
 
-  expect(z.string().catch("FB").parse(123)).toBe("FB");
-  expect(z.string().optional().safeParse(123).success).toBe(false);
+  expect(Schema.string().catch("FB").parse(123)).toBe("FB");
+  expect(Schema.string().optional().safeParse(123).success).toBe(false);
 });
 
 test("resolving an optional's failure clears the abort flag with it", () => {
@@ -519,11 +519,11 @@ test("resolving an optional's failure clears the abort flag with it", () => {
     .string()
     .min(10)
     .prefault("abc")
-    .pipe(z.string())
+    .pipe(Schema.string())
     .optional()
     .refine(() => false, "REFINE RAN");
 
-  const result = schema.safeParse(undefined);
+  const result = Schema.safeParse(undefined);
   expect(result.success).toBe(false);
   expect(result.error!.issues[0]?.message).toBe("REFINE RAN");
 });
@@ -533,11 +533,11 @@ test("catch clears the abort flag along with the issues", () => {
   const schema = z
     .string()
     .min(10)
-    .pipe(z.string())
+    .pipe(Schema.string())
     .catch("FB")
     .refine(() => false, "REFINE RAN");
 
-  const result = schema.safeParse("abc");
+  const result = Schema.safeParse("abc");
   expect(result.success).toBe(false);
   expect(result.error!.issues[0]?.message).toBe("REFINE RAN");
 
@@ -545,7 +545,7 @@ test("catch clears the abort flag along with the issues", () => {
     z
       .string()
       .min(2)
-      .pipe(z.string())
+      .pipe(Schema.string())
       .catch("FB")
       .refine(() => false, "REFINE RAN")
       .safeParse("abcdef").success
@@ -565,11 +565,11 @@ test("catch clears the abort flag on the async branch too", () => {
   const schema = z
     .string()
     .refine(async () => false, "INNER")
-    .pipe(z.string())
+    .pipe(Schema.string())
     .catch("FB")
     .refine(() => false, "REFINE RAN");
 
-  return expect(schema.safeParseAsync("abc")).resolves.toMatchObject({
+  return expect(Schema.safeParseAsync("abc")).resolves.toMatchObject({
     success: false,
     error: { issues: [{ message: "REFINE RAN" }] },
   });
@@ -577,13 +577,13 @@ test("catch clears the abort flag on the async branch too", () => {
 
 test("catch resolves the issues array itself, so an outer catch does not resurrect them", () => {
   // A pipe runs its `out` on a payload sharing the caller's issues array, so a catch that rebinds its own reference leaves the caller's copy dirty.
-  const inner = z.string().pipe(z.string().min(10).catch("FB"));
+  const inner = Schema.string().pipe(Schema.string().min(10).catch("FB"));
 
   expect(inner.safeParse("abc")).toMatchObject({ success: true, data: "FB" });
   expect(inner.catch("FB2").safeParse("abc")).toMatchObject({ success: true, data: "FB" });
 
-  expect(z.string().catch("FB").parse(123)).toBe("FB");
-  expect(z.string().catch("FB").parse("ok")).toBe("ok");
+  expect(Schema.string().catch("FB").parse(123)).toBe("FB");
+  expect(Schema.string().catch("FB").parse("ok")).toBe("ok");
   expect(
     z
       .string()
@@ -593,7 +593,7 @@ test("catch resolves the issues array itself, so an outer catch does not resurre
 });
 
 test("catch resolves the issues array on the async branch too", () => {
-  const inner = z.string().pipe(
+  const inner = Schema.string().pipe(
     z
       .string()
       .refine(async () => false, "INNER")

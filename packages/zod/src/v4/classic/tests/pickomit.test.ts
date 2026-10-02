@@ -1,15 +1,15 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const fish = z.object({
-  name: z.string(),
-  age: z.number(),
-  nested: z.object({}),
+const fish = Schema.object({
+  name: Schema.string(),
+  age: Schema.number(),
+  nested: Schema.object({}),
 });
 
 test("pick type inference", () => {
   const nameonlyFish = fish.pick({ name: true });
-  type nameonlyFish = z.infer<typeof nameonlyFish>;
+  type nameonlyFish = Schema.infer<typeof nameonlyFish>;
   expectTypeOf<nameonlyFish>().toEqualTypeOf<{ name: string }>();
 });
 
@@ -43,17 +43,17 @@ test("pick parse - fail", () => {
 });
 
 test("pick - remove optional", () => {
-  const schema = z.object({ a: z.string(), b: z.string().optional() });
-  expect("a" in schema._zod.def.shape).toEqual(true);
-  expect("b" in schema._zod.def.shape!).toEqual(true);
-  const picked = schema.pick({ a: true });
-  expect("a" in picked._zod.def.shape).toEqual(true);
-  expect("b" in picked._zod.def.shape!).toEqual(false);
+  const schema = Schema.object({ a: Schema.string(), b: Schema.string().optional() });
+  expect("a" in Schema._schema.def.shape).toEqual(true);
+  expect("b" in Schema._schema.def.shape!).toEqual(true);
+  const picked = Schema.pick({ a: true });
+  expect("a" in picked._schema.def.shape).toEqual(true);
+  expect("b" in picked._schema.def.shape!).toEqual(false);
 });
 
 test("omit type inference", () => {
   const nonameFish = fish.omit({ name: true });
-  type nonameFish = z.infer<typeof nonameFish>;
+  type nonameFish = Schema.infer<typeof nonameFish>;
 
   expectTypeOf<nonameFish>().toEqualTypeOf<{ age: number; nested: Record<string, never> }>();
 });
@@ -84,15 +84,15 @@ test("omit parse - fail", () => {
 });
 
 test("omit - remove optional", () => {
-  const schema = z.object({ a: z.string(), b: z.string().optional() });
-  expect("a" in schema._zod.def.shape).toEqual(true);
-  const omitted = schema.omit({ a: true });
-  expect("a" in omitted._zod.def.shape).toEqual(false);
+  const schema = Schema.object({ a: Schema.string(), b: Schema.string().optional() });
+  expect("a" in Schema._schema.def.shape).toEqual(true);
+  const omitted = Schema.omit({ a: true });
+  expect("a" in omitted._schema.def.shape).toEqual(false);
 });
 
 test("nonstrict inference", () => {
-  const laxfish = fish.pick({ name: true }).catchall(z.any());
-  type laxfish = z.infer<typeof laxfish>;
+  const laxfish = fish.pick({ name: true }).catchall(Schema.any());
+  type laxfish = Schema.infer<typeof laxfish>;
   expectTypeOf<laxfish>().toEqualTypeOf<{ name: string; [k: string]: any }>();
 });
 
@@ -109,37 +109,37 @@ test("nonstrict parsing - fail", () => {
 });
 
 test("pick/omit/required/partial - do not allow unknown keys", () => {
-  const schema = z.object({
-    name: z.string(),
-    age: z.number(),
+  const schema = Schema.object({
+    name: Schema.string(),
+    age: Schema.number(),
   });
 
   // Mixed valid + invalid keys
   // @ts-expect-error
-  expect(() => schema.pick({ name: true, asdf: true }).safeParse({})).toThrow();
+  expect(() => Schema.pick({ name: true, asdf: true }).safeParse({})).toThrow();
   // @ts-expect-error
-  expect(() => schema.omit({ name: true, asdf: true }).safeParse({})).toThrow();
+  expect(() => Schema.omit({ name: true, asdf: true }).safeParse({})).toThrow();
   // @ts-expect-error
-  expect(() => schema.partial({ name: true, asdf: true }).safeParse({})).toThrow();
+  expect(() => Schema.partial({ name: true, asdf: true }).safeParse({})).toThrow();
   // @ts-expect-error
-  expect(() => schema.required({ name: true, asdf: true }).safeParse({})).toThrow();
+  expect(() => Schema.required({ name: true, asdf: true }).safeParse({})).toThrow();
 
   // Only invalid keys
   // @ts-expect-error
-  expect(() => schema.pick({ $unknown: true }).safeParse({})).toThrow();
+  expect(() => Schema.pick({ $unknown: true }).safeParse({})).toThrow();
   // @ts-expect-error
-  expect(() => schema.omit({ $unknown: true }).safeParse({})).toThrow();
+  expect(() => Schema.omit({ $unknown: true }).safeParse({})).toThrow();
   // @ts-expect-error
-  expect(() => schema.required({ $unknown: true }).safeParse({})).toThrow();
+  expect(() => Schema.required({ $unknown: true }).safeParse({})).toThrow();
   // @ts-expect-error
-  expect(() => schema.partial({ $unknown: true }).safeParse({})).toThrow();
+  expect(() => Schema.partial({ $unknown: true }).safeParse({})).toThrow();
 });
 
 test("pick - throws error on schema with refinements", () => {
-  const baseSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    items: z.string().array(),
+  const baseSchema = Schema.object({
+    id: Schema.string(),
+    name: Schema.string(),
+    items: Schema.string().array(),
   });
 
   const refinedSchema = baseSchema.superRefine((val, ctx) => {
@@ -158,10 +158,10 @@ test("pick - throws error on schema with refinements", () => {
 });
 
 test("omit - throws error on schema with refinements", () => {
-  const baseSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    items: z.string().array(),
+  const baseSchema = Schema.object({
+    id: Schema.string(),
+    name: Schema.string(),
+    items: Schema.string().array(),
   });
 
   const refinedSchema = baseSchema.superRefine((val, ctx) => {
@@ -180,9 +180,9 @@ test("omit - throws error on schema with refinements", () => {
 });
 
 test("pick - throws error on schema with refine", () => {
-  const baseSchema = z.object({
-    password: z.string(),
-    confirmPassword: z.string(),
+  const baseSchema = Schema.object({
+    password: Schema.string(),
+    confirmPassword: Schema.string(),
   });
 
   const refinedSchema = baseSchema.refine((data) => data.password === data.confirmPassword, {
@@ -195,10 +195,10 @@ test("pick - throws error on schema with refine", () => {
 });
 
 test("omit - throws error on schema with refine", () => {
-  const baseSchema = z.object({
-    password: z.string(),
-    confirmPassword: z.string(),
-    email: z.string(),
+  const baseSchema = Schema.object({
+    password: Schema.string(),
+    confirmPassword: Schema.string(),
+    email: Schema.string(),
   });
 
   const refinedSchema = baseSchema.refine((data) => data.password === data.confirmPassword, {

@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
 
-import * as z from "../../index.js";
-import { INVALID, ZodCompileUnsupportedError, compile, compileFn } from "../compile.js";
+import * as Schema from "../../index.js";
+import { INVALID, SchemaCompileUnsupportedError, compile, compileFn } from "../compile.js";
 
 // Differential harness: assert compiled schema agrees with the original on every fixture. Success path: data identical (incl. key order and undefined-vs-absent, which toEqual cannot see) AND the fast path actually produced the value (a fixture set that silently falls back on valid inputs tests nothing). Failure path: issues deep-equal (errors always come from the runtime fallback).
 function describe(value: unknown): string {
@@ -56,14 +56,14 @@ function assertIdentical(actual: unknown, expected: unknown, path: string): void
   }
 }
 
-function differential(schema: z.ZodType, inputs: unknown[], opts?: { fallbackOk?: boolean }) {
+function differential(schema: Schema.SchemaType, inputs: unknown[], opts?: { fallbackOk?: boolean }) {
   const compiled = compile(schema);
   const fast = compileFn(schema);
   // Assert-mode codegen shares every validation path with the parser and only drops the output construction, so it must reach the same verdict on every fixture. Refusing to compile at all is fine (the caller falls back); silently disagreeing is the drift this catches.
   const assertFast = attempt(() => compileFn(schema, { assertOnly: true })).value;
   for (const input of inputs) {
     // A schema may throw rather than return — an async check reached synchronously does. Both sides have to agree on that too, and comparing results would just rethrow.
-    const at = attempt(() => schema.safeParse(input));
+    const at = attempt(() => Schema.safeParse(input));
     const bt = attempt(() => compiled.safeParse(input));
     expect(
       bt.threw,
@@ -108,7 +108,7 @@ function differential(schema: z.ZodType, inputs: unknown[], opts?: { fallbackOk?
  * Wrap the schema next to a branch that accepts anything and assert the sentinel
  * never wins on input the schema itself accepts.
  */
-/** Runs `fn`, reporting the error's class rather than letting it escape. `constructor.name`, not `.name`: `$ZodAsyncError` never sets `.name`, so it reads as plain `"Error"` and a swapped error class would compare equal to a user throw. */
+/** Runs `fn`, reporting the error's class rather than letting it escape. `constructor.name`, not `.name`: `$SchemaAsyncError` never sets `.name`, so it reads as plain `"Error"` and a swapped error class would compare equal to a user throw. */
 function attempt<T>(fn: () => T): { value?: T; threw?: string } {
   try {
     return { value: fn() };
@@ -117,19 +117,19 @@ function attempt<T>(fn: () => T): { value?: T; threw?: string } {
   }
 }
 
-function assertUnionSound(schema: z.ZodType, inputs: unknown[]) {
+function assertUnionSound(schema: Schema.SchemaType, inputs: unknown[]) {
   const marker = Symbol("sentinel");
-  const sentinel = z.any().transform(() => marker);
-  let union: z.ZodType;
-  let compiledUnion: z.ZodType;
+  const sentinel = Schema.any().transform(() => marker);
+  let union: Schema.SchemaType;
+  let compiledUnion: Schema.SchemaType;
   try {
-    union = z.union([schema, sentinel]) as unknown as z.ZodType;
+    union = Schema.union([schema, sentinel]) as unknown as Schema  .SchemaType;
     compiledUnion = compile(union);
   } catch {
     return; // Refused at codegen, which is the outcome a union honours.
   }
   for (const input of inputs) {
-    const direct = attempt(() => schema.safeParse(input));
+    const direct = attempt(() => Schema.safeParse(input));
     const viaUnion = attempt(() => compiledUnion.safeParse(input));
 
     if (direct.threw) {
@@ -158,106 +158,106 @@ function assertUnionSound(schema: z.ZodType, inputs: unknown[]) {
 // --- primitives ---
 
 test("string", () => {
-  differential(z.string(), ["", "hello", " ", "\n", 0, null, undefined, [], {}]);
+  differential(Schema.string(), ["", "hello", " ", "\n", 0, null, undefined, [], {}]);
 });
 
 test("number", () => {
-  differential(z.number(), [0, 1, -1, 1.5, Number.MAX_SAFE_INTEGER, Number.NaN, Number.POSITIVE_INFINITY, "1", null]);
+  differential(Schema.number(), [0, 1, -1, 1.5, Number.MAX_SAFE_INTEGER, Number.NaN, Number.POSITIVE_INFINITY, "1", null]);
 });
 
 test("boolean", () => {
-  differential(z.boolean(), [true, false, 0, 1, "true", null, undefined]);
+  differential(Schema.boolean(), [true, false, 0, 1, "true", null, undefined]);
 });
 
 test("bigint", () => {
-  differential(z.bigint(), [0n, 1n, -1n, 9999999999999999999n, 1, "1", null]);
+  differential(Schema.bigint(), [0n, 1n, -1n, 9999999999999999999n, 1, "1", null]);
 });
 
 test("date", () => {
-  differential(z.date(), [new Date(), new Date(0), new Date("invalid"), "2024-01-01", 0, null]);
+  differential(Schema.date(), [new Date(), new Date(0), new Date("invalid"), "2024-01-01", 0, null]);
 });
 
 test("null/undefined/void", () => {
-  differential(z.null(), [null, undefined, 0, false]);
-  differential(z.undefined(), [undefined, null, 0, false]);
-  differential(z.void(), [undefined, null, 0]);
+  differential(Schema.null(), [null, undefined, 0, false]);
+  differential(Schema.undefined(), [undefined, null, 0, false]);
+  differential(Schema.void(), [undefined, null, 0]);
 });
 
 test("nan", () => {
-  differential(z.nan(), [Number.NaN, 0, "NaN", null, Number.POSITIVE_INFINITY]);
+  differential(Schema.nan(), [Number.NaN, 0, "NaN", null, Number.POSITIVE_INFINITY]);
 });
 
 test("any/unknown", () => {
-  differential(z.any(), [undefined, null, 0, "x", { a: 1 }, [1, 2]]);
-  differential(z.unknown(), [undefined, null, 0, "x", { a: 1 }]);
+  differential(Schema.any(), [undefined, null, 0, "x", { a: 1 }, [1, 2]]);
+  differential(Schema.unknown(), [undefined, null, 0, "x", { a: 1 }]);
 });
 
 test("never", () => {
-  differential(z.never(), [undefined, null, 0, "x", {}]);
+  differential(Schema.never(), [undefined, null, 0, "x", {}]);
 });
 
 // --- literals & enums ---
 
 test("literal single", () => {
-  differential(z.literal("a"), ["a", "b", 1, null]);
-  differential(z.literal(42), [42, 43, "42"]);
-  differential(z.literal(true), [true, false, 1]);
+  differential(Schema.literal("a"), ["a", "b", 1, null]);
+  differential(Schema.literal(42), [42, 43, "42"]);
+  differential(Schema.literal(true), [true, false, 1]);
 });
 
 test("literal multi-value", () => {
-  differential(z.literal(["a", "b", 1]), ["a", "b", 1, "c", 2]);
+  differential(Schema.literal(["a", "b", 1]), ["a", "b", 1, "c", 2]);
 });
 
 test("enum", () => {
-  differential(z.enum(["red", "green", "blue"]), ["red", "blue", "yellow", null]);
+  differential(Schema.enum(["red", "green", "blue"]), ["red", "blue", "yellow", null]);
 });
 
 // --- wrappers ---
 
 test("optional", () => {
-  differential(z.string().optional(), ["hello", undefined, null, 0]);
+  differential(Schema.string().optional(), ["hello", undefined, null, 0]);
 });
 
 test("nullable", () => {
-  differential(z.string().nullable(), ["hello", null, undefined, 0]);
+  differential(Schema.string().nullable(), ["hello", null, undefined, 0]);
 });
 
 // A wrapper around a container is where assert mode stops building: the wrapper itself constructs nothing, so the object or array inside it drops its output. Wrapping a scalar exercises none of that.
 test("wrapped containers", () => {
-  const shape = { a: z.string(), b: z.number() };
-  differential(z.object(shape).nullable(), [{ a: "x", b: 1 }, null, undefined, { a: 1, b: 1 }, "no"]);
-  differential(z.looseObject(shape).optional(), [{ a: "x", b: 1, extra: 9 }, undefined, null, { a: 1 }]);
-  differential(z.strictObject(shape).nullable(), [{ a: "x", b: 1 }, null, { a: "x", b: 1, extra: 9 }]);
-  differential(z.array(z.object(shape)).nullable(), [[{ a: "x", b: 1 }], [], null, [{ a: 1 }]]);
-  differential(z.object({ inner: z.object(shape).nullable() }), [
+  const shape = { a: Schema.string(), b: Schema.number() };
+  differential(Schema.object(shape).nullable(), [{ a: "x", b: 1 }, null, undefined, { a: 1, b: 1 }, "no"]);
+  differential(Schema.looseObject(shape).optional(), [{ a: "x", b: 1, extra: 9 }, undefined, null, { a: 1 }]);
+  differential(Schema.strictObject(shape).nullable(), [{ a: "x", b: 1 }, null, { a: "x", b: 1, extra: 9 }]);
+  differential(Schema.array(Schema.object(shape)).nullable(), [[{ a: "x", b: 1 }], [], null, [{ a: 1 }]]);
+  differential(Schema.object({ inner: Schema.object(shape).nullable() }), [
     { inner: { a: "x", b: 1 } },
     { inner: null },
     { inner: { a: 1, b: 1 } },
   ]);
-  differential(z.object({ inner: z.looseObject(shape).optional() }), [{ inner: { a: "x", b: 1 } }, {}, { inner: 5 }]);
+  differential(Schema.object({ inner: Schema.looseObject(shape).optional() }), [{ inner: { a: "x", b: 1 } }, {}, { inner: 5 }]);
 });
 
 test("nullish", () => {
-  differential(z.string().nullish(), ["hello", null, undefined, 0]);
+  differential(Schema.string().nullish(), ["hello", null, undefined, 0]);
 });
 
 test("default", () => {
-  differential(z.string().default("fallback"), ["hi", undefined, null, 1]);
+  differential(Schema.string().default("fallback"), ["hi", undefined, null, 1]);
 });
 
 test("prefault runs default through inner schema", () => {
-  differential(z.string().trim().prefault("  fallback  "), ["hi", undefined, null, 1]);
-  differential(z.string().min(3).prefault("x"), [undefined, "abcd"]);
+  differential(Schema.string().trim().prefault("  fallback  "), ["hi", undefined, null, 1]);
+  differential(Schema.string().min(3).prefault("x"), [undefined, "abcd"]);
 });
 
 test("optional wrapping default/prefault", () => {
-  differential(z.string().default("fallback").optional(), ["hi", undefined, null, 1]);
-  differential(z.string().trim().prefault("  fallback  ").optional(), ["hi", undefined, null, 1]);
-  differential(z.string().min(3).prefault("x").optional(), [undefined, "abcd", "x", null]);
+  differential(Schema.string().default("fallback").optional(), ["hi", undefined, null, 1]);
+  differential(Schema.string().trim().prefault("  fallback  ").optional(), ["hi", undefined, null, 1]);
+  differential(Schema.string().min(3).prefault("x").optional(), [undefined, "abcd", "x", null]);
 });
 
 test("exactOptional top-level rejects undefined", () => {
-  differential(z.string().exactOptional(), ["hi", undefined, null, 1]);
+  differential(Schema.string().exactOptional(), ["hi", undefined, null, 1]);
 });
 
 test("default applies after transform output", () => {
@@ -271,56 +271,56 @@ test("default applies after transform output", () => {
 });
 
 test("readonly", () => {
-  differential(z.string().readonly(), ["hello", 1, null]);
+  differential(Schema.string().readonly(), ["hello", 1, null]);
 });
 
 // --- containers ---
 
 test("array", () => {
-  differential(z.array(z.number()), [[], [1, 2, 3], [1, "x"], null, "abc"]);
+  differential(Schema.array(Schema.number()), [[], [1, 2, 3], [1, "x"], null, "abc"]);
 });
 
 test("array of objects", () => {
-  differential(z.array(z.object({ id: z.number() })), [[], [{ id: 1 }], [{ id: "x" }], [{}, { id: 2 }]]);
+  differential(Schema.array(Schema.object({ id: Schema.number() })), [[], [{ id: 1 }], [{ id: "x" }], [{}, { id: 2 }]]);
 });
 
 test("array with length checks", () => {
-  differential(z.array(z.number()).min(1).max(3), [[], [1], [1, 2, 3], [1, 2, 3, 4]]);
+  differential(Schema.array(Schema.number()).min(1).max(3), [[], [1], [1, 2, 3], [1, 2, 3, 4]]);
 });
 
 test("tuple fixed", () => {
-  differential(z.tuple([z.string(), z.number()]), [["a", 1], ["a"], ["a", 1, "x"], [1, "a"], null]);
+  differential(Schema.tuple([Schema.string(), Schema.number()]), [["a", 1], ["a"], ["a", 1, "x"], [1, "a"], null]);
 });
 
 test("tuple with rest", () => {
-  differential(z.tuple([z.string()], z.number()), [["a"], ["a", 1, 2], ["a", "x"], [1]]);
+  differential(Schema.tuple([Schema.string()], Schema.number()), [["a"], ["a", 1, 2], ["a", "x"], [1]]);
 });
 
 test("tuple with trailing optional", () => {
-  differential(z.tuple([z.string(), z.number().optional()]), [["a"], ["a", 1], [], ["a", "x"]]);
+  differential(Schema.tuple([Schema.string(), Schema.number().optional()]), [["a"], ["a", 1], [], ["a", "x"]]);
 });
 
 test("tuple with missing slots filled by default/prefault", () => {
-  differential(z.tuple([z.string().default("fallback")]), [[], ["x"], [1]]);
-  differential(z.tuple([z.string().trim().prefault("  fallback  ")]), [[], ["  x  "], [1]]);
-  differential(z.tuple([z.string().default("fallback"), z.number().optional()]), [[], ["x"], ["x", 1], ["x", "bad"]]);
+  differential(Schema.tuple([Schema.string().default("fallback")]), [[], ["x"], [1]]);
+  differential(Schema.tuple([Schema.string().trim().prefault("  fallback  ")]), [[], ["  x  "], [1]]);
+  differential(Schema.tuple([Schema.string().default("fallback"), Schema.number().optional()]), [[], ["x"], ["x", 1], ["x", "bad"]]);
 });
 
 test("tuple optional-output tail can still fill or truncate", () => {
-  differential(z.tuple([z.string().default("fallback").optional()]), [[], ["x"], [undefined], [1]]);
-  differential(z.tuple([z.string().min(3).prefault("x").optional()]), [[], ["abcd"], ["x"], [1]]);
+  differential(Schema.tuple([Schema.string().default("fallback").optional()]), [[], ["x"], [undefined], [1]]);
+  differential(Schema.tuple([Schema.string().min(3).prefault("x").optional()]), [[], ["abcd"], ["x"], [1]]);
 });
 
 test("tuple with exactOptional distinguishes absent from explicit undefined", () => {
-  differential(z.tuple([z.string().exactOptional()]), [[], ["x"], [undefined], [1]]);
-  differential(z.tuple([z.number(), z.string().exactOptional()]), [
+  differential(Schema.tuple([Schema.string().exactOptional()]), [[], ["x"], [undefined], [1]]);
+  differential(Schema.tuple([Schema.number(), Schema.string().exactOptional()]), [
     [1],
     [1, "x"],
     [1, undefined],
     [],
     [1, "x", "extra"],
   ]);
-  differential(z.tuple([z.string().optional(), z.number().exactOptional()]), [
+  differential(Schema.tuple([Schema.string().optional(), Schema.number().exactOptional()]), [
     [],
     ["x"],
     ["x", 1],
@@ -331,7 +331,7 @@ test("tuple with exactOptional distinguishes absent from explicit undefined", ()
 });
 
 test("object simple", () => {
-  differential(z.object({ name: z.string(), age: z.number() }), [
+  differential(Schema.object({ name: Schema.string(), age: Schema.number() }), [
     { name: "a", age: 1 },
     { name: "a", age: 1, extra: "x" },
     { name: 1, age: 1 },
@@ -341,7 +341,7 @@ test("object simple", () => {
 });
 
 test("object nested", () => {
-  differential(z.object({ user: z.object({ name: z.string() }) }), [
+  differential(Schema.object({ user: Schema.object({ name: Schema.string() }) }), [
     { user: { name: "a" } },
     { user: { name: 1 } },
     { user: {} },
@@ -350,7 +350,7 @@ test("object nested", () => {
 });
 
 test("object with optional + default", () => {
-  differential(z.object({ a: z.string().optional(), b: z.number().default(0) }), [
+  differential(Schema.object({ a: Schema.string().optional(), b: Schema.number().default(0) }), [
     {},
     { a: "x" },
     { b: 5 },
@@ -361,10 +361,10 @@ test("object with optional + default", () => {
 
 test("object with optional wrapping default/prefault", () => {
   differential(
-    z.object({
-      a: z.string().default("fallback").optional(),
-      b: z.string().trim().prefault("  trimmed  ").optional(),
-      c: z.string().min(3).prefault("x").optional(),
+    Schema.object({
+      a: Schema.string().default("fallback").optional(),
+      b: Schema.string().trim().prefault("  trimmed  ").optional(),
+      c: Schema.string().min(3).prefault("x").optional(),
     }),
     [{}, { a: undefined, b: undefined, c: undefined }, { a: "x", b: " y ", c: "abc" }, { a: null }]
   );
@@ -372,24 +372,24 @@ test("object with optional wrapping default/prefault", () => {
 
 test("object with exactOptional distinguishes absent from explicit undefined", () => {
   differential(
-    z.object({
-      exact: z.string().exactOptional(),
-      loose: z.string().optional(),
+    Schema.object({
+      exact: Schema.string().exactOptional(),
+      loose: Schema.string().optional(),
     }),
     [{}, { exact: "x" }, { exact: undefined }, { loose: undefined }, { exact: null }]
   );
 });
 
 test("strictObject", () => {
-  differential(z.strictObject({ a: z.string() }), [{ a: "x" }, { a: "x", extra: true }, { a: 1 }, {}]);
+  differential(Schema.strictObject({ a: Schema.string() }), [{ a: "x" }, { a: "x", extra: true }, { a: 1 }, {}]);
 });
 
 test("looseObject", () => {
-  differential(z.looseObject({ a: z.string() }), [{ a: "x" }, { a: "x", extra: true }, { a: 1 }]);
+  differential(Schema.looseObject({ a: Schema.string() }), [{ a: "x" }, { a: "x", extra: true }, { a: 1 }]);
 });
 
 test("object catchall", () => {
-  differential(z.object({ a: z.string() }).catchall(z.number()), [
+  differential(Schema.object({ a: Schema.string() }).catchall(Schema.number()), [
     { a: "x" },
     { a: "x", b: 1, c: 2 },
     { a: "x", b: "y" },
@@ -397,54 +397,54 @@ test("object catchall", () => {
 });
 
 test("record dynamic key", () => {
-  differential(z.record(z.string(), z.number()), [{}, { a: 1, b: 2 }, { a: "x" }]);
+  differential(Schema.record(Schema.string(), Schema.number()), [{}, { a: 1, b: 2 }, { a: "x" }]);
 });
 
 test("record dynamic key rejects enumerable symbol keys", () => {
   const key = Symbol("record-key");
   const input = { a: 1, [key]: 2 };
-  differential(z.record(z.string(), z.number()), [input]);
+  differential(Schema.record(Schema.string(), Schema.number()), [input]);
 });
 
 test("record enum key", () => {
-  differential(z.record(z.enum(["a", "b"]), z.number()), [{ a: 1, b: 2 }, { a: 1, c: 3 }, {}]);
+  differential(Schema.record(Schema.enum(["a", "b"]), Schema.number()), [{ a: 1, b: 2 }, { a: 1, c: 3 }, {}]);
 });
 
 test("record enum key transform applies to output keys", () => {
-  const schema = z.record(
-    z.enum(["a", "b"]).transform((key) => (key === "a" ? "x" : "y")),
-    z.number()
+  const schema = Schema.record(
+    Schema.enum(["a", "b"]).transform((key) => (key === "a" ? "x" : "y")),
+    Schema.number()
   );
   differential(schema, [{ a: 1, b: 2 }, { a: 1 }, { a: 1, b: "bad" }]);
 });
 
 test("map", () => {
-  differential(z.map(z.string(), z.number()), [new Map(), new Map([["a", 1]]), new Map([["a", "x" as any]]), {}]);
+  differential(Schema.map(Schema.string(), Schema.number()), [new Map(), new Map([["a", 1]]), new Map([["a", "x" as any]]), {}]);
 });
 
 test("set", () => {
-  differential(z.set(z.number()), [new Set(), new Set([1, 2]), new Set(["x"]), []]);
+  differential(Schema.set(Schema.number()), [new Set(), new Set([1, 2]), new Set(["x"]), []]);
 });
 
 // --- unions / intersection ---
 
 test("union of primitives", () => {
-  differential(z.union([z.string(), z.number()]), ["a", 1, true, null]);
+  differential(Schema.union([Schema.string(), Schema.number()]), ["a", 1, true, null]);
 });
 
 test("union all-literals (Set optimization)", () => {
-  differential(z.union([z.literal("a"), z.literal("b"), z.literal("c")]), ["a", "b", "c", "d", 1]);
+  differential(Schema.union([Schema.literal("a"), Schema.literal("b"), Schema.literal("c")]), ["a", "b", "c", "d", 1]);
 });
 
 test("xor is unsupported directly; parity holds through a container island", () => {
   // Exactly-one-match counting is unsound against any falsely-rejecting branch, so xor always uses the runtime.
-  expect(() => compile(z.xor([z.string(), z.number()]), { strict: true })).toThrow();
-  differential(z.object({ v: z.xor([z.string(), z.number()]) }), [{ v: "a" }, { v: 1 }, { v: true }, { v: null }]);
-  differential(z.object({ v: z.xor([z.string(), z.any()]) }), [{ v: "a" }, { v: 1 }, { v: null }]);
+  expect(() => compile(Schema.xor([Schema.string(), Schema.number()]), { strict: true })).toThrow();
+  differential(Schema.object({ v: Schema.xor([Schema.string(), Schema.number()]) }), [{ v: "a" }, { v: 1 }, { v: true }, { v: null }]);
+  differential(Schema.object({ v: Schema.xor([Schema.string(), Schema.any()]) }), [{ v: "a" }, { v: 1 }, { v: null }]);
 });
 
 test("intersection of objects", () => {
-  differential(z.intersection(z.object({ a: z.string() }), z.object({ b: z.number() })), [
+  differential(Schema.intersection(Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() })), [
     { a: "x", b: 1 },
     { a: "x" },
     { a: 1, b: 1 },
@@ -453,9 +453,9 @@ test("intersection of objects", () => {
 
 test("intersection deep merge", () => {
   differential(
-    z.intersection(
-      z.object({ nested: z.object({ a: z.string() }) }),
-      z.object({ nested: z.object({ b: z.number() }) })
+    Schema.intersection(
+      Schema.object({ nested: Schema.object({ a: Schema.string() }) }),
+      Schema.object({ nested: Schema.object({ b: Schema.number() }) })
     ),
     [{ nested: { a: "x", b: 1 } }, { nested: { a: "x" } }, { nested: { b: 1 } }, { nested: { a: "x", b: "bad" } }]
   );
@@ -464,7 +464,7 @@ test("intersection deep merge", () => {
 // --- string formats & checks ---
 
 test("string length checks", () => {
-  differential(z.string().min(3).max(5), ["abc", "abcde", "ab", "abcdef", "abcd"]);
+  differential(Schema.string().min(3).max(5), ["abc", "abcde", "ab", "abcdef", "abcd"]);
 });
 
 test("string length checks measure code points", () => {
@@ -477,52 +477,52 @@ test("string length checks measure code points", () => {
     "\uD83D",
     "",
   ];
-  differential(z.string().min(3), inputs);
-  differential(z.string().max(3), inputs);
-  differential(z.string().length(3), inputs);
+  differential(Schema.string().min(3), inputs);
+  differential(Schema.string().max(3), inputs);
+  differential(Schema.string().length(3), inputs);
 });
 
 test("string regex", () => {
-  differential(z.string().regex(/^[a-z]+$/), ["abc", "ABC", "abc123", ""]);
+  differential(Schema.string().regex(/^[a-z]+$/), ["abc", "ABC", "abc123", ""]);
 });
 
 test("string startsWith/endsWith/includes", () => {
-  differential(z.string().startsWith("a").endsWith("z").includes("m"), ["amz", "az", "abz", "amzz", "xyz"]);
+  differential(Schema.string().startsWith("a").endsWith("z").includes("m"), ["amz", "az", "abz", "amzz", "xyz"]);
 });
 
 test("email/uuid", () => {
-  differential(z.email(), ["a@b.co", "not-email", ""]);
-  differential(z.uuid(), ["00000000-0000-0000-0000-000000000000", "abc", ""]);
+  differential(Schema.email(), ["a@b.co", "not-email", ""]);
+  differential(Schema.uuid(), ["00000000-0000-0000-0000-000000000000", "abc", ""]);
 });
 
 // --- numeric checks ---
 
 test("number min/max", () => {
-  differential(z.number().min(0).max(100), [0, 50, 100, -1, 101]);
+  differential(Schema.number().min(0).max(100), [0, 50, 100, -1, 101]);
 });
 
 test("number int / multipleOf", () => {
-  differential(z.number().int(), [0, 5, -5, 1.5, "1"]);
-  differential(z.number().multipleOf(5), [0, 5, 10, 7, 0.5]);
+  differential(Schema.number().int(), [0, 5, -5, 1.5, "1"]);
+  differential(Schema.number().multipleOf(5), [0, 5, 10, 7, 0.5]);
   // float tolerance regression (#5793)
-  differential(z.number().multipleOf(1e-7), [0, 1e-7, 3e-7, 2.5e-7, 1.5e-7]);
+  differential(Schema.number().multipleOf(1e-7), [0, 1e-7, 3e-7, 2.5e-7, 1.5e-7]);
 });
 
 // --- overwrites & transforms ---
 
 test("trim/toLowerCase/toUpperCase", () => {
-  differential(z.string().trim(), ["  hello  ", "hello", "", 1]);
-  differential(z.string().toLowerCase(), ["HELLO", "hello", 1]);
-  differential(z.string().toUpperCase(), ["hello", "HELLO", 1]);
+  differential(Schema.string().trim(), ["  hello  ", "hello", "", 1]);
+  differential(Schema.string().toLowerCase(), ["HELLO", "hello", 1]);
+  differential(Schema.string().toUpperCase(), ["hello", "HELLO", 1]);
 });
 
 test("trim chained with min", () => {
-  differential(z.string().trim().min(3), ["  hi  ", "  hello  ", "", "abc"]);
+  differential(Schema.string().trim().min(3), ["  hi  ", "  hello  ", "", "abc"]);
 });
 
 test("transform basic", () => {
   differential(
-    z.string().transform((s) => s.length),
+    Schema.string().transform((s) => s.length),
     ["", "hi", "hello", 1]
   );
 });
@@ -530,20 +530,20 @@ test("transform basic", () => {
 // --- codec ---
 
 test("codec stringbool", () => {
-  differential(z.stringbool(), ["true", "false", "1", "0", "yes", "no", "maybe", 1, null]);
+  differential(Schema.stringbool(), ["true", "false", "1", "0", "yes", "no", "maybe", 1, null]);
 });
 
 // --- refinements ---
 
 test("refine predicate", () => {
   differential(
-    z.string().refine((s) => s.length > 3),
+    Schema.string().refine((s) => s.length > 3),
     ["hello", "hi", "abc"]
   );
 });
 
 test("superRefine adds issues", () => {
-  const schema = z.string().superRefine((val, ctx) => {
+  const schema = Schema.string().superRefine((val, ctx) => {
     if (!val.includes("@")) ctx.addIssue({ code: "custom", message: "missing @" });
   });
   differential(schema, ["a@b", "ab", 1]);
@@ -553,12 +553,12 @@ test("superRefine adds issues", () => {
 
 test("catch primitive", () => {
   // A caught failure hands the parse back: finalizing the issues the callback sees needs the caller's error map, which the fast path has no access to.
-  differential(z.catch(z.string(), "fb"), ["x", "", 1, null, undefined], { fallbackOk: true });
+  differential(Schema.catch(Schema.string(), "fb"), ["x", "", 1, null, undefined], { fallbackOk: true });
 });
 
 test("catch inside object property", () => {
   differential(
-    z.object({ name: z.catch(z.string().min(2), "anon") }),
+    Schema.object({ name: Schema.catch(Schema.string().min(2), "anon") }),
     [{ name: "Alice" }, { name: "x" }, { name: 42 }, {}],
     { fallbackOk: true }
   );
@@ -566,33 +566,33 @@ test("catch inside object property", () => {
 
 test("catch with function reading issues is refused", () => {
   // The callback reads issues finalized against the caller's per-parse error map, which generated code has no access to. Refusing at codegen is what makes it safe inside a union; returning INVALID at parse time would read as a rejected branch.
-  const schema = z.catch(z.string().min(5), (ctx) => `e:${ctx.error.issues.length}`);
-  expect(() => compile(schema, { strict: true })).toThrow(ZodCompileUnsupportedError);
-  expect(schema.parse("ab")).toBe("e:1");
-  expect(schema.parse(123 as never, { error: () => "MAPPED" })).toBe("e:1");
+  const schema = Schema.catch(Schema.string().min(5), (ctx) => `e:${ctx.error.issues.length}`);
+  expect(() => compile(schema, { strict: true })).toThrow(SchemaCompileUnsupportedError);
+  expect(Schema.parse("ab")).toBe("e:1");
+  expect(Schema.parse(123 as never, { error: () => "MAPPED" })).toBe("e:1");
 });
 
 test("catch with a callback is refused inside a container, not islanded", () => {
   // A container normally absorbs an unsupported child by running just that node through the runtime. That is only equivalent for a node that *propagates* its issues: an island gets no parse context, and catch CONSUMES issues, so an islanded catch finalizes against an empty error map and still succeeds. The divergence is silent — the parse returns a different string with no error anywhere. Refusing the whole schema is what keeps the container honest, so this asserts the throw rather than a matching value.
-  const inner = z.catch(z.string(), (ctx) => `msg=${ctx.error.issues[0]?.message}`);
-  const schema = z.object({ a: inner, b: z.number() });
+  const inner = Schema.catch(Schema.string(), (ctx) => `msg=${ctx.error.issues[0]?.message}`);
+  const schema = Schema.object({ a: inner, b: Schema.number() });
   const mapped = { error: () => "MAPPED" };
 
-  expect(() => compile(schema, { strict: true })).toThrow(ZodCompileUnsupportedError);
-  expect(schema.parse({ a: 1, b: 2 }, mapped)).toEqual({ a: "msg=MAPPED", b: 2 });
+  expect(() => compile(schema, { strict: true })).toThrow(SchemaCompileUnsupportedError);
+  expect(Schema.parse({ a: 1, b: 2 }, mapped)).toEqual({ a: "msg=MAPPED", b: 2 });
 
   // The sibling stays compilable on its own, so the refusal is about catch and not about the container.
-  expect(() => compile(z.object({ a: z.string(), b: z.number() }), { strict: true })).not.toThrow();
+  expect(() => compile(Schema.object({ a: Schema.string(), b: Schema.number() }), { strict: true })).not.toThrow();
 });
 
 test("catch with a constant value keeps the fast path", () => {
-  differential(z.catch(z.string().min(5), "fb"), ["abcdef", "ab", 42, undefined]);
+  differential(Schema.catch(Schema.string().min(5), "fb"), ["abcdef", "ab", 42, undefined]);
 });
 
 // --- runtime islands ---
 
 test("xor inside object falls back per-property via runtime island", () => {
-  differential(z.object({ x: z.xor([z.string(), z.number()]), y: z.boolean() }), [
+  differential(Schema.object({ x: Schema.xor([Schema.string(), Schema.number()]), y: Schema.boolean() }), [
     { x: "a", y: true },
     { x: 1, y: false },
     { x: true, y: true },
@@ -601,22 +601,22 @@ test("xor inside object falls back per-property via runtime island", () => {
 });
 
 test("xor inside array element via runtime island", () => {
-  differential(z.array(z.xor([z.string(), z.number()])), [[], ["a", 1, "b"], ["a", true]]);
+  differential(Schema.array(Schema.xor([Schema.string(), Schema.number()])), [[], ["a", 1, "b"], ["a", true]]);
 });
 
 // --- pathological / regression cases ---
 
 test("__proto__ in object catchall", () => {
-  const schema = z.looseObject({ name: z.string() });
+  const schema = Schema.looseObject({ name: Schema.string() });
   const polluted = JSON.parse('{"name":"ok","__proto__":{"x":1}}');
   differential(schema, [polluted, { name: "ok" }, { name: 1 }]);
 });
 
 test("nested array of objects of unions", () => {
-  const schema = z.array(
-    z.object({
-      kind: z.string(),
-      value: z.union([z.string(), z.number(), z.array(z.boolean())]),
+  const schema = Schema.array(
+    Schema.object({
+      kind: Schema.string(),
+      value: Schema.union([Schema.string(), Schema.number(), Schema.array(Schema.boolean())]),
     })
   );
   differential(schema, [
@@ -631,10 +631,10 @@ test("nested array of objects of unions", () => {
 });
 
 test("deep optional defaults", () => {
-  const schema = z.object({
+  const schema = Schema.object({
     a: z
       .object({
-        b: z.number().default(10),
+        b: Schema.number().default(10),
       })
       .optional(),
   });
@@ -644,7 +644,7 @@ test("deep optional defaults", () => {
 // --- url: guards the one place the compiler reimplements runtime semantics ---
 
 test("url options match the runtime across the whole option matrix", () => {
-  // `parseValidURL` is a second implementation of what `$ZodURL`'s own check does inline — the trim, the `://` guard, the hostname and protocol tests, the normalize step. Deduplicating them faithfully is awkward, because hostname and protocol can both fail and each pushes its own issue, so the shared helper would have to return a list of reasons rather than a value. Until that happens this matrix is what keeps the two copies honest: a fix to either that the other misses fails here rather than drifting silently, which is exactly how z.creditCard() went wrong.
+  // `parseValidURL` is a second implementation of what `$SchemaURL`'s own check does inline — the trim, the `://` guard, the hostname and protocol tests, the normalize step. Deduplicating them faithfully is awkward, because hostname and protocol can both fail and each pushes its own issue, so the shared helper would have to return a list of reasons rather than a value. Until that happens this matrix is what keeps the two copies honest: a fix to either that the other misses fails here rather than drifting silently, which is exactly how Schema.creditCard() went wrong.
   const inputs = [
     "https://example.com",
     "https://example.com/a/b?c=1#d",
@@ -664,15 +664,15 @@ test("url options match the runtime across the whole option matrix", () => {
     "https://exa\tmple.com",
     "https://example.com/a\rb?c=d#e",
   ];
-  const schemas: z.ZodType[] = [
-    z.url(),
-    z.url({ normalize: true }),
-    z.url({ hostname: /^example\.com$/ }),
-    z.url({ protocol: /^https$/ }),
-    z.url({ protocol: /^https?$/ }),
-    z.url({ hostname: /^example\.com$/, protocol: /^https$/ }),
-    z.url({ hostname: /^example\.com$/, normalize: true }),
-    z.httpUrl(),
+  const schemas: Schema.SchemaType[] = [
+    Schema.url(),
+    Schema.url({ normalize: true }),
+    Schema.url({ hostname: /^example\.com$/ }),
+    Schema.url({ protocol: /^https$/ }),
+    Schema.url({ protocol: /^https?$/ }),
+    Schema.url({ hostname: /^example\.com$/, protocol: /^https$/ }),
+    Schema.url({ hostname: /^example\.com$/, normalize: true }),
+    Schema.httpUrl(),
   ];
   for (const schema of schemas) differential(schema, inputs);
 });
@@ -680,8 +680,8 @@ test("url options match the runtime across the whole option matrix", () => {
 test("assert-only URL generation skips unused output without skipping chained transforms", () => {
   const sanitized = "https://example.com";
   const withNewline = "https://exa\nmple.com";
-  differential(z.url().length(sanitized.length), [sanitized, withNewline, "https://example.com/long"]);
-  differential(z.string().url().length(sanitized.length), [sanitized, withNewline, "https://example.com/long"]);
+  differential(Schema.url().length(sanitized.length), [sanitized, withNewline, "https://example.com/long"]);
+  differential(Schema.string().url().length(sanitized.length), [sanitized, withNewline, "https://example.com/long"]);
 
   const URLStatic = URL as typeof URL & { parse: (input: string) => URL | null };
   const descriptor = Object.getOwnPropertyDescriptor(URLStatic, "parse")!;
@@ -698,12 +698,12 @@ test("assert-only URL generation skips unused output without skipping chained tr
       }) as URL,
   });
   try {
-    const schema = z.url({ normalize: true });
+    const schema = Schema.url({ normalize: true });
     const parser = compileFn(schema);
     const validator = compileFn(schema, { assertOnly: true });
     expect(validator("https://example.com")).toBe(true);
-    expect(z.validate(compile(z.url({ normalize: true })), "https://example.com")).toBe(true);
-    expect(z.validate(compile(z.object({ url: z.url({ normalize: true }) })), { url: "https://example.com" })).toBe(
+    expect(Schema.validate(compile(Schema.url({ normalize: true })), "https://example.com")).toBe(true);
+    expect(Schema.validate(compile(Schema.object({ url: Schema.url({ normalize: true }) })), { url: "https://example.com" })).toBe(
       true
     );
     expect(() => parser("https://example.com")).toThrow(marker);
@@ -714,13 +714,13 @@ test("assert-only URL generation skips unused output without skipping chained tr
 
 test("empty strict object compiles", () => {
   // With no keys the unknown-key condition is empty, and `if () return INVALID;` is a syntax error the single top-level `new Function` rejects — too late for compileChild to island, so the whole tree lost its fast path.
-  differential(z.strictObject({}), [{}, { a: 1 }, Object.create({ inherited: 1 })]);
-  differential(z.object({ inner: z.strictObject({}) }), [{ inner: {} }, { inner: { a: 1 } }]);
+  differential(Schema.strictObject({}), [{}, { a: 1 }, Object.create({ inherited: 1 })]);
+  differential(Schema.object({ inner: Schema.strictObject({}) }), [{ inner: {} }, { inner: { a: 1 } }]);
 });
 
 test("loose record with an enumerated key set", () => {
   // `mode: "loose"` only changes what happens to unrecognized keys; every enumerated key is still required, so this belongs on the exhaustive path.
-  differential(z.looseRecord(z.enum(["a", "b"]), z.number()), [
+  differential(Schema.looseRecord(Schema.enum(["a", "b"]), Schema.number()), [
     { a: 1, b: 2 },
     { a: 1 },
     { a: 1, b: 2, extra: "kept" },
@@ -731,47 +731,47 @@ test("loose record with an enumerated key set", () => {
 
 test("a catch callback is refused however it declares its arity", () => {
   // Function.length reports 0 for rest and defaulted parameters alike, so arity cannot separate a user callback from the thunk `.catch(value)` synthesises. Provenance can.
-  const rest = z.catch(z.string().min(5), ((...a: any[]) => `e:${a[0].error.issues.length}`) as never);
-  const dflt = z.catch(
-    z.string().min(5),
+  const rest = Schema.catch(Schema.string().min(5), ((...a: any[]) => `e:${a[0].error.issues.length}`) as never);
+  const dflt = Schema.catch(
+    Schema.string().min(5),
     ((ctx: any = { error: { issues: [] } }) => `e:${ctx.error.issues.length}`) as never
   );
   for (const schema of [rest, dflt]) {
-    expect(() => compile(schema, { strict: true })).toThrow(ZodCompileUnsupportedError);
-    expect(schema.parse("ab")).toBe("e:1");
+    expect(() => compile(schema, { strict: true })).toThrow(SchemaCompileUnsupportedError);
+    expect(Schema.parse("ab")).toBe("e:1");
   }
-  differential(z.catch(z.string().min(5), "fb"), ["abcdef", "ab", 42]);
+  differential(Schema.catch(Schema.string().min(5), "fb"), ["abcdef", "ab", 42]);
 });
 
 test("a coercing object key cannot materialize an absent key", () => {
   // Compilation refuses coercion, so the child becomes a runtime island — and an island receives `input[key]` with no way to tell an absent key from an explicit undefined. The runtime object keeps them apart (#6405): absent rejects, explicit undefined coerces. Without a presence guard the fast path answered `{ k: "undefined" }` for `{}`.
-  differential(z.object({ k: z.coerce.string() }), [{}, { k: 5 }, { k: undefined }, { k: "s" }]);
-  differential(z.object({ k: z.coerce.number() }), [{}, { k: "42" }, { k: undefined }]);
-  differential(z.object({ k: z.coerce.boolean() }), [{}, { k: 1 }, { k: undefined }]);
-  differential(z.object({ a: z.string(), k: z.coerce.string() }), [{ a: "x" }, { a: "x", k: 5 }]);
+  differential(Schema.object({ k: Schema.coerce.string() }), [{}, { k: 5 }, { k: undefined }, { k: "s" }]);
+  differential(Schema.object({ k: Schema.coerce.number() }), [{}, { k: "42" }, { k: undefined }]);
+  differential(Schema.object({ k: Schema.coerce.boolean() }), [{}, { k: 1 }, { k: undefined }]);
+  differential(Schema.object({ a: Schema.string(), k: Schema.coerce.string() }), [{ a: "x" }, { a: "x", k: 5 }]);
 });
 
 test("a thenable predicate throws rather than rejecting", () => {
-  // `isAsyncFunction` is syntactic, so a plain function returning a promise reaches the codegen. The interpreter throws $ZodAsyncError for it — returning INVALID instead is a bail-out, and a union reads a bail-out as a rejected branch and answers with a later one. Routed through differential() precisely so assertUnionSound sees it; the previous bespoke helper skipped that and is why this shipped.
+  // `isAsyncFunction` is syntactic, so a plain function returning a promise reaches the codegen. The interpreter throws $SchemaAsyncError for it — returning INVALID instead is a bail-out, and a union reads a bail-out as a rejected branch and answers with a later one. Routed through differential() precisely so assertUnionSound sees it; the previous bespoke helper skipped that and is why this shipped.
   differential(
-    z.custom(() => Promise.resolve(true) as never),
+    Schema.custom(() => Promise.resolve(true) as never),
     ["x", 1, null]
   );
-  differential(z.string().refine((() => Promise.resolve(true)) as never), ["x", 1]);
-  differential(z.string().superRefine(((_v: any, _c: any) => Promise.resolve(true)) as never), ["x", 1]);
+  differential(Schema.string().refine((() => Promise.resolve(true)) as never), ["x", 1]);
+  differential(Schema.string().superRefine(((_v: any, _c: any) => Promise.resolve(true)) as never), ["x", 1]);
 
   // A transform is the other way round: the interpreter's own union also falls through to the next branch, so INVALID there is parity rather than a bail-out.
-  differential(z.string().transform((() => Promise.resolve(1)) as never), ["x"], { fallbackOk: true });
+  differential(Schema.string().transform((() => Promise.resolve(1)) as never), ["x"], { fallbackOk: true });
 
   // A real async predicate is still refused at codegen, and an ordinary one still compiles.
   expect(() =>
     compile(
-      z.custom(async () => true),
+      Schema.custom(async () => true),
       { strict: true }
     )
   ).toThrow();
   differential(
-    z.custom((v) => typeof v === "string"),
+    Schema.custom((v) => typeof v === "string"),
     ["x", 1, null, undefined]
   );
 });
@@ -795,7 +795,7 @@ function nonEmpty(v: unknown): boolean {
 }
 
 interface Generated {
-  schema: z.ZodType;
+  schema: Schema.SchemaType;
   ok: () => unknown;
 }
 
@@ -827,29 +827,29 @@ function generate(rnd: () => number, depth: number): Generated {
   ];
   switch (depth <= 0 ? pick(leaves) : pick(rnd() < 0.45 ? leaves : nodes)) {
     case "string":
-      return { schema: z.string(), ok: () => pick(["a", "", "hello"]) };
+      return { schema: Schema.string(), ok: () => pick(["a", "", "hello"]) };
     case "bounded":
-      return { schema: z.string().min(2).max(6), ok: () => pick(["ab", "abcdef"]) };
+      return { schema: Schema.string().min(2).max(6), ok: () => pick(["ab", "abcdef"]) };
     case "number":
-      return { schema: z.number(), ok: () => pick([0, 1, -1, 3.5]) };
+      return { schema: Schema.number(), ok: () => pick([0, 1, -1, 3.5]) };
     case "int":
-      return { schema: z.number().int().min(0), ok: () => pick([0, 42]) };
+      return { schema: Schema.number().int().min(0), ok: () => pick([0, 42]) };
     case "boolean":
-      return { schema: z.boolean(), ok: () => rnd() < 0.5 };
+      return { schema: Schema.boolean(), ok: () => rnd() < 0.5 };
     case "literal":
-      return { schema: z.literal("lit"), ok: () => "lit" };
+      return { schema: Schema.literal("lit"), ok: () => "lit" };
     case "enum":
-      return { schema: z.enum(["a", "b"]), ok: () => pick(["a", "b"]) };
+      return { schema: Schema.enum(["a", "b"]), ok: () => pick(["a", "b"]) };
     case "object":
     case "looseObject":
     case "strictObject": {
       const kids: Record<string, Generated> = {};
-      const shape: Record<string, z.ZodType> = {};
+      const shape: Record<string, Schema.SchemaType> = {};
       for (let i = 0; i < 1 + Math.floor(rnd() * 3); i++) {
         kids[`k${i}`] = generate(rnd, depth - 1);
         shape[`k${i}`] = kids[`k${i}`].schema;
       }
-      const ctor = pick([z.object, z.looseObject, z.strictObject]) as typeof z.object;
+      const ctor = pick([Schema.object, Schema.looseObject, Schema.strictObject]) as typeof Schema.object;
       return {
         schema: ctor(shape as never),
         ok: () => Object.fromEntries(Object.entries(kids).map(([k, v]) => [k, v.ok()])),
@@ -857,50 +857,50 @@ function generate(rnd: () => number, depth: number): Generated {
     }
     case "array": {
       const c = generate(rnd, depth - 1);
-      return { schema: z.array(c.schema), ok: () => Array.from({ length: Math.floor(rnd() * 3) }, () => c.ok()) };
+      return { schema: Schema.array(c.schema), ok: () => Array.from({ length: Math.floor(rnd() * 3) }, () => c.ok()) };
     }
     case "tuple": {
       const a = generate(rnd, depth - 1);
       const b = generate(rnd, depth - 1);
-      return { schema: z.tuple([a.schema, b.schema]), ok: () => [a.ok(), b.ok()] };
+      return { schema: Schema.tuple([a.schema, b.schema]), ok: () => [a.ok(), b.ok()] };
     }
     case "record": {
       const c = generate(rnd, depth - 1);
-      return { schema: z.record(z.string(), c.schema), ok: () => ({ p: c.ok(), q: c.ok() }) };
+      return { schema: Schema.record(Schema.string(), c.schema), ok: () => ({ p: c.ok(), q: c.ok() }) };
     }
     case "optional": {
       const c = generate(rnd, depth - 1);
-      return { schema: z.optional(c.schema), ok: () => (rnd() < 0.3 ? undefined : c.ok()) };
+      return { schema: Schema.optional(c.schema), ok: () => (rnd() < 0.3 ? undefined : c.ok()) };
     }
     case "nullable": {
       const c = generate(rnd, depth - 1);
-      return { schema: z.nullable(c.schema), ok: () => (rnd() < 0.3 ? null : c.ok()) };
+      return { schema: Schema.nullable(c.schema), ok: () => (rnd() < 0.3 ? null : c.ok()) };
     }
     case "union": {
       const a = generate(rnd, depth - 1);
       const b = generate(rnd, depth - 1);
-      return { schema: z.union([a.schema, b.schema]), ok: () => (rnd() < 0.5 ? a.ok() : b.ok()) };
+      return { schema: Schema.union([a.schema, b.schema]), ok: () => (rnd() < 0.5 ? a.ok() : b.ok()) };
     }
     case "default": {
       const c = generate(rnd, depth - 1);
-      return { schema: z.optional(c.schema).default(c.ok() as never), ok: () => (rnd() < 0.3 ? undefined : c.ok()) };
+      return { schema: Schema.optional(c.schema).default(c.ok() as never), ok: () => (rnd() < 0.3 ? undefined : c.ok()) };
     }
     case "catch": {
       const c = generate(rnd, depth - 1);
-      return { schema: c.schema.catch(c.ok() as never), ok: () => (rnd() < 0.4 ? 12345 : c.ok()) };
+      return { schema: c.Schema.catch(c.ok() as never), ok: () => (rnd() < 0.4 ? 12345 : c.ok()) };
     }
     case "refine": {
       const c = generate(rnd, depth - 1);
       // Keyed to the value's own content, not a sentinel nothing produces. `refine` is the only generator that hangs a check on a container, so this predicate is what exercises the "carries checks of its own" half of `buildsValue`, and a check that can never reject leaves that half uncovered. Rejecting every empty value makes that rejection common rather than lucky.
-      return { schema: c.schema.refine(nonEmpty), ok: () => c.ok() };
+      return { schema: c.Schema.refine(nonEmpty), ok: () => c.ok() };
     }
     case "transform": {
       const c = generate(rnd, depth - 1);
-      return { schema: c.schema.transform((v: unknown) => ({ wrapped: v })), ok: () => c.ok() };
+      return { schema: c.Schema.transform((v: unknown) => ({ wrapped: v })), ok: () => c.ok() };
     }
     default: {
       const c = generate(rnd, depth - 1);
-      return { schema: c.schema.pipe(z.any()), ok: () => c.ok() };
+      return { schema: c.Schema.pipe(Schema.any()), ok: () => c.ok() };
     }
   }
 }
@@ -957,7 +957,7 @@ test("assert mode agrees with the parser and the runtime across generated schema
       const g = generate(rnd, 1 + Math.floor(rnd() * 3));
       const parser = attempt(() => compileFn(g.schema));
       const validator = attempt(() => compileFn(g.schema, { assertOnly: true }));
-      // A one-sided refusal is a silent loss of the fast path, so it fails here rather than dropping the schema.
+      // A one-sided refusal is a silent loss of the fast path, so it fails here rather than dropping the Schema.
       expect(!!validator.threw, `assert-mode refusal disagrees with the parser, seed ${seed} case ${i}`).toBe(
         !!parser.threw
       );
@@ -982,11 +982,11 @@ test("assert mode agrees with the parser and the runtime across generated schema
         if (viaParser.threw) continue;
         expect(viaValidator.value, `assert-mode verdict disagrees, ${label}`).toBe(viaParser.value);
 
-        const runtime = attempt(() => g.schema.safeParse(input).success);
+        const runtime = attempt(() => g.Schema.safeParse(input).success);
         if (runtime.threw) continue;
         expect(viaParser.value, `compiled verdict disagrees with the runtime, ${label}`).toBe(runtime.value);
         if (compiledSchema) {
-          expect(z.validate(compiledSchema, input), `z.validate disagrees with the runtime, ${label}`).toBe(
+          expect(Schema.validate(compiledSchema, input), `Schema.validate disagrees with the runtime, ${label}`).toBe(
             runtime.value
           );
         }

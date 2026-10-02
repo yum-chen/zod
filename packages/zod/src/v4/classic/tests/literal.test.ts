@@ -1,13 +1,13 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const literalTuna = z.literal("tuna");
-const literalTunaCustomMessage = z.literal("tuna", {
+const literalTuna = Schema.literal("tuna");
+const literalTunaCustomMessage = Schema.literal("tuna", {
   message: "That's not a tuna",
 });
-const literalFortyTwo = z.literal(42);
-const literalTrue = z.literal(true);
+const literalFortyTwo = Schema.literal(42);
+const literalTrue = Schema.literal(true);
 
 test("passing validations", () => {
   literalTuna.parse("tuna");
@@ -56,11 +56,11 @@ test("invalid_literal should return custom message", () => {
 });
 
 test("literal default error message", () => {
-  const result = z.literal("Tuna").safeParse("Trout");
+  const result = Schema.literal("Tuna").safeParse("Trout");
   expect(result.success).toEqual(false);
   expect(result.error!.issues.length).toEqual(1);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_value",
         "values": [
@@ -74,7 +74,7 @@ test("literal default error message", () => {
 });
 
 test("literal bigint default error message", () => {
-  const result = z.literal(BigInt(12)).safeParse(BigInt(13));
+  const result = Schema.literal(BigInt(12)).safeParse(BigInt(13));
   expect(result.success).toBe(false);
 
   expect(result.error!.issues.length).toEqual(1);
@@ -82,27 +82,27 @@ test("literal bigint default error message", () => {
 });
 
 test(".value getter", () => {
-  expect(z.literal("tuna").value).toEqual("tuna");
-  expect(() => z.literal([1, 2, 3]).value).toThrow();
+  expect(Schema.literal("tuna").value).toEqual("tuna");
+  expect(() => Schema.literal([1, 2, 3]).value).toThrow();
 });
 
 test("readonly", () => {
   const a = ["asdf"] as const;
-  z.literal(a);
+  Schema.literal(a);
 });
 
 test("literal pattern", () => {
-  expect(z.literal(1.1)._zod.pattern).toMatchInlineSnapshot(`/\\^\\(1\\\\\\.1\\)\\$/`);
+  expect(Schema.literal(1.1)._schema.pattern).toMatchInlineSnapshot(`/\\^\\(1\\\\\\.1\\)\\$/`);
 
-  expect(z.templateLiteral([z.literal(1.1)]).safeParse("1.1")).toMatchInlineSnapshot(`
+  expect(Schema.templateLiteral([Schema.literal(1.1)]).safeParse("1.1")).toMatchInlineSnapshot(`
     {
       "data": "1.1",
       "success": true,
     }
   `);
-  expect(z.templateLiteral([z.literal(1.1)]).safeParse("1n1")).toMatchInlineSnapshot(`
+  expect(Schema.templateLiteral([Schema.literal(1.1)]).safeParse("1n1")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "template_literal",
@@ -117,12 +117,12 @@ test("literal pattern", () => {
 });
 
 test("empty literal matches nothing", () => {
-  const empty = z.literal([]);
-  expectTypeOf<z.infer<typeof empty>>().toEqualTypeOf<never>();
+  const empty = Schema.literal([]);
+  expectTypeOf<Schema.infer<typeof empty>>().toEqualTypeOf<never>();
   expect(empty.safeParse("").success).toEqual(false);
   expect(empty.safeParse(undefined).success).toEqual(false);
-  expect(z.templateLiteral(["", empty]).safeParse("").success).toEqual(false);
-  expect(z.toJSONSchema(empty)).toMatchObject({ not: {} });
+  expect(Schema.templateLiteral(["", empty]).safeParse("").success).toEqual(false);
+  expect(Schema.toJSONSchema(empty)).toMatchObject({ not: {} });
 
-  expect(z.literal("").safeParse("").success).toEqual(true);
+  expect(Schema.literal("").safeParse("").success).toEqual(true);
 });

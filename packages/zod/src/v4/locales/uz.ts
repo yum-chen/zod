@@ -1,8 +1,8 @@
-import type { $ZodStringFormats } from "../core/checks.js";
+import type { $SchemaStringFormats } from "../core/checks.js";
 import type * as errors from "../core/errors.js";
 import * as util from "../core/util.js";
 
-const error: () => errors.$ZodErrorMap = () => {
+const error: () => errors.$SchemaErrorMap = () => {
   const Sizable: Record<string, { unit: string; verb: string }> = {
     string: { unit: "belgi", verb: "bo‘lishi kerak" },
     file: { unit: "bayt", verb: "bo‘lishi kerak" },
@@ -16,7 +16,7 @@ const error: () => errors.$ZodErrorMap = () => {
   }
 
   const FormatDictionary: {
-    [k in $ZodStringFormats | (string & {})]?: string;
+    [k in $SchemaStringFormats | (string & {})]?: string;
   } = {
     regex: "kirish",
     email: "elektron pochta manzili",
@@ -53,7 +53,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   const TypeDictionary: {
-    [k in errors.$ZodInvalidTypeExpected | (string & {})]?: string;
+    [k in errors.$SchemaInvalidTypeExpected | (string & {})]?: string;
   } = {
     nan: "NaN",
     number: "raqam",
@@ -90,7 +90,7 @@ const error: () => errors.$ZodErrorMap = () => {
         return `Juda kichik: kutilgan ${issue.origin} ${adj}${issue.minimum.toString()}`;
       }
       case "invalid_format": {
-        const _issue = issue as errors.$ZodStringFormatIssues;
+        const _issue = issue as errors.$SchemaStringFormatIssues;
         if (_issue.format === "starts_with") return `Noto‘g‘ri satr: "${_issue.prefix}" bilan boshlanishi kerak`;
         if (_issue.format === "ends_with") return `Noto‘g‘ri satr: "${_issue.suffix}" bilan tugashi kerak`;
         if (_issue.format === "includes") return `Noto‘g‘ri satr: "${_issue.includes}" ni o‘z ichiga olishi kerak`;
@@ -113,7 +113,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 };
 
-export default function (): { localeError: errors.$ZodErrorMap } {
+export default function (): { localeError: errors.$SchemaErrorMap } {
   return {
     localeError: error(),
   };

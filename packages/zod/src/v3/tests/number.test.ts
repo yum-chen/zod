@@ -1,35 +1,35 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-const gtFive = z.number().gt(5);
-const gteFive = z.number().gte(-5).gte(5);
-const minFive = z.number().min(0).min(5);
-const ltFive = z.number().lte(10).lt(5);
-const lteFive = z.number().lte(5);
-const maxFive = z.number().max(10).max(5);
-const intNum = z.number().int();
-const positive = z.number().positive();
-const negative = z.number().negative();
-const nonpositive = z.number().nonpositive();
-const nonnegative = z.number().nonnegative();
-const multipleOfFive = z.number().multipleOf(5);
-const multipleOfNegativeFive = z.number().multipleOf(-5);
-const finite = z.number().finite();
-const safe = z.number().safe();
-const stepPointOne = z.number().step(0.1);
-const stepPointZeroZeroZeroOne = z.number().step(0.0001);
-const stepSixPointFour = z.number().step(6.4);
+const gtFive = Schema.number().gt(5);
+const gteFive = Schema.number().gte(-5).gte(5);
+const minFive = Schema.number().min(0).min(5);
+const ltFive = Schema.number().lte(10).lt(5);
+const lteFive = Schema.number().lte(5);
+const maxFive = Schema.number().max(10).max(5);
+const intNum = Schema.number().int();
+const positive = Schema.number().positive();
+const negative = Schema.number().negative();
+const nonpositive = Schema.number().nonpositive();
+const nonnegative = Schema.number().nonnegative();
+const multipleOfFive = Schema.number().multipleOf(5);
+const multipleOfNegativeFive = Schema.number().multipleOf(-5);
+const finite = Schema.number().finite();
+const safe = Schema.number().safe();
+const stepPointOne = Schema.number().step(0.1);
+const stepPointZeroZeroZeroOne = Schema.number().step(0.0001);
+const stepSixPointFour = Schema.number().step(6.4);
 
 test("passing validations", () => {
-  z.number().parse(1);
-  z.number().parse(1.5);
-  z.number().parse(0);
-  z.number().parse(-1.5);
-  z.number().parse(-1);
-  z.number().parse(Number.POSITIVE_INFINITY);
-  z.number().parse(Number.NEGATIVE_INFINITY);
+  Schema.number().parse(1);
+  Schema.number().parse(1.5);
+  Schema.number().parse(0);
+  Schema.number().parse(-1.5);
+  Schema.number().parse(-1);
+  Schema.number().parse(Number.POSITIVE_INFINITY);
+  Schema.number().parse(Number.NEGATIVE_INFINITY);
   gtFive.parse(6);
   gtFive.parse(Number.POSITIVE_INFINITY);
   gteFive.parse(5);
@@ -96,11 +96,11 @@ test("failing validations", () => {
 });
 
 test("parse NaN", () => {
-  expect(() => z.number().parse(Number.NaN)).toThrow();
+  expect(() => Schema.number().parse(Number.NaN)).toThrow();
 });
 
 test("min max getters", () => {
-  expect(z.number().minValue).toBeNull;
+  expect(Schema.number().minValue).toBeNull;
   expect(ltFive.minValue).toBeNull;
   expect(lteFive.minValue).toBeNull;
   expect(maxFive.minValue).toBeNull;
@@ -117,7 +117,7 @@ test("min max getters", () => {
   expect(nonnegative.minValue).toEqual(0);
   expect(safe.minValue).toEqual(Number.MIN_SAFE_INTEGER);
 
-  expect(z.number().maxValue).toBeNull;
+  expect(Schema.number().maxValue).toBeNull;
   expect(gtFive.maxValue).toBeNull;
   expect(gteFive.maxValue).toBeNull;
   expect(minFive.maxValue).toBeNull;
@@ -136,8 +136,8 @@ test("min max getters", () => {
 });
 
 test("int getter", () => {
-  expect(z.number().isInt).toEqual(false);
-  expect(z.number().multipleOf(1.5).isInt).toEqual(false);
+  expect(Schema.number().isInt).toEqual(false);
+  expect(Schema.number().multipleOf(1.5).isInt).toEqual(false);
   expect(gtFive.isInt).toEqual(false);
   expect(gteFive.isInt).toEqual(false);
   expect(minFive.isInt).toEqual(false);
@@ -156,7 +156,7 @@ test("int getter", () => {
 });
 
 test("finite getter", () => {
-  expect(z.number().isFinite).toEqual(false);
+  expect(Schema.number().isFinite).toEqual(false);
   expect(gtFive.isFinite).toEqual(false);
   expect(gteFive.isFinite).toEqual(false);
   expect(minFive.isFinite).toEqual(false);
@@ -171,6 +171,6 @@ test("finite getter", () => {
   expect(finite.isFinite).toEqual(true);
   expect(intNum.isFinite).toEqual(true);
   expect(multipleOfFive.isFinite).toEqual(true);
-  expect(z.number().min(5).max(10).isFinite).toEqual(true);
+  expect(Schema.number().min(5).max(10).isFinite).toEqual(true);
   expect(safe.isFinite).toEqual(true);
 });

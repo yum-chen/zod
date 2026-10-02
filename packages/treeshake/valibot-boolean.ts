@@ -1,4 +1,4 @@
-import * as z from "valibot";
+import * as Schema from "valibot";
 
-const schema = z.boolean()
-console.log(z.parse(schema, "hi"));
+const schema = Schema.boolean()
+console.log(Schema.parse(schema, "hi"));

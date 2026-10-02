@@ -1,6 +1,6 @@
 import { DocsPage } from "fumadocs-ui/page";
 
-export const metadata = { title: "Page not found | Zod" };
+export const metadata = { title: "Page not found | Schema" };
 
 // rendered inside the (doc) layout, which already provides the docs shell
 export default function NotFound() {

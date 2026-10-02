@@ -1,28 +1,28 @@
 /**
- * Reports whether schema instances and their `_zod` internals are in V8
+ * Reports whether schema instances and their `_schema` internals are in V8
  * dictionary (slow) mode. A dictionary-mode object pays a NameDictionary
  * backing store — roughly 900 B at these property counts — instead of inline
  * slots, and every property read goes through a hash lookup.
  *
  * Run with: nub --allow-natives-syntax
  */
-import * as z from "zod";
+import * as Schema   from "schema";
 import { table } from "./harness.js";
 
 // biome-ignore lint/security/noGlobalEval: V8 natives syntax is not valid in a module body.
 const hasFast: (o: object) => boolean = eval("(o) => %HasFastProperties(o)");
 
 const cases: Array<[string, () => any]> = [
-  ["z.string()", () => z.string()],
-  ["z.number()", () => z.number()],
-  ["z.boolean()", () => z.boolean()],
-  ["z.bigint()", () => z.bigint()],
-  ["z.object({a})", () => z.object({ a: z.string() })],
-  ["z.array(str)", () => z.array(z.string())],
-  ["z.string().min(1)", () => z.string().min(1)],
-  ["z.string().optional()", () => z.string().optional()],
-  ["z.email()", () => z.email()],
-  ["z.enum(['a'])", () => z.enum(["a"])],
+  ["Schema.string()", () => Schema.string()],
+  ["Schema.number()", () => Schema.number()],
+  ["Schema.boolean()", () => Schema.boolean()],
+  ["Schema.bigint()", () => Schema.bigint()],
+  ["Schema.object({a})", () => Schema.object({ a: Schema.string() })],
+  ["Schema.array(str)", () => Schema.array(Schema.string())],
+  ["Schema.string().min(1)", () => Schema.string().min(1)],
+  ["Schema.string().optional()", () => Schema.string().optional()],
+  ["Schema.email()", () => Schema.email()],
+  ["Schema.enum(['a'])", () => Schema.enum(["a"])],
 ];
 
 // Reference points so the reader can see what fast/slow looks like.
@@ -44,9 +44,9 @@ table(
       "inst fast?": hasFast(s) ? "fast" : "DICT",
       "2nd inst": hasFast(second) ? "fast" : "DICT",
       "inst props": Reflect.ownKeys(s).length,
-      "_zod fast?": hasFast(s._zod) ? "fast" : "DICT",
-      "_zod props": Reflect.ownKeys(s._zod).length,
-      "def fast?": hasFast(s._zod.def) ? "fast" : "DICT",
+      "_schema fast?": hasFast(s._schema) ? "fast" : "DICT",
+      "_schema props": Reflect.ownKeys(s._schema).length,
+      "def fast?": hasFast(s._schema.def) ? "fast" : "DICT",
     };
   })
 );

@@ -1,9 +1,9 @@
-import type { $ZodStringFormats } from "../core/checks.js";
+import type { $SchemaStringFormats } from "../core/checks.js";
 import type * as errors from "../core/errors.js";
-import type { $ZodInvalidTypeExpected } from "../core/errors.js";
+import type { $SchemaInvalidTypeExpected } from "../core/errors.js";
 import * as util from "../core/util.js";
 
-const error: () => errors.$ZodErrorMap = () => {
+const error: () => errors.$SchemaErrorMap = () => {
   const Sizable: Record<string, { unit: string }> = {
     string: { unit: "caracteres" },
     file: { unit: "bytes" },
@@ -17,7 +17,7 @@ const error: () => errors.$ZodErrorMap = () => {
   }
 
   const FormatDictionary: {
-    [k in $ZodStringFormats | (string & {})]?: string;
+    [k in $SchemaStringFormats | (string & {})]?: string;
   } = {
     regex: "a entrada",
     email: "o endereço de e-mail",
@@ -61,7 +61,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   const TypeDictionary: {
-    [k in errors.$ZodInvalidTypeExpected | (string & {})]?: { name: string; articles: Articles };
+    [k in errors.$SchemaInvalidTypeExpected | (string & {})]?: { name: string; articles: Articles };
   } = {
     string: { name: "texto", articles: Gender.masculine },
     number: { name: "número", articles: Gender.masculine },
@@ -87,7 +87,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   function translateOriginWithArticle(
-    type: $ZodInvalidTypeExpected | (string & {}),
+    type: $SchemaInvalidTypeExpected | (string & {}),
     articleType: "definite" | "indefinite"
   ): string {
     const translatedValue = TypeDictionary[type] ?? { name: `valor "${type}"`, articles: Gender.masculine };
@@ -123,7 +123,7 @@ const error: () => errors.$ZodErrorMap = () => {
         return `Pequeno demais: esperava que ${translateOriginWithArticle(issue.origin, "definite")} fosse ${adj} ${issue.minimum.toString()}`;
       }
       case "invalid_format": {
-        const _issue = issue as errors.$ZodStringFormatIssues;
+        const _issue = issue as errors.$SchemaStringFormatIssues;
         if (_issue.format === "starts_with") {
           return `Texto inválido: deve começar com "${_issue.prefix}"`;
         }
@@ -154,7 +154,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 };
 
-export default function (): { localeError: errors.$ZodErrorMap } {
+export default function (): { localeError: errors.$SchemaErrorMap } {
   return {
     localeError: error(),
   };

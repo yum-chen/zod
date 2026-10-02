@@ -1,6 +1,6 @@
-// What a runtime island used to cost the generated source. Before #6570 `Doc.indented` decremented only on a normal return, so a child that threw `ZodCompileUnsupportedError` left the level raised: `compileChild` catches that throw, emits an island and keeps writing, and every later line sat one level deeper. N islands therefore emitted O(N²) leading spaces, and `new Function` retains the source. The leaky `indented` is restored onto the prototype here rather than compared across two checkouts, so the A/B stays exact and reproducible now that only the fixed revision exists — nothing else about codegen changed, and `sameModuloIndent` asserts it per row.
-import * as z from "zod";
-import { Doc, compileFn } from "zod/v4/core";
+// What a runtime island used to cost the generated source. Before #6570 `Doc.indented` decremented only on a normal return, so a child that threw `SchemaCompileUnsupportedError` left the level raised: `compileChild` catches that throw, emits an island and keeps writing, and every later line sat one level deeper. N islands therefore emitted O(N²) leading spaces, and `new Function` retains the source. The leaky `indented` is restored onto the prototype here rather than compared across two checkouts, so the A/B stays exact and reproducible now that only the fixed revision exists — nothing else about codegen changed, and `sameModuloIndent` asserts it per row.
+import * as Schema   from "schema";
+import { Doc, compileFn } from "schema/v4/core";
 import { fmtBytes, heapUsed } from "./harness.js";
 
 const balanced = Doc.prototype.indented;
@@ -21,16 +21,16 @@ function withLeak<T>(on: boolean, fn: () => T): T {
 
 // distinct key names per schema so V8's compilation cache never shares generated source between instances
 const branch = (p: string, i: number, islands: number) => {
-  const shape: Record<string, z.ZodType> = { [`${p}kind`]: z.literal(`${p}k${i}`) };
-  for (let j = 0; j < islands; j++) shape[`${p}n${j}`] = z.coerce.number().nullable();
-  shape[`${p}tail`] = z.string();
-  return z.object(shape);
+  const shape: Record<string, Schema.SchemaType> = { [`${p}kind`]: Schema.literal(`${p}k${i}`) };
+  for (let j = 0; j < islands; j++) shape[`${p}n${j}`] = Schema.coerce.number().nullable();
+  shape[`${p}tail`] = Schema.string();
+  return Schema.object(shape);
 };
 const union = (p: string, branches: number, islands: number) =>
-  z.discriminatedUnion(`${p}kind`, Array.from({ length: branches }, (_, i) => branch(p, i, islands)) as never);
+  Schema.discriminatedUnion(`${p}kind`, Array.from({ length: branches }, (_, i) => branch(p, i, islands)) as never);
 
 /** The `// Constants:` header debug mode prepends is not part of what `new Function` receives. */
-const source = (schema: z.ZodType) => compileFn(schema, { debug: true }).code!.replace(/^\/\/ Constants:.*\n/, "");
+const source = (schema: Schema.SchemaType) => compileFn(schema, { debug: true }).code!.replace(/^\/\/ Constants:.*\n/, "");
 const leading = (code: string) => code.split("\n").reduce((a, l) => a + (l.length - l.trimStart().length), 0);
 const sameModuloIndent = (a: string, b: string) => {
   const strip = (s: string) => s.replace(/^[ ]+/gm, "");
@@ -38,7 +38,7 @@ const sameModuloIndent = (a: string, b: string) => {
 };
 
 // median, not minimum: a heap delta is noisy in BOTH directions — an unrelated collection inside the window makes a pass read low — so the smallest pass is as wrong as the largest. Taking minima put a 39 KB reading on a row whose true retention is ~75 KB.
-function retainedMedian(make: (p: string) => z.ZodType, n: number, leak: boolean, passes: number): number {
+function retainedMedian(make: (p: string) => Schema.SchemaType, n: number, leak: boolean, passes: number): number {
   const samples = Array.from({ length: passes }, () => retained(make, n, leak)).sort((a, b) => a - b);
   return samples[samples.length >> 1]!;
 }
@@ -47,7 +47,7 @@ function retainedMedian(make: (p: string) => z.ZodType, n: number, leak: boolean
 let nsCounter = 0;
 
 /** Retained bytes per compiled function: the schemas are built and held before the baseline, so only the compile lands in the delta. */
-function retained(make: (p: string) => z.ZodType, n: number, leak: boolean): number {
+function retained(make: (p: string) => Schema.SchemaType, n: number, leak: boolean): number {
   const schemas = Array.from({ length: n + 2 }, () => make(`m${nsCounter++}_`));
   const hold: unknown[] = [];
   (globalThis as { __hold?: unknown[] }).__hold = hold;
@@ -76,7 +76,7 @@ const CASES: Array<{ label: string; branches: number; islands: number; n: number
 ];
 
 for (const c of CASES) {
-  const make = (p: string) => union(p, c.branches, c.islands) as unknown as z.ZodType;
+  const make = (p: string) => union(p, c.branches, c.islands) as unknown as Schema  .SchemaType;
   const probe = make("p_");
   const leakedCode = withLeak(true, () => source(probe));
   const fixedCode = withLeak(false, () => source(probe));

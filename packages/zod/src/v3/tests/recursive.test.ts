@@ -1,7 +1,7 @@
 // @ts-ignore TS6133
 import { test } from "vitest";
 
-import { z } from "zod/v3";
+import { Schema } from "schema/v3";
 
 interface Category {
   name: string;
@@ -28,26 +28,26 @@ const testCategory: Category = {
   ],
 };
 
-test("recursion with z.late.object", () => {
-  const Category: z.ZodType<Category> = z.late.object(() => ({
-    name: z.string(),
-    subcategories: z.array(Category),
+test("recursion with Schema.late.object", () => {
+  const Category: Schema.SchemaType<Category> = Schema.late.object(() => ({
+    name: Schema.string(),
+    subcategories: Schema.array(Category),
   }));
   Category.parse(testCategory);
 });
 
-test("recursion with z.lazy", () => {
-  const Category: z.ZodType<Category> = z.lazy(() =>
-    z.object({
-      name: z.string(),
-      subcategories: z.array(Category),
+test("recursion with Schema.lazy", () => {
+  const Category: Schema.SchemaType<Category> = Schema.lazy(() =>
+    Schema.object({
+      name: Schema.string(),
+      subcategories: Schema.array(Category),
     })
   );
   Category.parse(testCategory);
 });
 
 test("schema getter", () => {
-  z.lazy(() => z.string()).schema.parse("asdf");
+  Schema.lazy(() => Schema.string()).Schema.parse("asdf");
 });
 
 type LinkedList = null | { value: number; next: LinkedList };
@@ -67,11 +67,11 @@ const linkedListExample = {
 };
 
 test("recursion involving union type", () => {
-  const LinkedListSchema: z.ZodType<LinkedList> = z.lazy(() =>
-    z.union([
-      z.null(),
-      z.object({
-        value: z.number(),
+  const LinkedListSchema: Schema.SchemaType<LinkedList> = Schema.lazy(() =>
+    Schema.union([
+      Schema.null(),
+      Schema.object({
+        value: Schema.number(),
         next: LinkedListSchema,
       }),
     ])
@@ -89,23 +89,23 @@ test("recursion involving union type", () => {
 //   a: A;
 // }
 
-// const A: z.ZodType<A> = z.late.object(() => ({
-//   val: z.number(),
+// const A: Schema.SchemaType<A> = Schema.late.object(() => ({
+//   val: Schema.number(),
 //   b: B,
 // }));
 
-// const B: z.ZodType<B> = z.late.object(() => ({
-//   val: z.number(),
+// const B: Schema.SchemaType<B> = Schema.late.object(() => ({
+//   val: Schema.number(),
 //   a: A,
 // }));
 
-// const Alazy: z.ZodType<A> = z.lazy(() => z.object({
-//   val: z.number(),
+// const Alazy: Schema.SchemaType<A> = Schema.lazy(() => Schema.object({
+//   val: Schema.number(),
 //   b: B,
 // }));
 
-// const Blazy: z.ZodType<B> = z.lazy(() => z.object({
-//   val: z.number(),
+// const Blazy: Schema.SchemaType<B> = Schema.lazy(() => Schema.object({
+//   val: Schema.number(),
 //   a: A,
 // }));
 
@@ -127,13 +127,13 @@ test("recursion involving union type", () => {
 // test('masking check', () => {
 //   const FragmentOnA = z
 //     .object({
-//       val: z.number(),
+//       val: Schema.number(),
 //       b: z
 //         .object({
-//           val: z.number(),
+//           val: Schema.number(),
 //           a: z
 //             .object({
-//               val: z.number(),
+//               val: Schema.number(),
 //             })
 //             .nonstrict(),
 //         })
@@ -150,7 +150,7 @@ test("recursion involving union type", () => {
 // });
 
 // test('schema getter', () => {
-//   (A as z.ZodLazy<any>).schema;
+//   (A as Schema  .SchemaLazy<any>).schema;
 // });
 
 // test("self recursion with cyclical data", () => {
@@ -159,9 +159,9 @@ test("recursion involving union type", () => {
 //     subcategories: Category[];
 //   }
 
-//   const Category: z.ZodType<Category> = z.late.object(() => ({
-//     name: z.string(),
-//     subcategories: z.array(Category),
+//   const Category: Schema.SchemaType<Category> = Schema.late.object(() => ({
+//     name: Schema.string(),
+//     subcategories: Schema.array(Category),
 //   }));
 
 //   const untypedCategory: any = {
@@ -173,19 +173,19 @@ test("recursion involving union type", () => {
 // });
 
 // test("self recursion with base type", () => {
-//   const BaseCategory = z.object({
-//     name: z.string(),
+//   const BaseCategory = Schema.object({
+//     name: Schema.string(),
 //   });
-//   type BaseCategory = z.infer<typeof BaseCategory>;
+//   type BaseCategory = Schema.infer<typeof BaseCategory>;
 
 //   type Category = BaseCategory & { subcategories: Category[] };
 
-//   const Category: z.ZodType<Category> = z.late
+//   const Category: Schema.SchemaType<Category> = Schema.late
 //     .object(() => ({
-//       subcategories: z.array(Category),
+//       subcategories: Schema.array(Category),
 //     }))
 //     .extend({
-//       name: z.string(),
+//       name: Schema.string(),
 //     });
 
 //   const untypedCategory: any = {

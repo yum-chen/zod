@@ -1,8 +1,8 @@
-import type { $ZodStringFormats } from "../core/checks.js";
+import type { $SchemaStringFormats } from "../core/checks.js";
 import type * as errors from "../core/errors.js";
 import * as util from "../core/util.js";
 
-const error: () => errors.$ZodErrorMap = () => {
+const error: () => errors.$SchemaErrorMap = () => {
   const Sizable: Record<string, { unit: string; verb: string }> = {
     string: { unit: "எழுத்துக்கள்", verb: "கொண்டிருக்க வேண்டும்" },
     file: { unit: "பைட்டுகள்", verb: "கொண்டிருக்க வேண்டும்" },
@@ -16,7 +16,7 @@ const error: () => errors.$ZodErrorMap = () => {
   }
 
   const FormatDictionary: {
-    [k in $ZodStringFormats | (string & {})]?: string;
+    [k in $SchemaStringFormats | (string & {})]?: string;
   } = {
     regex: "உள்ளீடு",
     email: "மின்னஞ்சல் முகவரி",
@@ -53,7 +53,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   const TypeDictionary: {
-    [k in errors.$ZodInvalidTypeExpected | (string & {})]?: string;
+    [k in errors.$SchemaInvalidTypeExpected | (string & {})]?: string;
   } = {
     nan: "NaN",
     number: "எண்",
@@ -93,7 +93,7 @@ const error: () => errors.$ZodErrorMap = () => {
         return `மிகச் சிறியது: எதிர்பார்க்கப்பட்டது ${issue.origin} ${adj}${issue.minimum.toString()} ஆக இருக்க வேண்டும்`;
       }
       case "invalid_format": {
-        const _issue = issue as errors.$ZodStringFormatIssues;
+        const _issue = issue as errors.$SchemaStringFormatIssues;
         if (_issue.format === "starts_with") return `தவறான சரம்: "${_issue.prefix}" இல் தொடங்க வேண்டும்`;
         if (_issue.format === "ends_with") return `தவறான சரம்: "${_issue.suffix}" இல் முடிவடைய வேண்டும்`;
         if (_issue.format === "includes") return `தவறான சரம்: "${_issue.includes}" ஐ உள்ளடக்க வேண்டும்`;
@@ -116,7 +116,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 };
 
-export default function (): { localeError: errors.$ZodErrorMap } {
+export default function (): { localeError: errors.$SchemaErrorMap } {
   return {
     localeError: error(),
   };

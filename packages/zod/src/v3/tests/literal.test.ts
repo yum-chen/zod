@@ -1,14 +1,14 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-const literalTuna = z.literal("tuna");
-const literalFortyTwo = z.literal(42);
-const literalTrue = z.literal(true);
+const literalTuna = Schema.literal("tuna");
+const literalFortyTwo = Schema.literal(42);
+const literalTrue = Schema.literal(true);
 
 const terrificSymbol = Symbol("terrific");
-const literalTerrificSymbol = z.literal(terrificSymbol);
+const literalTerrificSymbol = Schema.literal(terrificSymbol);
 
 test("passing validations", () => {
   literalTuna.parse("tuna");

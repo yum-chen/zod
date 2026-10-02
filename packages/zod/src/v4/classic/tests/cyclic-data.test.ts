@@ -1,11 +1,11 @@
 import v8 from "node:v8";
 import vm from "node:vm";
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("parses a self-referential object and preserves identity", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node;
     },
@@ -21,14 +21,14 @@ test("parses a self-referential object and preserves identity", () => {
 });
 
 test("validates a node against every schema that reaches it", () => {
-  const A: any = z.object({
-    x: z.string(),
+  const A: any = Schema.object({
+    x: Schema.string(),
     get b() {
       return B;
     },
   });
-  const B: any = z.object({
-    y: z.number(),
+  const B: any = Schema.object({
+    y: Schema.number(),
     get a() {
       return A;
     },
@@ -55,10 +55,10 @@ test("breaks cycles through every container", () => {
     [
       "array",
       () => {
-        const S: any = z.object({
-          id: z.number(),
+        const S: any = Schema.object({
+          id: Schema.number(),
           get kids() {
-            return z.array(S);
+            return Schema.array(S);
           },
         });
         const a: any = { id: 1, kids: [] };
@@ -69,10 +69,10 @@ test("breaks cycles through every container", () => {
     [
       "record",
       () => {
-        const S: any = z.object({
-          id: z.number(),
+        const S: any = Schema.object({
+          id: Schema.number(),
           get kids() {
-            return z.record(z.string(), S);
+            return Schema.record(Schema.string(), S);
           },
         });
         const a: any = { id: 1, kids: {} };
@@ -83,10 +83,10 @@ test("breaks cycles through every container", () => {
     [
       "tuple",
       () => {
-        const S: any = z.object({
-          id: z.number(),
+        const S: any = Schema.object({
+          id: Schema.number(),
           get pair() {
-            return z.tuple([z.number(), S]);
+            return Schema.tuple([Schema.number(), S]);
           },
         });
         const a: any = { id: 1 };
@@ -97,10 +97,10 @@ test("breaks cycles through every container", () => {
     [
       "set",
       () => {
-        const S: any = z.object({
-          id: z.number(),
+        const S: any = Schema.object({
+          id: Schema.number(),
           get peers() {
-            return z.set(S);
+            return Schema.set(S);
           },
         });
         const a: any = { id: 1, peers: new Set() };
@@ -111,10 +111,10 @@ test("breaks cycles through every container", () => {
     [
       "map",
       () => {
-        const S: any = z.object({
-          id: z.number(),
+        const S: any = Schema.object({
+          id: Schema.number(),
           get links() {
-            return z.map(z.string(), S);
+            return Schema.map(Schema.string(), S);
           },
         });
         const a: any = { id: 1, links: new Map() };
@@ -125,10 +125,10 @@ test("breaks cycles through every container", () => {
     [
       "union",
       () => {
-        const S: any = z.object({
-          id: z.number(),
+        const S: any = Schema.object({
+          id: Schema.number(),
           get self() {
-            return z.union([z.string(), S]);
+            return Schema.union([Schema.string(), S]);
           },
         });
         const a: any = { id: 1 };
@@ -139,10 +139,10 @@ test("breaks cycles through every container", () => {
     [
       "discriminated union",
       () => {
-        const S: any = z.discriminatedUnion("kind", [
-          z.object({ kind: z.literal("leaf"), v: z.number() }),
-          z.object({
-            kind: z.literal("branch"),
+        const S: any = Schema.discriminatedUnion("kind", [
+          Schema.object({ kind: Schema.literal("leaf"), v: Schema.number() }),
+          Schema.object({
+            kind: Schema.literal("branch"),
             get next() {
               return S;
             },
@@ -156,7 +156,7 @@ test("breaks cycles through every container", () => {
     [
       "lazy",
       () => {
-        const S: any = z.object({ id: z.number(), self: z.lazy(() => S) });
+        const S: any = Schema.object({ id: Schema.number(), self: Schema.lazy(() => S) });
         const a: any = { id: 1 };
         a.self = a;
         return { schema: S, input: a };
@@ -165,27 +165,27 @@ test("breaks cycles through every container", () => {
     [
       "mutual recursion five hops apart",
       () => {
-        const A: any = z.object({
+        const A: any = Schema.object({
           get b() {
             return B;
           },
         });
-        const B: any = z.object({
+        const B: any = Schema.object({
           get c() {
             return C;
           },
         });
-        const C: any = z.object({
+        const C: any = Schema.object({
           get d() {
             return D;
           },
         });
-        const D: any = z.object({
+        const D: any = Schema.object({
           get e() {
             return E;
           },
         });
-        const E: any = z.object({
+        const E: any = Schema.object({
           get a() {
             return A;
           },
@@ -200,7 +200,7 @@ test("breaks cycles through every container", () => {
   for (const [name, build] of cases) {
     for (const jitless of [false, true]) {
       const { schema, input } = build();
-      expect(() => schema.parse(input, { jitless }), `${name} (jitless: ${jitless})`).not.toThrow();
+      expect(() => Schema.parse(input, { jitless }), `${name} (jitless: ${jitless})`).not.toThrow();
     }
   }
 });
@@ -209,7 +209,7 @@ test("checks run once per node and never against a half-built object", () => {
   const seen: number[] = [];
   const Node: any = z
     .object({
-      id: z.number(),
+      id: Schema.number(),
       get self() {
         return Node;
       },
@@ -229,7 +229,7 @@ test("checks run once per node and never against a half-built object", () => {
 test("reports a failing check inside a cycle", () => {
   const Node: any = z
     .object({
-      id: z.number(),
+      id: Schema.number(),
       get self() {
         return Node;
       },
@@ -242,8 +242,8 @@ test("reports a failing check inside a cycle", () => {
 });
 
 test("reports an invalid value inside a cycle once, at its own path", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node;
     },
@@ -259,8 +259,8 @@ test("reports an invalid value inside a cycle once, at its own path", () => {
 });
 
 test("rejects a cycle that closes through a transform", () => {
-  const Inner: any = z.object({
-    name: z.string(),
+  const Inner: any = Schema.object({
+    name: Schema.string(),
     get self() {
       return Wrapped;
     },
@@ -274,8 +274,8 @@ test("rejects a cycle that closes through a transform", () => {
 });
 
 test("leaves a transform that is not on the cycle alone", () => {
-  const Node: any = z.object({
-    n: z.number().transform((value: number) => value * 2),
+  const Node: any = Schema.object({
+    n: Schema.number().transform((value: number) => value * 2),
     get self() {
       return Node;
     },
@@ -290,11 +290,11 @@ test("leaves a transform that is not on the cycle alone", () => {
 });
 
 test("encodes through a cycle", () => {
-  const Stringified = z.codec(z.string(), z.number(), {
+  const Stringified = Schema.codec(Schema.string(), Schema.number(), {
     decode: (value) => Number(value),
     encode: (value) => String(value),
   });
-  const Node: any = z.object({
+  const Node: any = Schema.object({
     n: Stringified,
     get self() {
       return Node;
@@ -304,14 +304,14 @@ test("encodes through a cycle", () => {
   const input: any = { n: 5 };
   input.self = input;
 
-  const result: any = z.encode(Node, input);
+  const result: any = Schema.encode(Node, input);
   expect(result.n).toBe("5");
   expect(result.self).toBe(result);
 });
 
 test("keeps separate parses independent", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node;
     },
@@ -333,8 +333,8 @@ test("keeps separate parses independent", () => {
 });
 
 test("parses a cycle asynchronously", async () => {
-  const Node: any = z.object({
-    id: z.number().refine(async (value: number) => value > 0),
+  const Node: any = Schema.object({
+    id: Schema.number().refine(async (value: number) => value > 0),
     get self() {
       return Node;
     },
@@ -352,8 +352,8 @@ test("parses a cycle asynchronously", async () => {
 });
 
 test("a non-recursive schema still copies a shared reference twice", () => {
-  const Leaf = z.object({ v: z.number() });
-  const Pair = z.object({ a: Leaf, b: Leaf });
+  const Leaf = Schema.object({ v: Schema.number() });
+  const Pair = Schema.object({ a: Leaf, b: Leaf });
 
   const shared = { v: 1 };
   const result = Pair.parse({ a: shared, b: shared });
@@ -364,10 +364,10 @@ test("a non-recursive schema still copies a shared reference twice", () => {
 });
 
 test("a recursive schema shares one output node per input node", () => {
-  const Node: any = z.object({
-    v: z.number(),
+  const Node: any = Schema.object({
+    v: Schema.number(),
     get kids() {
-      return z.array(Node);
+      return Schema.array(Node);
     },
   });
 
@@ -379,10 +379,10 @@ test("a recursive schema shares one output node per input node", () => {
 
 test("sync and async agree on a shared reference", async () => {
   const build = (asyncCheck: boolean) => {
-    const Node: any = z.object({
-      v: asyncCheck ? z.number().refine(async (n: number) => n >= 0) : z.number(),
+    const Node: any = Schema.object({
+      v: asyncCheck ? Schema.number().refine(async (n: number) => n >= 0) : Schema.number(),
       get kids() {
-        return z.array(Node);
+        return Schema.array(Node);
       },
     });
     return Node;
@@ -399,8 +399,8 @@ test("sync and async agree on a shared reference", async () => {
 });
 
 test("a cycle through .readonly() keeps the node intact", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node.readonly();
     },
@@ -415,11 +415,11 @@ test("a cycle through .readonly() keeps the node intact", () => {
   expect(result.self).toBe(result);
 });
 
-test("a cycle through z.intersection validates but does not mirror the graph", () => {
-  const Node: any = z.object({
-    id: z.number(),
+test("a cycle through Schema.intersection validates but does not mirror the graph", () => {
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
-      return z.intersection(Node, z.object({ id: z.number() }));
+      return Schema.intersection(Node, Schema.object({ id: Schema.number() }));
     },
   });
 
@@ -439,10 +439,10 @@ test("a cycle through z.intersection validates but does not mirror the graph", (
 });
 
 test("keeps two cycles and a shared node distinct in one input", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get kids() {
-      return z.array(Node);
+      return Schema.array(Node);
     },
   });
 
@@ -456,10 +456,10 @@ test("keeps two cycles and a shared node distinct in one input", () => {
 });
 
 test("closes a cycle through a Map key and a Set member", () => {
-  const Keyed: any = z.object({
-    id: z.number(),
+  const Keyed: any = Schema.object({
+    id: Schema.number(),
     get keyed() {
-      return z.map(Keyed, z.string());
+      return Schema.map(Keyed, Schema.string());
     },
   });
   const k: any = { id: 1, keyed: new Map() };
@@ -467,10 +467,10 @@ test("closes a cycle through a Map key and a Set member", () => {
   const keyedOut = Keyed.parse(k);
   expect([...keyedOut.keyed.keys()][0]).toBe(keyedOut);
 
-  const Peered: any = z.object({
-    id: z.number(),
+  const Peered: any = Schema.object({
+    id: Schema.number(),
     get peers() {
-      return z.set(Peered);
+      return Schema.set(Peered);
     },
   });
   const p: any = { id: 1, peers: new Set() };
@@ -480,8 +480,8 @@ test("closes a cycle through a Map key and a Set member", () => {
 });
 
 test("does not mutate the input, and tolerates a frozen one", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node;
     },
@@ -498,8 +498,8 @@ test("does not mutate the input, and tolerates a frozen one", () => {
 });
 
 test("keys identity on the schema, not just the input", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node.optional();
     },
@@ -518,8 +518,8 @@ test("keys identity on the schema, not just the input", () => {
 });
 
 test("keeps concurrent async parses of one schema independent", async () => {
-  const Node: any = z.object({
-    id: z.number().refine(async (n: number) => {
+  const Node: any = Schema.object({
+    id: Schema.number().refine(async (n: number) => {
       await new Promise((r) => setTimeout(r, 5 + (n % 3)));
       return true;
     }),
@@ -546,9 +546,9 @@ test("runs checks once per reference, as it does without a cycle", () => {
   let calls = 0;
   const Node: any = z
     .object({
-      id: z.number(),
+      id: Schema.number(),
       get kids() {
-        return z.array(Node);
+        return Schema.array(Node);
       },
     })
     .refine(() => {
@@ -564,8 +564,8 @@ test("runs checks once per reference, as it does without a cycle", () => {
 });
 
 test("a schema wrapped at the root adds one node and no more", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Node.optional();
     },
@@ -588,14 +588,14 @@ test("a schema wrapped at the root adds one node and no more", () => {
   expect(count(Node.parse(input))).toBe(1);
   expect(count(Node.partial().parse(input))).toBe(2);
   expect(count(Node.partial().partial().parse(input))).toBe(2);
-  expect(count(Node.extend({ extra: z.string().optional() }).parse(input))).toBe(2);
+  expect(count(Node.extend({ extra: Schema.string().optional() }).parse(input))).toBe(2);
 });
 
 test("resolves a recursive reference once, however it is written", () => {
   // This is what bounds the above: core caches a shape getter and a lazy getter, so a getter returning a fresh clone still yields a finite schema graph rather than a new schema per node.
   let getterCalls = 0;
-  const ViaGetter: any = z.object({
-    id: z.number(),
+  const ViaGetter: any = Schema.object({
+    id: Schema.number(),
     get self() {
       getterCalls++;
       return ViaGetter.partial();
@@ -603,9 +603,9 @@ test("resolves a recursive reference once, however it is written", () => {
   });
 
   let lazyCalls = 0;
-  const ViaLazy: any = z.object({
-    id: z.number(),
-    self: z.lazy(() => {
+  const ViaLazy: any = Schema.object({
+    id: Schema.number(),
+    self: Schema.lazy(() => {
       lazyCalls++;
       return ViaLazy.partial();
     }),
@@ -622,15 +622,15 @@ test("resolves a recursive reference once, however it is written", () => {
 
 // The second visitor of a shared node must not prefix onto the first visitor's path.
 test.each([false, true])("prefixes a shared node's issues once per reference (jitless: %s)", (jitless) => {
-  z.config({ jitless });
+  Schema.config({ jitless });
   try {
-    const Node: any = z.object({
-      name: z.string(),
+    const Node: any = Schema.object({
+      name: Schema.string(),
       get left() {
-        return z.optional(Node);
+        return Schema.optional(Node);
       },
       get right() {
-        return z.optional(Node);
+        return Schema.optional(Node);
       },
     });
 
@@ -643,14 +643,14 @@ test.each([false, true])("prefixes a shared node's issues once per reference (ji
       ["right", "name"],
     ]);
   } finally {
-    z.config({ jitless: false });
+    Schema.config({ jitless: false });
   }
 });
 
 test("the default memoizer is installed before the first container reads it", () => {
   // the delete manufactures the fresh-process state; a container with only getter keys then constructs no leaf before the config read
-  delete z.config().memoizer;
-  const Node: any = z.object({
+  delete Schema.config().memoizer;
+  const Node: any = Schema.object({
     get self() {
       return Node;
     },
@@ -663,15 +663,15 @@ test("the default memoizer is installed before the first container reads it", ()
 
 test("guards a transform built before any container", () => {
   // the guard attaches at construction, so a transform predating the first container must still get the default
-  delete z.config().memoizer;
-  const wrap = z.transform((value: any) => ({ wrapped: value }));
-  const Inner: any = z.object({
-    name: z.string(),
+  delete Schema.config().memoizer;
+  const wrap = Schema.transform((value: any) => ({ wrapped: value }));
+  const Inner: any = Schema.object({
+    name: Schema.string(),
     get self() {
       return Wrapped;
     },
   });
-  const Wrapped: any = z.pipe(Inner, wrap);
+  const Wrapped: any = Schema.pipe(Inner, wrap);
 
   const input: any = { name: "x" };
   input.self = input;
@@ -680,13 +680,13 @@ test("guards a transform built before any container", () => {
 });
 
 test("detects a cycle reachable only through a merged catchall", () => {
-  const Cyclic: any = z.object({
-    id: z.string(),
+  const Cyclic: any = Schema.object({
+    id: Schema.string(),
     get next() {
-      return z.optional(Root);
+      return Schema.optional(Root);
     },
   });
-  const Root: any = z.object({ tag: z.string() }).merge(z.object({}).catchall(Cyclic));
+  const Root: any = Schema.object({ tag: Schema.string() }).merge(Schema.object({}).catchall(Cyclic));
 
   const input: any = { tag: "root" };
   input.child = { id: "1", next: input };
@@ -695,22 +695,22 @@ test("detects a cycle reachable only through a merged catchall", () => {
   expect(out.child.next).toBe(out);
 });
 
-// the per-type switch can only enumerate kinds Zod ships, so an unknown `def.type` falls back to scanning the def; without it a cycle through a third-party container overflows the stack
+// the per-type switch can only enumerate kinds Schema ships, so an unknown `def.type` falls back to scanning the def; without it a cycle through a third-party container overflows the stack
 test("detects a cycle through a user-defined container type", () => {
-  const MyBox: any = z.core.$constructor("MyBox", (inst: any, def: any) => {
-    z.core.$ZodType.init(inst, def);
-    inst._zod.parse = (payload: any, ctx: any) => {
+  const MyBox: any = Schema.core.$constructor("MyBox", (inst: any, def: any) => {
+    Schema.core.$SchemaType.init(inst, def);
+    inst._schema.parse = (payload: any, ctx: any) => {
       if (payload.value === null || typeof payload.value !== "object") return payload;
-      const inner = def.inner._zod.run({ value: payload.value.v, issues: [] }, ctx);
+      const inner = def.inner._schema.run({ value: payload.value.v, issues: [] }, ctx);
       payload.value = { v: inner.value };
       return payload;
     };
   });
 
-  const Node: any = z.object({
-    id: z.string(),
+  const Node: any = Schema.object({
+    id: Schema.string(),
     get boxed() {
-      return z.optional(new MyBox({ type: "mybox", inner: z.lazy(() => Node) }));
+      return Schema.optional(new MyBox({ type: "mybox", inner: Schema.lazy(() => Node) }));
     },
   });
 
@@ -724,14 +724,14 @@ test("detects a cycle through a user-defined container type", () => {
 // #6526: a factory returns fresh instances, so the identity walk never revisits a node; it descends until the stack overflows unless it stops at the deferred edge
 test("parses a factory-built recursive schema", () => {
   const Node = (): any =>
-    z.object({
-      id: z.number(),
+    Schema.object({
+      id: Schema.number(),
       get kids() {
-        return z.array(Node());
+        return Schema.array(Node());
       },
     });
 
-  const S = z.object({ root: Node() });
+  const S = Schema.object({ root: Node() });
   const out = S.parse({ root: { id: 1, kids: [{ id: 2, kids: [] }] } });
   expect(out.root.kids[0].id).toBe(2);
   expect(S.safeParse({ root: { id: 1, kids: [{ id: "x", kids: [] }] } }).success).toBe(false);
@@ -739,72 +739,72 @@ test("parses a factory-built recursive schema", () => {
 
 test("parses a factory-built recursive discriminated union at the root and nested", () => {
   const Geometry = (): any =>
-    z.discriminatedUnion("type", [
-      z.object({ type: z.literal("Point"), coordinates: z.array(z.number()) }),
-      z.looseObject({
-        type: z.literal("GeometryCollection"),
+    Schema.discriminatedUnion("type", [
+      Schema.object({ type: Schema.literal("Point"), coordinates: Schema.array(Schema.number()) }),
+      Schema.looseObject({
+        type: Schema.literal("GeometryCollection"),
         get geometries() {
-          return z.array(Geometry());
+          return Schema.array(Geometry());
         },
       }),
     ]);
 
   const collection = { type: "GeometryCollection", geometries: [{ type: "Point", coordinates: [1, 2] }] };
   expect(Geometry().parse(collection).geometries[0].coordinates).toEqual([1, 2]);
-  expect(z.object({ g: Geometry() }).parse({ g: collection }).g.type).toBe("GeometryCollection");
+  expect(Schema.object({ g: Geometry() }).parse({ g: collection }).g.type).toBe("GeometryCollection");
 });
 
 test("the walk reports a cycle for a deferred edge instead of resolving it", () => {
   const Node = (): any =>
-    z.object({
+    Schema.object({
       get self() {
         return Node();
       },
     });
-  expect(z.core.isRecursiveSchema(Node())).toBe(true);
+  expect(Schema.core.isRecursiveSchema(Node())).toBe(true);
 
   // conservative by design: a getter that closes no cycle is reported too, and pays only the memoizer it keeps
-  const Leaf = z.object({ id: z.string() });
-  const forward: any = z.object({
+  const Leaf = Schema.object({ id: Schema.string() });
+  const forward: any = Schema.object({
     get leaf() {
       return Leaf;
     },
   });
-  expect(z.core.isRecursiveSchema(forward)).toBe(true);
+  expect(Schema.core.isRecursiveSchema(forward)).toBe(true);
 
-  // a lazy is followed one hop, which is what lets z.compile see past it; past that hop it is deferred like any other edge
-  expect(z.core.isRecursiveSchema(z.lazy(() => Leaf) as any)).toBe(false);
-  expect(z.core.isRecursiveSchema(z.lazy(() => z.lazy(() => Leaf)) as any)).toBe(true);
+  // a lazy is followed one hop, which is what lets Schema.compile see past it; past that hop it is deferred like any other edge
+  expect(Schema.core.isRecursiveSchema(Schema.lazy(() => Leaf) as any)).toBe(false);
+  expect(Schema.core.isRecursiveSchema(Schema.lazy(() => Schema.lazy(() => Leaf)) as any)).toBe(true);
 });
 
 // the builders answer `shape` from an accessor that resolves the source's getters, so the walk has to reach the source schema itself
 test("parses a factory-built recursive schema through every object builder", () => {
   const wraps: [string, (base: () => any) => any][] = [
-    ["extend", (b) => b().extend({ x: z.string() })],
-    ["safeExtend", (b) => b().safeExtend({ x: z.string() })],
-    ["merge", (b) => z.object({ x: z.string() }).merge(b())],
+    ["extend", (b) => b().extend({ x: Schema.string() })],
+    ["safeExtend", (b) => b().safeExtend({ x: Schema.string() })],
+    ["merge", (b) => Schema.object({ x: Schema.string() }).merge(b())],
     ["partial", (b) => b().partial()],
     ["required", (b) => b().required()],
     ["pick", (b) => b().pick({ self: true })],
     ["omit", (b) => b().omit({ y: true })],
-    ["chained", (b) => b().extend({ x: z.string() }).partial()],
+    ["chained", (b) => b().extend({ x: Schema.string() }).partial()],
     // rebuilds the def without touching the shape, so the clone carries the source's accessor rather than a shape of its own
-    ["strict", (b) => b().extend({ x: z.string() }).strict()],
-    ["catchall", (b) => b().extend({ x: z.string() }).catchall(z.unknown())],
-    ["meta", (b) => b().extend({ x: z.string() }).meta({ id: "node" })],
+    ["strict", (b) => b().extend({ x: Schema.string() }).strict()],
+    ["catchall", (b) => b().extend({ x: Schema.string() }).catchall(Schema.unknown())],
+    ["meta", (b) => b().extend({ x: Schema.string() }).meta({ id: "node" })],
   ];
 
   for (const [name, wrap] of wraps) {
     const Node = (): any =>
       wrap(() =>
-        z.object({
-          y: z.string(),
+        Schema.object({
+          y: Schema.string(),
           get self() {
-            return z.optional(Node());
+            return Schema.optional(Node());
           },
         })
       );
-    const S = z.object({ r: Node() });
+    const S = Schema.object({ r: Node() });
     for (const attempt of ["first", "second"]) {
       expect(() => S.safeParse({ r: { y: "s", x: "s" } }), `${name} (${attempt} parse)`).not.toThrow();
     }
@@ -812,81 +812,81 @@ test("parses a factory-built recursive schema through every object builder", () 
 });
 
 test("an ordinary builder stays exact, so it still compiles", () => {
-  const plain = z.object({ a: z.string(), b: z.number() });
+  const plain = Schema.object({ a: Schema.string(), b: Schema.number() });
   const derived: [string, any][] = [
-    ["extend", plain.extend({ c: z.boolean() })],
-    ["merge", plain.merge(z.object({ d: z.string() }))],
+    ["extend", plain.extend({ c: Schema.boolean() })],
+    ["merge", plain.merge(Schema.object({ d: Schema.string() }))],
     ["partial", plain.partial()],
     ["required", plain.partial().required()],
     ["pick", plain.pick({ a: true })],
     ["omit", plain.omit({ a: true })],
-    ["strict", plain.extend({ c: z.boolean() }).strict()],
-    ["catchall", plain.extend({ c: z.boolean() }).catchall(z.unknown())],
-    ["meta", plain.extend({ c: z.boolean() }).meta({ id: "plain" })],
+    ["strict", plain.extend({ c: Schema.boolean() }).strict()],
+    ["catchall", plain.extend({ c: Schema.boolean() }).catchall(Schema.unknown())],
+    ["meta", plain.extend({ c: Schema.boolean() }).meta({ id: "plain" })],
   ];
   for (const [name, schema] of derived) {
-    expect(z.core.isRecursiveSchema(schema), name).toBe(false);
-    expect(() => z.compile(schema, { strict: true }), name).not.toThrow();
+    expect(Schema.core.isRecursiveSchema(schema), name).toBe(false);
+    expect(() => Schema.compile(schema, { strict: true }), name).not.toThrow();
   }
 });
 
 // a derived shape mirrors its source's descriptors, so dropping or overwriting the key that carries the cycle leaves nothing deferred and the walk is exact before anything parses
 test("a builder that drops the recursive key ends up exact", () => {
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get self() {
-      return z.optional(Node);
+      return Schema.optional(Node);
     },
   });
 
   const derived: [string, any, any][] = [
     ["omit", Node.omit({ self: true }), { id: 1 }],
     ["pick", Node.pick({ id: true }), { id: 1 }],
-    ["extend overwrites it", Node.extend({ self: z.string() }), { id: 1, self: "x" }],
+    ["extend overwrites it", Node.extend({ self: Schema.string() }), { id: 1, self: "x" }],
   ];
   for (const [name, schema, input] of derived) {
-    expect(z.core.isRecursiveSchema(schema), name).toBe(false);
-    expect(() => z.compile(schema, { strict: true }), name).not.toThrow();
-    expect(schema.parse(input), name).toEqual(input);
+    expect(Schema.core.isRecursiveSchema(schema), name).toBe(false);
+    expect(() => Schema.compile(schema, { strict: true }), name).not.toThrow();
+    expect(Schema.parse(input), name).toEqual(input);
   }
 
   // the branch that stays is still found
-  const kept = Node.extend({ x: z.string() });
-  expect(z.core.isRecursiveSchema(kept)).toBe(true);
+  const kept = Node.extend({ x: Schema.string() });
+  expect(Schema.core.isRecursiveSchema(kept)).toBe(true);
 });
 
 // resolving a lazy runs user code, which can re-enter the walk; a walk that kept its certainty outside its own frames would have the inner one clobber the outer
 test("a nested walk can't corrupt the one that resolved into it", () => {
-  const Node: any = z.object({
-    id: z.number(),
-    self: z.lazy(() => {
-      z.compile(z.string(), { strict: true });
-      return z.optional(Node);
+  const Node: any = Schema.object({
+    id: Schema.number(),
+    self: Schema.lazy(() => {
+      Schema.compile(Schema.string(), { strict: true });
+      return Schema.optional(Node);
     }),
   });
 
   const omitted = Node.omit({ self: true });
   // exact before anything parses: the mirrored shape kept only `id`, so nothing here is deferred
-  expect(z.core.isRecursiveSchema(omitted)).toBe(false);
+  expect(Schema.core.isRecursiveSchema(omitted)).toBe(false);
   omitted.parse({ id: 1 });
-  expect(z.core.isRecursiveSchema(omitted)).toBe(false);
-  expect(() => z.compile(omitted, { strict: true })).not.toThrow();
+  expect(Schema.core.isRecursiveSchema(omitted)).toBe(false);
+  expect(() => Schema.compile(omitted, { strict: true })).not.toThrow();
 
   const shared = { id: 1 };
-  const out: any = z.object({ a: omitted, b: omitted }).parse({ a: shared, b: shared });
+  const out: any = Schema.object({ a: omitted, b: omitted }).parse({ a: shared, b: shared });
   expect(out.a).not.toBe(out.b);
-  expect(z.core.isRecursiveSchema(Node)).toBe(true);
+  expect(Schema.core.isRecursiveSchema(Node)).toBe(true);
 });
 
 test("detects a cycle that closes through a builder", () => {
   const Node: any = z
     .object({
-      id: z.number(),
+      id: Schema.number(),
       get self() {
-        return z.optional(Node);
+        return Schema.optional(Node);
       },
     })
-    .extend({ x: z.string() });
+    .extend({ x: Schema.string() });
 
   const input: any = { id: 1, x: "s" };
   input.self = input;
@@ -895,62 +895,62 @@ test("detects a cycle that closes through a builder", () => {
 });
 
 test("a deferred edge stops being assumed a cycle once the graph resolves", () => {
-  const Leaf = z.object({ n: z.number() });
-  const Forward: any = z.object({
+  const Leaf = Schema.object({ n: Schema.number() });
+  const Forward: any = Schema.object({
     get a() {
       return Leaf;
     },
   });
-  expect(z.core.isRecursiveSchema(Forward)).toBe(true);
+  expect(Schema.core.isRecursiveSchema(Forward)).toBe(true);
   Forward.parse({ a: { n: 1 } });
   // the parse resolved the getter, so the walk can follow it and drop the assumption
-  expect(z.core.isRecursiveSchema(Forward)).toBe(false);
+  expect(Schema.core.isRecursiveSchema(Forward)).toBe(false);
 
   // a factory hands back a fresh subtree every time, so no parse ever resolves it into a finite graph
   const Node = (): any =>
-    z.object({
+    Schema.object({
       get kids() {
-        return z.array(Node());
+        return Schema.array(Node());
       },
     });
   const Generated = Node();
-  expect(z.core.isRecursiveSchema(Generated)).toBe(true);
+  expect(Schema.core.isRecursiveSchema(Generated)).toBe(true);
   Generated.parse({ kids: [] });
-  expect(z.core.isRecursiveSchema(Generated)).toBe(true);
+  expect(Schema.core.isRecursiveSchema(Generated)).toBe(true);
 
   // a lazy that closes a real cycle stays recursive however often it resolves
-  const Cyclic: any = z.object({ id: z.number(), self: z.lazy(() => z.optional(Cyclic)) });
+  const Cyclic: any = Schema.object({ id: Schema.number(), self: Schema.lazy(() => Schema.optional(Cyclic)) });
   Cyclic.parse({ id: 1 });
-  expect(z.core.isRecursiveSchema(Cyclic)).toBe(true);
+  expect(Schema.core.isRecursiveSchema(Cyclic)).toBe(true);
 });
 
-// `z.object` resolves its shape by spread, so a non-enumerable key is no part of it
-test("a non-enumerable key does not count for z.object", () => {
+// `Schema.object` resolves its shape by spread, so a non-enumerable key is no part of it
+test("a non-enumerable key does not count for Schema.object", () => {
   const object = (enumerable: boolean) => {
-    const shape: Record<string, any> = { id: z.number() };
-    const O: any = z.object(shape);
-    Object.defineProperty(shape, "next", { value: z.lazy(() => z.optional(O)), enumerable, configurable: true });
+    const shape: Record<string, any> = { id: Schema.number() };
+    const O: any = Schema.object(shape);
+    Object.defineProperty(shape, "next", { value: Schema.lazy(() => Schema.optional(O)), enumerable, configurable: true });
     return O;
   };
-  expect(z.core.isRecursiveSchema(object(true))).toBe(true);
+  expect(Schema.core.isRecursiveSchema(object(true))).toBe(true);
   // the spread drops it, so nothing can ever parse it
-  expect(z.core.isRecursiveSchema(object(false))).toBe(false);
+  expect(Schema.core.isRecursiveSchema(object(false))).toBe(false);
 });
 
 test("the walk stays exact where nothing is deferred", () => {
-  let deep: any = z.string();
-  for (let i = 0; i < 300; i++) deep = z.object({ v: deep });
-  expect(z.core.isRecursiveSchema(deep)).toBe(false);
+  let deep: any = Schema.string();
+  for (let i = 0; i < 300; i++) deep = Schema.object({ v: deep });
+  expect(Schema.core.isRecursiveSchema(deep)).toBe(false);
 });
 
-test("parses a factory-built recursive schema through z.lazy", () => {
+test("parses a factory-built recursive schema through Schema.lazy", () => {
   const Node = (): any =>
-    z.object({
-      id: z.number(),
-      child: z.lazy(() => z.optional(Node())),
+    Schema.object({
+      id: Schema.number(),
+      child: Schema.lazy(() => Schema.optional(Node())),
     });
 
-  const out = z.object({ root: Node() }).parse({ root: { id: 1, child: { id: 2, child: undefined } } });
+  const out = Schema.object({ root: Node() }).parse({ root: { id: 1, child: { id: 2, child: undefined } } });
   expect(out.root.child.id).toBe(2);
 });
 
@@ -962,10 +962,10 @@ test("a finished parse pins nothing on the schema", async () => {
   v8.setFlagsFromString("--expose-gc");
   const gc = vm.runInNewContext("gc") as () => void;
 
-  const Node: any = z.object({
-    id: z.number(),
+  const Node: any = Schema.object({
+    id: Schema.number(),
     get next() {
-      return z.optional(Node);
+      return Schema.optional(Node);
     },
   });
 

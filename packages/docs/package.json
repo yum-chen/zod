@@ -1,5 +1,5 @@
 {
-  "name": "@zod/docs",
+  "name": "@schema/docs",
   "version": "0.0.0",
   "private": true,
   "scripts": {

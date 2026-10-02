@@ -1,7 +1,7 @@
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-export const schema = z.object({
-  name: z.string(),
-  age: z.number(),
-  email: z.boolean(),
+export const schema = Schema.object({
+  name: Schema.string(),
+  age: Schema.number(),
+  email: Schema.boolean(),
 });

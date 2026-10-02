@@ -1,4 +1,4 @@
-import * as z from "zod/mini"
+import * as Schema from "schema/mini"
 
-const schema = z.boolean();
-console.log(schema.parse(true));
+const schema = Schema.boolean();
+console.log(Schema.parse(true));

@@ -8,11 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 describe("Are The Types Wrong (attw) tests", () => {
-  it("should run attw --pack node_modules/zod and check output", async () => {
-    // check if node_modules/zod/index.js exists
-    const zodIndexPath = path.join(__dirname, "node_modules", "zod", "index.js");
-    if (!existsSync(zodIndexPath)) {
-      // Zod has not been build
+  it("should run attw --pack node_modules/schema and check output", async () => {
+    // check if node_modules/schema/index.js exists
+    const schemaIndexPath = path.join(__dirname, "node_modules", "schema", "index.js");
+    if (!existsSync(schemaIndexPath)) {
+      // Schema has not been build
       return;
     }
 
@@ -27,8 +27,8 @@ describe("Are The Types Wrong (attw) tests", () => {
       return;
     }
 
-    const zodPackagePath = path.join(__dirname, "node_modules", "zod");
-    const result = await execa("nub", ["exec", "--node", "attw", "--pack", zodPackagePath, "--format", "ascii"], {
+    const schemaPackagePath = path.join(__dirname, "node_modules", "schema");
+    const result = await execa("nub", ["exec", "--node", "attw", "--pack", schemaPackagePath, "--format", "ascii"], {
       cwd: __dirname,
       reject: false, // Don't throw on non-zero exit codes
     });
@@ -46,7 +46,7 @@ describe("Are The Types Wrong (attw) tests", () => {
       "🎭 Import resolved to a CommonJS type declaration file, but an ESM JavaScript file. https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseCJS.md
 
 
-      "zod/package.json"
+      "schema/package.json"
 
       node10: 🟢 (JSON)
       node16 (from CJS): 🟢 (JSON)
@@ -55,7 +55,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod"
+      "schema"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -64,7 +64,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/mini"
+      "schema/mini"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -73,7 +73,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/compile"
+      "schema/compile"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -82,7 +82,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/locales"
+      "schema/locales"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -91,7 +91,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v3"
+      "schema/v3"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -100,7 +100,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v4"
+      "schema/v4"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -109,7 +109,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v4-mini"
+      "schema/v4-mini"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -118,7 +118,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v4/mini"
+      "schema/v4/mini"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -127,7 +127,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v4/core"
+      "schema/v4/core"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -136,7 +136,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v4/locales"
+      "schema/v4/locales"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)
@@ -145,7 +145,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "zod/v4/locales/*"
+      "schema/v4/locales/*"
 
       node10: (wildcard)
       node16 (from CJS): (wildcard)
@@ -156,10 +156,10 @@ describe("Are The Types Wrong (attw) tests", () => {
     `);
   }, 120000); // 30 second timeout for the command
 
-  it("should run attw --pack node_modules/@zod/mini and check output", async () => {
-    const miniIndexPath = path.join(__dirname, "node_modules", "@zod", "mini", "index.js");
+  it("should run attw --pack node_modules/@schema/mini and check output", async () => {
+    const miniIndexPath = path.join(__dirname, "node_modules", "@schema", "mini", "index.js");
     if (!existsSync(miniIndexPath)) {
-      // @zod/mini has not been built
+      // @schema/mini has not been built
       return;
     }
 
@@ -170,7 +170,7 @@ describe("Are The Types Wrong (attw) tests", () => {
       return;
     }
 
-    const miniPackagePath = path.join(__dirname, "node_modules", "@zod", "mini");
+    const miniPackagePath = path.join(__dirname, "node_modules", "@schema", "mini");
     const result = await execa("nub", ["exec", "--node", "attw", "--pack", miniPackagePath, "--format", "ascii"], {
       cwd: __dirname,
       reject: false,
@@ -187,7 +187,7 @@ describe("Are The Types Wrong (attw) tests", () => {
       "🎭 Import resolved to a CommonJS type declaration file, but an ESM JavaScript file. https://github.com/arethetypeswrong/arethetypeswrong.github.io/blob/main/docs/problems/FalseCJS.md
 
 
-      "@zod/mini/package.json"
+      "@schema/mini/package.json"
 
       node10: 🟢 (JSON)
       node16 (from CJS): 🟢 (JSON)
@@ -196,7 +196,7 @@ describe("Are The Types Wrong (attw) tests", () => {
 
       ***********************************
 
-      "@zod/mini"
+      "@schema/mini"
 
       node10: 🟢 
       node16 (from CJS): 🟢 (CJS)

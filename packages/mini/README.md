@@ -1,20 +1,20 @@
-# @zod/mini
+# @schema/mini
 
-Zod Mini as a standalone package. It re-exports [`zod/mini`](https://zod.dev/packages/mini) from a peer dependency on `zod`, so every schema it creates is a `zod` schema.
+Schema Mini as a standalone package. It re-exports [`schema/mini`](https://Schema.dev/packages/mini) from a peer dependency on `schema`, so every schema it creates is a `schema` Schema.
 
 ```sh
-npm install zod @zod/mini
+npm install schema @schema/mini
 ```
 
 ```ts
-import * as z from "@zod/mini";
+import * as Schema from "@schema/mini";
 
-const User = z.object({
-  name: z.string(),
-  age: z.number().check(z.int(), z.positive()),
+const User = Schema.object({
+  name: Schema.string(),
+  age: Schema.number().check(Schema.int(), Schema.positive()),
 });
 
-z.parse(User, { name: "Colin", age: 30 });
+Schema.parse(User, { name: "Colin", age: 30 });
 ```
 
-The version tracks `zod`: each `@zod/mini@4.x.y` requires `zod@^4.x.0`.
+The version tracks `schema`: each `@schema/mini@4.x.y` requires `schema@^4.x.0`.

@@ -26,11 +26,11 @@ export {
   util,
   NEVER,
   INVALID,
-  toZod,
+  toSchema,
   compile,
   withParser,
-  ZodCompileAsyncError,
-  ZodCompileUnsupportedError,
+  SchemaCompileAsyncError,
+  SchemaCompileUnsupportedError,
   getDiscriminatedOption,
 } from "../core/index.js";
 export { toJSONSchema } from "../core/json-schema-processors.js";
@@ -42,10 +42,10 @@ export * as locales from "../locales/index.js";
 // iso
 export * as iso from "./iso.js";
 export {
-  ZodMiniISODateTime,
-  ZodMiniISODate,
-  ZodMiniISOTime,
-  ZodMiniISODuration,
+  SchemaMiniISODateTime,
+  SchemaMiniISODate,
+  SchemaMiniISOTime,
+  SchemaMiniISODuration,
 } from "./iso.js";
 
 // coerce

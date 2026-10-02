@@ -1,190 +1,190 @@
 import { expectTypeOf, test } from "vitest";
 
-import * as z from "zod/mini";
+import * as Schema from "schema/mini";
 
 test("assignability", () => {
-  // $ZodString
-  z.string() satisfies z.core.$ZodString;
+  // $SchemaString
+  Schema.string() satisfies Schema.core.$SchemaString;
 
-  // $ZodNumber
-  z.number() satisfies z.core.$ZodNumber;
+  // $SchemaNumber
+  Schema.number() satisfies Schema.core.$SchemaNumber;
 
-  // $ZodBigInt
-  z.bigint() satisfies z.core.$ZodBigInt;
+  // $SchemaBigInt
+  Schema.bigint() satisfies Schema.core.$SchemaBigInt;
 
-  // $ZodBoolean
-  z.boolean() satisfies z.core.$ZodBoolean;
+  // $SchemaBoolean
+  Schema.boolean() satisfies Schema.core.$SchemaBoolean;
 
-  // $ZodDate
-  z.date() satisfies z.core.$ZodDate;
+  // $SchemaDate
+  Schema.date() satisfies Schema.core.$SchemaDate;
 
-  // $ZodSymbol
-  z.symbol() satisfies z.core.$ZodSymbol;
+  // $SchemaSymbol
+  Schema.symbol() satisfies Schema.core.$SchemaSymbol;
 
-  // $ZodUndefined
-  z.undefined() satisfies z.core.$ZodUndefined;
+  // $SchemaUndefined
+  Schema.undefined() satisfies Schema.core.$SchemaUndefined;
 
-  // $ZodNullable
-  z.nullable(z.string()) satisfies z.core.$ZodNullable;
+  // $SchemaNullable
+  Schema.nullable(Schema.string()) satisfies Schema.core.$SchemaNullable;
 
-  // $ZodNull
-  z.null() satisfies z.core.$ZodNull;
+  // $SchemaNull
+  Schema.null() satisfies Schema.core.$SchemaNull;
 
-  // $ZodAny
-  z.any() satisfies z.core.$ZodAny;
+  // $SchemaAny
+  Schema.any() satisfies Schema.core.$SchemaAny;
 
-  // $ZodUnknown
-  z.unknown() satisfies z.core.$ZodUnknown;
+  // $SchemaUnknown
+  Schema.unknown() satisfies Schema.core.$SchemaUnknown;
 
-  // $ZodNever
-  z.never() satisfies z.core.$ZodNever;
+  // $SchemaNever
+  Schema.never() satisfies Schema.core.$SchemaNever;
 
-  // $ZodVoid
-  z.void() satisfies z.core.$ZodVoid;
+  // $SchemaVoid
+  Schema.void() satisfies Schema.core.$SchemaVoid;
 
-  // $ZodArray
-  z.array(z.string()) satisfies z.core.$ZodArray;
+  // $SchemaArray
+  Schema.array(Schema.string()) satisfies Schema.core.$SchemaArray;
 
-  // $ZodObject
-  z.object({ key: z.string() }) satisfies z.core.$ZodObject;
+  // $SchemaObject
+  Schema.object({ key: Schema.string() }) satisfies Schema.core.$SchemaObject;
 
-  // $ZodUnion
-  z.union([z.string(), z.number()]) satisfies z.core.$ZodUnion;
+  // $SchemaUnion
+  Schema.union([Schema.string(), Schema.number()]) satisfies Schema.core.$SchemaUnion;
 
-  // $ZodIntersection
-  z.intersection(z.string(), z.number()) satisfies z.core.$ZodIntersection;
+  // $SchemaIntersection
+  Schema.intersection(Schema.string(), Schema.number()) satisfies Schema.core.$SchemaIntersection;
 
-  // $ZodTuple
-  z.tuple([z.string(), z.number()]) satisfies z.core.$ZodTuple;
+  // $SchemaTuple
+  Schema.tuple([Schema.string(), Schema.number()]) satisfies Schema.core.$SchemaTuple;
 
-  // $ZodRecord
-  z.record(z.string(), z.number()) satisfies z.core.$ZodRecord;
+  // $SchemaRecord
+  Schema.record(Schema.string(), Schema.number()) satisfies Schema.core.$SchemaRecord;
 
-  // $ZodMap
-  z.map(z.string(), z.number()) satisfies z.core.$ZodMap;
+  // $SchemaMap
+  Schema.map(Schema.string(), Schema.number()) satisfies Schema.core.$SchemaMap;
 
-  // $ZodSet
-  z.set(z.string()) satisfies z.core.$ZodSet;
+  // $SchemaSet
+  Schema.set(Schema.string()) satisfies Schema.core.$SchemaSet;
 
-  // $ZodLiteral
-  z.literal("example") satisfies z.core.$ZodLiteral;
+  // $SchemaLiteral
+  Schema.literal("example") satisfies Schema.core.$SchemaLiteral;
 
-  // $ZodEnum
-  z.enum(["a", "b", "c"]) satisfies z.core.$ZodEnum;
+  // $SchemaEnum
+  Schema.enum(["a", "b", "c"]) satisfies Schema.core.$SchemaEnum;
 
-  // $ZodPromise
-  z.promise(z.string()) satisfies z.core.$ZodPromise;
+  // $SchemaPromise
+  Schema.promise(Schema.string()) satisfies Schema.core.$SchemaPromise;
 
-  // $ZodLazy
-  const lazySchema = z.lazy(() => z.string());
-  lazySchema satisfies z.core.$ZodLazy;
+  // $SchemaLazy
+  const lazySchema = Schema.lazy(() => Schema.string());
+  lazySchema satisfies Schema.core.$SchemaLazy;
 
-  // $ZodOptional
-  z.optional(z.string()) satisfies z.core.$ZodOptional;
+  // $SchemaOptional
+  Schema.optional(Schema.string()) satisfies Schema.core.$SchemaOptional;
 
-  // $ZodDefault
-  z._default(z.string(), "default") satisfies z.core.$ZodDefault;
+  // $SchemaDefault
+  Schema._default(Schema.string(), "default") satisfies Schema.core.$SchemaDefault;
 
-  // $ZodTemplateLiteral
-  z.templateLiteral([z.literal("a"), z.literal("b")]) satisfies z.core.$ZodTemplateLiteral;
+  // $SchemaTemplateLiteral
+  Schema.templateLiteral([Schema.literal("a"), Schema.literal("b")]) satisfies Schema.core.$SchemaTemplateLiteral;
 
-  // $ZodCustom
-  z.custom<string>((val) => typeof val === "string") satisfies z.core.$ZodCustom;
+  // $SchemaCustom
+  Schema.custom<string>((val) => typeof val === "string") satisfies Schema.core.$SchemaCustom;
 
-  // $ZodTransform
-  z.transform((val) => val as string) satisfies z.core.$ZodTransform;
+  // $SchemaTransform
+  Schema.transform((val) => val as string) satisfies Schema.core.$SchemaTransform;
 
-  // $ZodNonOptional
-  z.nonoptional(z.optional(z.string())) satisfies z.core.$ZodNonOptional;
+  // $SchemaNonOptional
+  Schema.nonoptional(Schema.optional(Schema.string())) satisfies Schema.core.$SchemaNonOptional;
 
-  // $ZodReadonly
-  z.readonly(z.object({ key: z.string() })) satisfies z.core.$ZodReadonly;
+  // $SchemaReadonly
+  Schema.readonly(Schema.object({ key: Schema.string() })) satisfies Schema.core.$SchemaReadonly;
 
-  // $ZodNaN
-  z.nan() satisfies z.core.$ZodNaN;
+  // $SchemaNaN
+  Schema.nan() satisfies Schema.core.$SchemaNaN;
 
-  // $ZodPipe
-  z.pipe(z.unknown(), z.number()) satisfies z.core.$ZodPipe;
+  // $SchemaPipe
+  Schema.pipe(Schema.unknown(), Schema.number()) satisfies Schema.core.$SchemaPipe;
 
-  // $ZodSuccess
-  z.success(z.string()) satisfies z.core.$ZodSuccess;
+  // $SchemaSuccess
+  Schema.success(Schema.string()) satisfies Schema.core.$SchemaSuccess;
 
-  // $ZodCatch
-  z.catch(z.string(), "fallback") satisfies z.core.$ZodCatch;
+  // $SchemaCatch
+  Schema.catch(Schema.string(), "fallback") satisfies Schema.core.$SchemaCatch;
 
-  // $ZodFile
-  z.file() satisfies z.core.$ZodFile;
+  // $SchemaFile
+  Schema.file() satisfies Schema.core.$SchemaFile;
 });
 
-test("toZod", () => {
+test("toSchema", () => {
   type Company = {
     id: string;
     name: string;
     webAddress: string | null;
   };
 
-  const CompanySchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    webAddress: z.nullable(z.string()),
+  const CompanySchema = Schema.object({
+    id: Schema.string(),
+    name: Schema.string(),
+    webAddress: Schema.nullable(Schema.string()),
   });
-  const Company = z.toZod<Company>()(CompanySchema);
+  const Company = Schema.toSchema<Company>()(CompanySchema);
 
-  expectTypeOf<z.output<typeof Company>>().toEqualTypeOf<Company>();
+  expectTypeOf<Schema.output<typeof Company>>().toEqualTypeOf<Company>();
 
-  const CoreCompany = z.core.toZod<Company>()(CompanySchema);
-  expectTypeOf<z.output<typeof CoreCompany>>().toEqualTypeOf<Company>();
+  const CoreCompany = Schema.core.toSchema<Company>()(CompanySchema);
+  expectTypeOf<Schema.output<typeof CoreCompany>>().toEqualTypeOf<Company>();
 
-  const UtilCompany = z.core.util.toZod<Company>()(CompanySchema);
-  expectTypeOf<z.output<typeof UtilCompany>>().toEqualTypeOf<Company>();
+  const UtilCompany = Schema.core.util.toSchema<Company>()(CompanySchema);
+  expectTypeOf<Schema.output<typeof UtilCompany>>().toEqualTypeOf<Company>();
 
-  const Transformed = z.toZod<{ count: number }>()(
-    z.object({
-      count: z.pipe(
-        z.string(),
-        z.transform((value) => value.length)
+  const Transformed = Schema.toSchema<{ count: number }>()(
+    Schema.object({
+      count: Schema.pipe(
+        Schema.string(),
+        Schema.transform((value) => value.length)
       ),
     })
   );
-  expectTypeOf<z.input<typeof Transformed>>().toEqualTypeOf<{ count: string }>();
-  expectTypeOf<z.output<typeof Transformed>>().toEqualTypeOf<{ count: number }>();
+  expectTypeOf<Schema.input<typeof Transformed>>().toEqualTypeOf<{ count: string }>();
+  expectTypeOf<Schema.output<typeof Transformed>>().toEqualTypeOf<{ count: number }>();
 
-  z.toZod<Company>()(
+  Schema.toSchema<Company>()(
     // @ts-expect-error missing optional keys still fail exact output matching
-    z.object({
-      id: z.string(),
-      name: z.string(),
+    Schema.object({
+      id: Schema.string(),
+      name: Schema.string(),
     })
   );
 
-  z.toZod<Company>()(
+  Schema.toSchema<Company>()(
     // @ts-expect-error extra keys fail exact output matching
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      webAddress: z.nullable(z.string()),
-      extra: z.string(),
+    Schema.object({
+      id: Schema.string(),
+      name: Schema.string(),
+      webAddress: Schema.nullable(Schema.string()),
+      extra: Schema.string(),
     })
   );
 
-  z.toZod<Company>()(
+  Schema.toSchema<Company>()(
     // @ts-expect-error wrong property output fails matching
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      webAddress: z.nullable(z.string()),
+    Schema.object({
+      id: Schema.number(),
+      name: Schema.string(),
+      webAddress: Schema.nullable(Schema.string()),
     })
   );
 });
 
 test("assignability with type narrowing", () => {
-  type _RefinedSchema<T extends z.ZodMiniType<object> | z.ZodMiniUnion> = T extends z.ZodMiniUnion
+  type _RefinedSchema<T extends Schema.SchemaMiniType<object> | Schema.SchemaMiniUnion> = T extends Schema.SchemaMiniUnion
     ? RefinedUnionSchema<T> // <-- Type instantiation is excessively deep and possibly infinite.
-    : T extends z.ZodMiniType<object>
-      ? RefinedTypeSchema<z.output<T>> // <-- Type instantiation is excessively deep and possibly infinite.
+    : T extends Schema.SchemaMiniType<object>
+      ? RefinedTypeSchema<Schema.output<T>> // <-- Type instantiation is excessively deep and possibly infinite.
       : never;
 
   type RefinedTypeSchema<T extends object> = T;
 
-  type RefinedUnionSchema<T extends z.ZodMiniUnion> = T;
+  type RefinedUnionSchema<T extends Schema.SchemaMiniUnion> = T;
 });

@@ -47,9 +47,9 @@ export type SchemaType = "object" | "array" | "string" | "number" | "boolean" | 
 export type JSONSchema = {
   [k: string]: unknown;
   $schema?:
-    | "https://json-schema.org/draft/2020-12/schema"
-    | "http://json-schema.org/draft-07/schema#"
-    | "http://json-schema.org/draft-04/schema#";
+    | "https://json-Schema.org/draft/2020-12/schema"
+    | "http://json-Schema.org/draft-07/schema#"
+    | "http://json-Schema.org/draft-04/schema#";
   $id?: string;
   $anchor?: string;
   $ref?: string;

@@ -1,72 +1,72 @@
-import * as z from "zod";
-import * as zm from "zod/mini";
+import * as Schema   from "schema";
+import * as zm from "schema/mini";
 import { fmtBytes, measureStable, table } from "./harness.js";
 
 const N = 20_000;
 
 const cases: Array<[string, (i: number) => unknown]> = [
-  ["z.string()", () => z.string()],
-  ["z.number()", () => z.number()],
-  ["z.boolean()", () => z.boolean()],
-  ["z.literal('a')", () => z.literal("a")],
-  ["z.string().min(1)", () => z.string().min(1)],
-  ["z.string().min(1).max(5)", () => z.string().min(1).max(5)],
-  ["z.string().optional()", () => z.string().optional()],
-  ["z.email()", () => z.email()],
-  ["z.uuid()", () => z.uuid()],
-  ["z.iso.datetime()", () => z.iso.datetime()],
-  ["z.array(z.string())", () => z.array(z.string())],
-  ["z.enum(['a','b','c'])", () => z.enum(["a", "b", "c"])],
-  ["z.object({}) empty", () => z.object({})],
+  ["Schema.string()", () => Schema.string()],
+  ["Schema.number()", () => Schema.number()],
+  ["Schema.boolean()", () => Schema.boolean()],
+  ["Schema.literal('a')", () => Schema.literal("a")],
+  ["Schema.string().min(1)", () => Schema.string().min(1)],
+  ["Schema.string().min(1).max(5)", () => Schema.string().min(1).max(5)],
+  ["Schema.string().optional()", () => Schema.string().optional()],
+  ["Schema.email()", () => Schema.email()],
+  ["Schema.uuid()", () => Schema.uuid()],
+  ["Schema.iso.datetime()", () => Schema.iso.datetime()],
+  ["Schema.array(Schema.string())", () => Schema.array(Schema.string())],
+  ["Schema.enum(['a','b','c'])", () => Schema.enum(["a", "b", "c"])],
+  ["Schema.object({}) empty", () => Schema.object({})],
   [
-    "z.object() 3 keys",
+    "Schema.object() 3 keys",
     () =>
-      z.object({
-        a: z.string(),
-        b: z.number(),
-        c: z.boolean(),
+      Schema.object({
+        a: Schema.string(),
+        b: Schema.number(),
+        c: Schema.boolean(),
       }),
   ],
   [
-    "z.object() 10 keys",
+    "Schema.object() 10 keys",
     () => {
-      const shape: Record<string, z.ZodType> = {};
-      for (let k = 0; k < 10; k++) shape[`k${k}`] = z.string();
-      return z.object(shape);
+      const shape: Record<string, Schema.SchemaType> = {};
+      for (let k = 0; k < 10; k++) shape[`k${k}`] = Schema.string();
+      return Schema.object(shape);
     },
   ],
   [
-    "z.object() 10 keys (shared leaf)",
+    "Schema.object() 10 keys (shared leaf)",
     (() => {
-      const leaf = z.string();
+      const leaf = Schema.string();
       return () => {
-        const shape: Record<string, z.ZodType> = {};
+        const shape: Record<string, Schema.SchemaType> = {};
         for (let k = 0; k < 10; k++) shape[`k${k}`] = leaf;
-        return z.object(shape);
+        return Schema.object(shape);
       };
     })(),
   ],
-  ["z.union([str,num])", () => z.union([z.string(), z.number()])],
+  ["Schema.union([str,num])", () => Schema.union([Schema.string(), Schema.number()])],
   [
-    "z.discriminatedUnion 2",
+    "Schema.discriminatedUnion 2",
     () =>
-      z.discriminatedUnion("t", [
-        z.object({ t: z.literal("a"), a: z.string() }),
-        z.object({ t: z.literal("b"), b: z.number() }),
+      Schema.discriminatedUnion("t", [
+        Schema.object({ t: Schema.literal("a"), a: Schema.string() }),
+        Schema.object({ t: Schema.literal("b"), b: Schema.number() }),
       ]),
   ],
-  ["z.record(str, num)", () => z.record(z.string(), z.number())],
-  ["z.tuple([str,num])", () => z.tuple([z.string(), z.number()])],
-  ["z.lazy(() => str)", () => z.lazy(() => z.string())],
-  ["z.string().refine(fn)", () => z.string().refine((s) => s.length > 0)],
-  ["z.string().transform(fn)", () => z.string().transform((s) => s.length)],
-  ["z.string().default('x')", () => z.string().default("x")],
-  ["z.string().brand<'x'>()", () => z.string().brand<"x">()],
-  ["z.string().nullable()", () => z.string().nullable()],
-  ["z.pipe(str, num-ish)", () => z.string().pipe(z.string())],
+  ["Schema.record(str, num)", () => Schema.record(Schema.string(), Schema.number())],
+  ["Schema.tuple([str,num])", () => Schema.tuple([Schema.string(), Schema.number()])],
+  ["Schema.lazy(() => str)", () => Schema.lazy(() => Schema.string())],
+  ["Schema.string().refine(fn)", () => Schema.string().refine((s) => s.length > 0)],
+  ["Schema.string().transform(fn)", () => Schema.string().transform((s) => s.length)],
+  ["Schema.string().default('x')", () => Schema.string().default("x")],
+  ["Schema.string().brand<'x'>()", () => Schema.string().brand<"x">()],
+  ["Schema.string().nullable()", () => Schema.string().nullable()],
+  ["Schema.pipe(str, num-ish)", () => Schema.string().pipe(Schema.string())],
   // mini variants for contrast (no method-chaining surface)
-  ["mini z.string()", () => zm.string()],
-  ["mini z.object() 3 keys", () => zm.object({ a: zm.string(), b: zm.number(), c: zm.boolean() })],
+  ["mini Schema.string()", () => zm.string()],
+  ["mini Schema.object() 3 keys", () => zm.object({ a: zm.string(), b: zm.number(), c: zm.boolean() })],
 ];
 
 console.log(`per-instance retained heap, n=${N}\n`);

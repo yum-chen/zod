@@ -1,87 +1,87 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
-import type { util } from "zod/v4/core";
+import * as Schema from "schema/v4";
+import type { util } from "schema/v4/core";
 
-test("z.boolean", () => {
-  const a = z.boolean();
-  expect(z.parse(a, true)).toEqual(true);
-  expect(z.parse(a, false)).toEqual(false);
-  expect(() => z.parse(a, 123)).toThrow();
-  expect(() => z.parse(a, "true")).toThrow();
-  type a = z.output<typeof a>;
+test("Schema.boolean", () => {
+  const a = Schema.boolean();
+  expect(Schema.parse(a, true)).toEqual(true);
+  expect(Schema.parse(a, false)).toEqual(false);
+  expect(() => Schema.parse(a, 123)).toThrow();
+  expect(() => Schema.parse(a, "true")).toThrow();
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<boolean>();
 });
 
-test("z.bigint", () => {
-  const a = z.bigint();
-  expect(z.parse(a, BigInt(123))).toEqual(BigInt(123));
-  expect(() => z.parse(a, 123)).toThrow();
-  expect(() => z.parse(a, "123")).toThrow();
+test("Schema.bigint", () => {
+  const a = Schema.bigint();
+  expect(Schema.parse(a, BigInt(123))).toEqual(BigInt(123));
+  expect(() => Schema.parse(a, 123)).toThrow();
+  expect(() => Schema.parse(a, "123")).toThrow();
 });
 
-test("z.symbol", () => {
-  const a = z.symbol();
+test("Schema.symbol", () => {
+  const a = Schema.symbol();
   const sym = Symbol();
-  expect(z.parse(a, sym)).toEqual(sym);
-  expect(() => z.parse(a, "symbol")).toThrow();
+  expect(Schema.parse(a, sym)).toEqual(sym);
+  expect(() => Schema.parse(a, "symbol")).toThrow();
 });
 
-test("z.date", () => {
-  const a = z.date();
+test("Schema.date", () => {
+  const a = Schema.date();
   const date = new Date();
-  expect(z.parse(a, date)).toEqual(date);
-  expect(() => z.parse(a, "date")).toThrow();
+  expect(Schema.parse(a, date)).toEqual(date);
+  expect(() => Schema.parse(a, "date")).toThrow();
 });
 
-test("z.coerce.string", () => {
-  const a = z.coerce.string();
-  expect(z.parse(a, 123)).toEqual("123");
-  expect(z.parse(a, true)).toEqual("true");
-  expect(z.parse(a, null)).toEqual("null");
-  expect(z.parse(a, undefined)).toEqual("undefined");
+test("Schema.coerce.string", () => {
+  const a = Schema.coerce.string();
+  expect(Schema.parse(a, 123)).toEqual("123");
+  expect(Schema.parse(a, true)).toEqual("true");
+  expect(Schema.parse(a, null)).toEqual("null");
+  expect(Schema.parse(a, undefined)).toEqual("undefined");
 });
 
-test("z.coerce.number", () => {
-  const a = z.coerce.number();
-  expect(z.parse(a, "123")).toEqual(123);
-  expect(z.parse(a, "123.45")).toEqual(123.45);
-  expect(z.parse(a, true)).toEqual(1);
-  expect(z.parse(a, false)).toEqual(0);
-  expect(() => z.parse(a, "abc")).toThrow();
+test("Schema.coerce.number", () => {
+  const a = Schema.coerce.number();
+  expect(Schema.parse(a, "123")).toEqual(123);
+  expect(Schema.parse(a, "123.45")).toEqual(123.45);
+  expect(Schema.parse(a, true)).toEqual(1);
+  expect(Schema.parse(a, false)).toEqual(0);
+  expect(() => Schema.parse(a, "abc")).toThrow();
 });
 
-test("z.coerce.boolean", () => {
-  const a = z.coerce.boolean();
+test("Schema.coerce.boolean", () => {
+  const a = Schema.coerce.boolean();
   // test booleans
-  expect(z.parse(a, true)).toEqual(true);
-  expect(z.parse(a, false)).toEqual(false);
-  expect(z.parse(a, "true")).toEqual(true);
-  expect(z.parse(a, "false")).toEqual(true);
-  expect(z.parse(a, 1)).toEqual(true);
-  expect(z.parse(a, 0)).toEqual(false);
-  expect(z.parse(a, {})).toEqual(true);
-  expect(z.parse(a, [])).toEqual(true);
-  expect(z.parse(a, undefined)).toEqual(false);
-  expect(z.parse(a, null)).toEqual(false);
-  expect(z.parse(a, "")).toEqual(false);
+  expect(Schema.parse(a, true)).toEqual(true);
+  expect(Schema.parse(a, false)).toEqual(false);
+  expect(Schema.parse(a, "true")).toEqual(true);
+  expect(Schema.parse(a, "false")).toEqual(true);
+  expect(Schema.parse(a, 1)).toEqual(true);
+  expect(Schema.parse(a, 0)).toEqual(false);
+  expect(Schema.parse(a, {})).toEqual(true);
+  expect(Schema.parse(a, [])).toEqual(true);
+  expect(Schema.parse(a, undefined)).toEqual(false);
+  expect(Schema.parse(a, null)).toEqual(false);
+  expect(Schema.parse(a, "")).toEqual(false);
 });
 
-test("z.coerce.bigint", () => {
-  const a = z.coerce.bigint();
-  expect(z.parse(a, "123")).toEqual(BigInt(123));
-  expect(z.parse(a, 123)).toEqual(BigInt(123));
-  expect(() => z.parse(a, "abc")).toThrow();
+test("Schema.coerce.bigint", () => {
+  const a = Schema.coerce.bigint();
+  expect(Schema.parse(a, "123")).toEqual(BigInt(123));
+  expect(Schema.parse(a, 123)).toEqual(BigInt(123));
+  expect(() => Schema.parse(a, "abc")).toThrow();
 });
 
-test("z.coerce.date", () => {
-  const a = z.coerce.date();
+test("Schema.coerce.date", () => {
+  const a = Schema.coerce.date();
   const date = new Date();
-  expect(z.parse(a, date.toISOString())).toEqual(date);
-  expect(z.parse(a, date.getTime())).toEqual(date);
-  expect(() => z.parse(a, "invalid date")).toThrow();
+  expect(Schema.parse(a, date.toISOString())).toEqual(date);
+  expect(Schema.parse(a, date.getTime())).toEqual(date);
+  expect(() => Schema.parse(a, "invalid date")).toThrow();
 });
 
-test("z.iso.datetime", () => {
+test("Schema.iso.datetime", () => {
   const d1 = "2021-01-01T00:00:00Z";
   const d2 = "2021-01-01T00:00:00.123Z";
   const d3 = "2021-01-01T00:00:00";
@@ -89,163 +89,163 @@ test("z.iso.datetime", () => {
   const d5 = "bad data";
 
   // local: false, offset: false, precision: null
-  const a = z.iso.datetime();
-  expect(z.safeParse(a, d1).success).toEqual(true);
-  expect(z.safeParse(a, d2).success).toEqual(true);
-  expect(z.safeParse(a, d3).success).toEqual(false);
-  expect(z.safeParse(a, d4).success).toEqual(false);
-  expect(z.safeParse(a, d5).success).toEqual(false);
+  const a = Schema.iso.datetime();
+  expect(Schema.safeParse(a, d1).success).toEqual(true);
+  expect(Schema.safeParse(a, d2).success).toEqual(true);
+  expect(Schema.safeParse(a, d3).success).toEqual(false);
+  expect(Schema.safeParse(a, d4).success).toEqual(false);
+  expect(Schema.safeParse(a, d5).success).toEqual(false);
 
-  const b = z.iso.datetime({ local: true });
-  expect(z.safeParse(b, d1).success).toEqual(true);
-  expect(z.safeParse(b, d2).success).toEqual(true);
-  expect(z.safeParse(b, d3).success).toEqual(true);
-  expect(z.safeParse(b, d4).success).toEqual(false);
-  expect(z.safeParse(b, d5).success).toEqual(false);
+  const b = Schema.iso.datetime({ local: true });
+  expect(Schema.safeParse(b, d1).success).toEqual(true);
+  expect(Schema.safeParse(b, d2).success).toEqual(true);
+  expect(Schema.safeParse(b, d3).success).toEqual(true);
+  expect(Schema.safeParse(b, d4).success).toEqual(false);
+  expect(Schema.safeParse(b, d5).success).toEqual(false);
 
-  const c = z.iso.datetime({ offset: true });
-  expect(z.safeParse(c, d1).success).toEqual(true);
-  expect(z.safeParse(c, d2).success).toEqual(true);
-  expect(z.safeParse(c, d3).success).toEqual(false);
-  expect(z.safeParse(c, d4).success).toEqual(true);
-  expect(z.safeParse(c, d5).success).toEqual(false);
+  const c = Schema.iso.datetime({ offset: true });
+  expect(Schema.safeParse(c, d1).success).toEqual(true);
+  expect(Schema.safeParse(c, d2).success).toEqual(true);
+  expect(Schema.safeParse(c, d3).success).toEqual(false);
+  expect(Schema.safeParse(c, d4).success).toEqual(true);
+  expect(Schema.safeParse(c, d5).success).toEqual(false);
 
-  const d = z.iso.datetime({ precision: 3 });
-  expect(z.safeParse(d, d1).success).toEqual(false);
-  expect(z.safeParse(d, d2).success).toEqual(true);
-  expect(z.safeParse(d, d3).success).toEqual(false);
-  expect(z.safeParse(d, d4).success).toEqual(false);
-  expect(z.safeParse(d, d5).success).toEqual(false);
+  const d = Schema.iso.datetime({ precision: 3 });
+  expect(Schema.safeParse(d, d1).success).toEqual(false);
+  expect(Schema.safeParse(d, d2).success).toEqual(true);
+  expect(Schema.safeParse(d, d3).success).toEqual(false);
+  expect(Schema.safeParse(d, d4).success).toEqual(false);
+  expect(Schema.safeParse(d, d5).success).toEqual(false);
 });
 
-test("z.iso.date", () => {
+test("Schema.iso.date", () => {
   const d1 = "2021-01-01";
   const d2 = "bad data";
 
-  const a = z.iso.date();
-  expect(z.safeParse(a, d1).success).toEqual(true);
-  expect(z.safeParse(a, d2).success).toEqual(false);
+  const a = Schema.iso.date();
+  expect(Schema.safeParse(a, d1).success).toEqual(true);
+  expect(Schema.safeParse(a, d2).success).toEqual(false);
 
-  const b = z.string().check(z.iso.date());
-  expect(z.safeParse(b, d1).success).toEqual(true);
-  expect(z.safeParse(b, d2).success).toEqual(false);
+  const b = Schema.string().check(Schema.iso.date());
+  expect(Schema.safeParse(b, d1).success).toEqual(true);
+  expect(Schema.safeParse(b, d2).success).toEqual(false);
 });
 
-test("z.iso.time", () => {
+test("Schema.iso.time", () => {
   const d1 = "00:00:00";
   const d2 = "00:00:00.123";
   const d3 = "bad data";
 
-  const a = z.iso.time();
-  expect(z.safeParse(a, d1).success).toEqual(true);
-  expect(z.safeParse(a, d2).success).toEqual(true);
-  expect(z.safeParse(a, d3).success).toEqual(false);
+  const a = Schema.iso.time();
+  expect(Schema.safeParse(a, d1).success).toEqual(true);
+  expect(Schema.safeParse(a, d2).success).toEqual(true);
+  expect(Schema.safeParse(a, d3).success).toEqual(false);
 
-  const b = z.iso.time({ precision: 3 });
-  expect(z.safeParse(b, d1).success).toEqual(false);
-  expect(z.safeParse(b, d2).success).toEqual(true);
-  expect(z.safeParse(b, d3).success).toEqual(false);
+  const b = Schema.iso.time({ precision: 3 });
+  expect(Schema.safeParse(b, d1).success).toEqual(false);
+  expect(Schema.safeParse(b, d2).success).toEqual(true);
+  expect(Schema.safeParse(b, d3).success).toEqual(false);
 
-  const c = z.string().check(z.iso.time());
-  expect(z.safeParse(c, d1).success).toEqual(true);
-  expect(z.safeParse(c, d2).success).toEqual(true);
-  expect(z.safeParse(c, d3).success).toEqual(false);
+  const c = Schema.string().check(Schema.iso.time());
+  expect(Schema.safeParse(c, d1).success).toEqual(true);
+  expect(Schema.safeParse(c, d2).success).toEqual(true);
+  expect(Schema.safeParse(c, d3).success).toEqual(false);
 });
 
-test("z.iso.duration", () => {
+test("Schema.iso.duration", () => {
   const d1 = "P3Y6M4DT12H30M5S";
   const d2 = "bad data";
 
-  const a = z.iso.duration();
-  expect(z.safeParse(a, d1).success).toEqual(true);
-  expect(z.safeParse(a, d2).success).toEqual(false);
+  const a = Schema.iso.duration();
+  expect(Schema.safeParse(a, d1).success).toEqual(true);
+  expect(Schema.safeParse(a, d2).success).toEqual(false);
 
-  const b = z.string().check(z.iso.duration());
-  expect(z.safeParse(b, d1).success).toEqual(true);
-  expect(z.safeParse(b, d2).success).toEqual(false);
+  const b = Schema.string().check(Schema.iso.duration());
+  expect(Schema.safeParse(b, d1).success).toEqual(true);
+  expect(Schema.safeParse(b, d2).success).toEqual(false);
 });
 
-test("z.undefined", () => {
-  const a = z.undefined();
-  expect(z.parse(a, undefined)).toEqual(undefined);
-  expect(() => z.parse(a, "undefined")).toThrow();
+test("Schema.undefined", () => {
+  const a = Schema.undefined();
+  expect(Schema.parse(a, undefined)).toEqual(undefined);
+  expect(() => Schema.parse(a, "undefined")).toThrow();
 });
 
-test("z.null", () => {
-  const a = z.null();
-  expect(z.parse(a, null)).toEqual(null);
-  expect(() => z.parse(a, "null")).toThrow();
+test("Schema.null", () => {
+  const a = Schema.null();
+  expect(Schema.parse(a, null)).toEqual(null);
+  expect(() => Schema.parse(a, "null")).toThrow();
 });
 
-test("z.any", () => {
-  const a = z.any();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, 123)).toEqual(123);
-  expect(z.parse(a, true)).toEqual(true);
-  expect(z.parse(a, null)).toEqual(null);
-  expect(z.parse(a, undefined)).toEqual(undefined);
-  z.parse(a, {});
-  z.parse(a, []);
-  z.parse(a, Symbol());
-  z.parse(a, new Date());
+test("Schema.any", () => {
+  const a = Schema.any();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, 123)).toEqual(123);
+  expect(Schema.parse(a, true)).toEqual(true);
+  expect(Schema.parse(a, null)).toEqual(null);
+  expect(Schema.parse(a, undefined)).toEqual(undefined);
+  Schema.parse(a, {});
+  Schema.parse(a, []);
+  Schema.parse(a, Symbol());
+  Schema.parse(a, new Date());
 });
 
-test("z.unknown", () => {
-  const a = z.unknown();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, 123)).toEqual(123);
-  expect(z.parse(a, true)).toEqual(true);
-  expect(z.parse(a, null)).toEqual(null);
-  expect(z.parse(a, undefined)).toEqual(undefined);
-  z.parse(a, {});
-  z.parse(a, []);
-  z.parse(a, Symbol());
-  z.parse(a, new Date());
+test("Schema.unknown", () => {
+  const a = Schema.unknown();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, 123)).toEqual(123);
+  expect(Schema.parse(a, true)).toEqual(true);
+  expect(Schema.parse(a, null)).toEqual(null);
+  expect(Schema.parse(a, undefined)).toEqual(undefined);
+  Schema.parse(a, {});
+  Schema.parse(a, []);
+  Schema.parse(a, Symbol());
+  Schema.parse(a, new Date());
 });
 
-test("z.never", () => {
-  const a = z.never();
-  expect(() => z.parse(a, "hello")).toThrow();
+test("Schema.never", () => {
+  const a = Schema.never();
+  expect(() => Schema.parse(a, "hello")).toThrow();
 });
 
-test("z.void", () => {
-  const a = z.void();
-  expect(z.parse(a, undefined)).toEqual(undefined);
-  expect(() => z.parse(a, null)).toThrow();
+test("Schema.void", () => {
+  const a = Schema.void();
+  expect(Schema.parse(a, undefined)).toEqual(undefined);
+  expect(() => Schema.parse(a, null)).toThrow();
 });
 
-test("z.array", () => {
-  const a = z.array(z.string());
-  expect(z.parse(a, ["hello", "world"])).toEqual(["hello", "world"]);
-  expect(() => z.parse(a, [123])).toThrow();
-  expect(() => z.parse(a, "hello")).toThrow();
+test("Schema.array", () => {
+  const a = Schema.array(Schema.string());
+  expect(Schema.parse(a, ["hello", "world"])).toEqual(["hello", "world"]);
+  expect(() => Schema.parse(a, [123])).toThrow();
+  expect(() => Schema.parse(a, "hello")).toThrow();
 });
 
-test("z.union", () => {
-  const a = z.union([z.string(), z.number()]);
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, 123)).toEqual(123);
-  expect(() => z.parse(a, true)).toThrow();
+test("Schema.union", () => {
+  const a = Schema.union([Schema.string(), Schema.number()]);
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, 123)).toEqual(123);
+  expect(() => Schema.parse(a, true)).toThrow();
 });
 
-test("z.intersection", () => {
-  const a = z.intersection(z.object({ a: z.string() }), z.object({ b: z.number() }));
-  expect(z.parse(a, { a: "hello", b: 123 })).toEqual({ a: "hello", b: 123 });
-  expect(() => z.parse(a, { a: "hello" })).toThrow();
-  expect(() => z.parse(a, { b: 123 })).toThrow();
-  expect(() => z.parse(a, "hello")).toThrow();
+test("Schema.intersection", () => {
+  const a = Schema.intersection(Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() }));
+  expect(Schema.parse(a, { a: "hello", b: 123 })).toEqual({ a: "hello", b: 123 });
+  expect(() => Schema.parse(a, { a: "hello" })).toThrow();
+  expect(() => Schema.parse(a, { b: 123 })).toThrow();
+  expect(() => Schema.parse(a, "hello")).toThrow();
 });
 
-test("z.tuple", () => {
-  const a = z.tuple([z.string(), z.number()]);
-  expect(z.parse(a, ["hello", 123])).toEqual(["hello", 123]);
-  expect(() => z.parse(a, ["hello", "world"])).toThrow();
-  expect(() => z.parse(a, [123, 456])).toThrow();
-  expect(() => z.parse(a, "hello")).toThrow();
+test("Schema.tuple", () => {
+  const a = Schema.tuple([Schema.string(), Schema.number()]);
+  expect(Schema.parse(a, ["hello", 123])).toEqual(["hello", 123]);
+  expect(() => Schema.parse(a, ["hello", "world"])).toThrow();
+  expect(() => Schema.parse(a, [123, 456])).toThrow();
+  expect(() => Schema.parse(a, "hello")).toThrow();
 
   // tuple with rest
-  const b = z.tuple([z.string(), z.number(), z.optional(z.string())], z.boolean());
-  type b = z.output<typeof b>;
+  const b = Schema.tuple([Schema.string(), Schema.number(), Schema.optional(Schema.string())], Schema.boolean());
+  type b = Schema.output<typeof b>;
 
   expectTypeOf<b>().toEqualTypeOf<[string, number, (string | undefined)?, ...boolean[]]>();
   const datas = [
@@ -255,59 +255,59 @@ test("z.tuple", () => {
     ["hello", 123, "world", true, false, true],
   ];
   for (const data of datas) {
-    expect(z.parse(b, data)).toEqual(data);
+    expect(Schema.parse(b, data)).toEqual(data);
   }
 
-  expect(() => z.parse(b, ["hello", 123, 123])).toThrow();
-  expect(() => z.parse(b, ["hello", 123, "world", 123])).toThrow();
+  expect(() => Schema.parse(b, ["hello", 123, 123])).toThrow();
+  expect(() => Schema.parse(b, ["hello", 123, "world", 123])).toThrow();
 
   // tuple with readonly args
-  const cArgs = [z.string(), z.number(), z.optional(z.string())] as const;
-  const c = z.tuple(cArgs, z.boolean());
-  type c = z.output<typeof c>;
+  const cArgs = [Schema.string(), Schema.number(), Schema.optional(Schema.string())] as const;
+  const c = Schema.tuple(cArgs, Schema.boolean());
+  type c = Schema.output<typeof c>;
   expectTypeOf<c>().toEqualTypeOf<[string, number, (string | undefined)?, ...boolean[]]>();
-  // type c = z.output<typeof c>;
+  // type c = Schema.output<typeof c>;
 });
 
-test("z.record", () => {
+test("Schema.record", () => {
   // record schema with enum keys
-  const a = z.record(z.string(), z.string());
-  type a = z.output<typeof a>;
+  const a = Schema.record(Schema.string(), Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<Record<string, string>>();
 
-  const b = z.record(z.union([z.string(), z.number(), z.symbol()]), z.string());
-  type b = z.output<typeof b>;
+  const b = Schema.record(Schema.union([Schema.string(), Schema.number(), Schema.symbol()]), Schema.string());
+  type b = Schema.output<typeof b>;
   expectTypeOf<b>().toEqualTypeOf<Record<string | number | symbol, string>>();
-  expect(z.parse(b, { a: "hello", 1: "world", [Symbol.for("asdf")]: "symbol" })).toEqual({
+  expect(Schema.parse(b, { a: "hello", 1: "world", [Symbol.for("asdf")]: "symbol" })).toEqual({
     a: "hello",
     1: "world",
     [Symbol.for("asdf")]: "symbol",
   });
 
   // enum keys
-  const c = z.record(z.enum(["a", "b", "c"]), z.string());
-  type c = z.output<typeof c>;
+  const c = Schema.record(Schema.enum(["a", "b", "c"]), Schema.string());
+  type c = Schema.output<typeof c>;
   expectTypeOf<c>().toEqualTypeOf<Record<"a" | "b" | "c", string>>();
-  expect(z.parse(c, { a: "hello", b: "world", c: "world" })).toEqual({
+  expect(Schema.parse(c, { a: "hello", b: "world", c: "world" })).toEqual({
     a: "hello",
     b: "world",
     c: "world",
   });
   // missing keys
-  expect(() => z.parse(c, { a: "hello", b: "world" })).toThrow();
+  expect(() => Schema.parse(c, { a: "hello", b: "world" })).toThrow();
   // extra keys
-  expect(() => z.parse(c, { a: "hello", b: "world", c: "world", d: "world" })).toThrow();
+  expect(() => Schema.parse(c, { a: "hello", b: "world", c: "world", d: "world" })).toThrow();
 
   // partial enum
-  const d = z.record(z.enum(["a", "b"]).or(z.never()), z.string());
-  type d = z.output<typeof d>;
+  const d = Schema.record(Schema.enum(["a", "b"]).or(Schema.never()), Schema.string());
+  type d = Schema.output<typeof d>;
   expectTypeOf<d>().toEqualTypeOf<Record<"a" | "b", string>>();
 
   // literal union keys
-  const e = z.record(z.union([z.literal("a"), z.literal(0)]), z.string());
-  type e = z.output<typeof e>;
+  const e = Schema.record(Schema.union([Schema.literal("a"), Schema.literal(0)]), Schema.string());
+  type e = Schema.output<typeof e>;
   expectTypeOf<e>().toEqualTypeOf<Record<"a" | 0, string>>();
-  expect(z.parse(e, { a: "hello", 0: "world" })).toEqual({
+  expect(Schema.parse(e, { a: "hello", 0: "world" })).toEqual({
     a: "hello",
     0: "world",
   });
@@ -318,86 +318,86 @@ test("z.record", () => {
     B = "hi",
   }
 
-  const f = z.record(z.enum(Enum), z.string());
-  type f = z.output<typeof f>;
+  const f = Schema.record(Schema.enum(Enum), Schema.string());
+  type f = Schema.output<typeof f>;
   expectTypeOf<f>().toEqualTypeOf<Record<Enum, string>>();
-  expect(z.parse(f, { [Enum.A]: "hello", [Enum.B]: "world" })).toEqual({
+  expect(Schema.parse(f, { [Enum.A]: "hello", [Enum.B]: "world" })).toEqual({
     [Enum.A]: "hello",
     [Enum.B]: "world",
   });
 });
 
-test("z.map", () => {
-  const a = z.map(z.string(), z.number());
-  type a = z.output<typeof a>;
+test("Schema.map", () => {
+  const a = Schema.map(Schema.string(), Schema.number());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<Map<string, number>>();
-  expect(z.parse(a, new Map([["hello", 123]]))).toEqual(new Map([["hello", 123]]));
-  expect(() => z.parse(a, new Map([["hello", "world"]]))).toThrow();
-  expect(() => z.parse(a, new Map([[1243, "world"]]))).toThrow();
-  expect(() => z.parse(a, "hello")).toThrow();
+  expect(Schema.parse(a, new Map([["hello", 123]]))).toEqual(new Map([["hello", 123]]));
+  expect(() => Schema.parse(a, new Map([["hello", "world"]]))).toThrow();
+  expect(() => Schema.parse(a, new Map([[1243, "world"]]))).toThrow();
+  expect(() => Schema.parse(a, "hello")).toThrow();
 
-  const r1 = z.safeParse(a, new Map([[123, 123]]));
+  const r1 = Schema.safeParse(a, new Map([[123, 123]]));
   expect(r1.error?.issues[0].code).toEqual("invalid_type");
   expect(r1.error?.issues[0].path).toEqual([123]);
 
-  const r2: any = z.safeParse(a, new Map([[BigInt(123), 123]]));
+  const r2: any = Schema.safeParse(a, new Map([[BigInt(123), 123]]));
   expect(r2.error!.issues[0].code).toEqual("invalid_key");
   expect(r2.error!.issues[0].path).toEqual([]);
 
-  const r3: any = z.safeParse(a, new Map([["hello", "world"]]));
+  const r3: any = Schema.safeParse(a, new Map([["hello", "world"]]));
   expect(r3.error!.issues[0].code).toEqual("invalid_type");
   expect(r3.error!.issues[0].path).toEqual(["hello"]);
 });
 
-test("z.map invalid_element", () => {
-  const a = z.map(z.bigint(), z.number());
-  const r1 = z.safeParse(a, new Map([[BigInt(123), BigInt(123)]]));
+test("Schema.map invalid_element", () => {
+  const a = Schema.map(Schema.bigint(), Schema.number());
+  const r1 = Schema.safeParse(a, new Map([[BigInt(123), BigInt(123)]]));
 
   expect(r1.error!.issues[0].code).toEqual("invalid_element");
   expect(r1.error!.issues[0].path).toEqual([]);
 });
 
-test("z.map async", async () => {
-  const a = z.map(z.string().check(z.refine(async () => true)), z.number().check(z.refine(async () => true)));
+test("Schema.map async", async () => {
+  const a = Schema.map(Schema.string().check(Schema.refine(async () => true)), Schema.number().check(Schema.refine(async () => true)));
   const d1 = new Map([["hello", 123]]);
-  expect(await z.parseAsync(a, d1)).toEqual(d1);
+  expect(await Schema.parseAsync(a, d1)).toEqual(d1);
 
-  await expect(z.parseAsync(a, new Map([[123, 123]]))).rejects.toThrow();
-  await expect(z.parseAsync(a, new Map([["hi", "world"]]))).rejects.toThrow();
-  await expect(z.parseAsync(a, new Map([[1243, "world"]]))).rejects.toThrow();
-  await expect(z.parseAsync(a, "hello")).rejects.toThrow();
+  await expect(Schema.parseAsync(a, new Map([[123, 123]]))).rejects.toThrow();
+  await expect(Schema.parseAsync(a, new Map([["hi", "world"]]))).rejects.toThrow();
+  await expect(Schema.parseAsync(a, new Map([[1243, "world"]]))).rejects.toThrow();
+  await expect(Schema.parseAsync(a, "hello")).rejects.toThrow();
 
-  const r = await z.safeParseAsync(a, new Map([[123, 123]]));
+  const r = await Schema.safeParseAsync(a, new Map([[123, 123]]));
   expect(r.success).toEqual(false);
   expect(r.error!.issues[0].code).toEqual("invalid_type");
   expect(r.error!.issues[0].path).toEqual([123]);
 });
 
-test("z.set", () => {
-  const a = z.set(z.string());
-  type a = z.output<typeof a>;
+test("Schema.set", () => {
+  const a = Schema.set(Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<Set<string>>();
-  expect(z.parse(a, new Set(["hello", "world"]))).toEqual(new Set(["hello", "world"]));
-  expect(() => z.parse(a, new Set([123]))).toThrow();
-  expect(() => z.parse(a, ["hello", "world"])).toThrow();
-  expect(() => z.parse(a, "hello")).toThrow();
+  expect(Schema.parse(a, new Set(["hello", "world"]))).toEqual(new Set(["hello", "world"]));
+  expect(() => Schema.parse(a, new Set([123]))).toThrow();
+  expect(() => Schema.parse(a, ["hello", "world"])).toThrow();
+  expect(() => Schema.parse(a, "hello")).toThrow();
 
-  const b = z.set(z.number());
-  expect(z.parse(b, new Set([1, 2, 3]))).toEqual(new Set([1, 2, 3]));
-  expect(() => z.parse(b, new Set(["hello"]))).toThrow();
-  expect(() => z.parse(b, [1, 2, 3])).toThrow();
-  expect(() => z.parse(b, 123)).toThrow();
+  const b = Schema.set(Schema.number());
+  expect(Schema.parse(b, new Set([1, 2, 3]))).toEqual(new Set([1, 2, 3]));
+  expect(() => Schema.parse(b, new Set(["hello"]))).toThrow();
+  expect(() => Schema.parse(b, [1, 2, 3])).toThrow();
+  expect(() => Schema.parse(b, 123)).toThrow();
 });
 
-test("z.enum", () => {
-  const a = z.enum(["A", "B", "C"]);
-  type a = z.output<typeof a>;
+test("Schema.enum", () => {
+  const a = Schema.enum(["A", "B", "C"]);
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<"A" | "B" | "C">();
-  expect(z.parse(a, "A")).toEqual("A");
-  expect(z.parse(a, "B")).toEqual("B");
-  expect(z.parse(a, "C")).toEqual("C");
-  expect(() => z.parse(a, "D")).toThrow();
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "A")).toEqual("A");
+  expect(Schema.parse(a, "B")).toEqual("B");
+  expect(Schema.parse(a, "C")).toEqual("C");
+  expect(() => Schema.parse(a, "D")).toThrow();
+  expect(() => Schema.parse(a, 123)).toThrow();
 
   expect(a.enum.A).toEqual("A");
   expect(a.enum.B).toEqual("B");
@@ -405,20 +405,20 @@ test("z.enum", () => {
   expect((a.enum as any).D).toEqual(undefined);
 });
 
-test("z.enum - native", () => {
+test("Schema.enum - native", () => {
   enum NativeEnum {
     A = "A",
     B = "B",
     C = "C",
   }
-  const a = z.enum(NativeEnum);
-  type a = z.output<typeof a>;
+  const a = Schema.enum(NativeEnum);
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<NativeEnum>();
-  expect(z.parse(a, NativeEnum.A)).toEqual(NativeEnum.A);
-  expect(z.parse(a, NativeEnum.B)).toEqual(NativeEnum.B);
-  expect(z.parse(a, NativeEnum.C)).toEqual(NativeEnum.C);
-  expect(() => z.parse(a, "D")).toThrow();
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, NativeEnum.A)).toEqual(NativeEnum.A);
+  expect(Schema.parse(a, NativeEnum.B)).toEqual(NativeEnum.B);
+  expect(Schema.parse(a, NativeEnum.C)).toEqual(NativeEnum.C);
+  expect(() => Schema.parse(a, "D")).toThrow();
+  expect(() => Schema.parse(a, 123)).toThrow();
 
   // test a.enum
   a;
@@ -427,20 +427,20 @@ test("z.enum - native", () => {
   expect(a.enum.C).toEqual(NativeEnum.C);
 });
 
-test("z.nativeEnum", () => {
+test("Schema.nativeEnum", () => {
   enum NativeEnum {
     A = "A",
     B = "B",
     C = "C",
   }
-  const a = z.nativeEnum(NativeEnum);
-  type a = z.output<typeof a>;
+  const a = Schema.nativeEnum(NativeEnum);
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<NativeEnum>();
-  expect(z.parse(a, NativeEnum.A)).toEqual(NativeEnum.A);
-  expect(z.parse(a, NativeEnum.B)).toEqual(NativeEnum.B);
-  expect(z.parse(a, NativeEnum.C)).toEqual(NativeEnum.C);
-  expect(() => z.parse(a, "D")).toThrow();
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, NativeEnum.A)).toEqual(NativeEnum.A);
+  expect(Schema.parse(a, NativeEnum.B)).toEqual(NativeEnum.B);
+  expect(Schema.parse(a, NativeEnum.C)).toEqual(NativeEnum.C);
+  expect(() => Schema.parse(a, "D")).toThrow();
+  expect(() => Schema.parse(a, 123)).toThrow();
 
   // test a.enum
   a;
@@ -449,213 +449,213 @@ test("z.nativeEnum", () => {
   expect(a.enum.C).toEqual(NativeEnum.C);
 });
 
-test("z.literal", () => {
-  const a = z.literal("hello");
-  type a = z.output<typeof a>;
+test("Schema.literal", () => {
+  const a = Schema.literal("hello");
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<"hello">();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(() => z.parse(a, "world")).toThrow();
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(() => Schema.parse(a, "world")).toThrow();
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.file", () => {
-  const a = z.file();
+test("Schema.file", () => {
+  const a = Schema.file();
   const file = new File(["content"], "filename.txt", { type: "text/plain" });
-  expect(z.parse(a, file)).toEqual(file);
-  expect(() => z.parse(a, "file")).toThrow();
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, file)).toEqual(file);
+  expect(() => Schema.parse(a, "file")).toThrow();
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.transform", () => {
-  const a = z.pipe(
-    z.string(),
-    z.transform((val) => val.toUpperCase())
+test("Schema.transform", () => {
+  const a = Schema.pipe(
+    Schema.string(),
+    Schema.transform((val) => val.toUpperCase())
   );
-  type a = z.output<typeof a>;
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string>();
-  expect(z.parse(a, "hello")).toEqual("HELLO");
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("HELLO");
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.transform async", async () => {
-  const a = z.pipe(
-    z.string(),
-    z.transform(async (val) => val.toUpperCase())
+test("Schema.transform async", async () => {
+  const a = Schema.pipe(
+    Schema.string(),
+    Schema.transform(async (val) => val.toUpperCase())
   );
-  type a = z.output<typeof a>;
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string>();
-  expect(await z.parseAsync(a, "hello")).toEqual("HELLO");
-  await expect(() => z.parseAsync(a, 123)).rejects.toThrow();
+  expect(await Schema.parseAsync(a, "hello")).toEqual("HELLO");
+  await expect(() => Schema.parseAsync(a, 123)).rejects.toThrow();
 });
 
-test("z.preprocess", () => {
-  const a = z.pipe(
-    z.transform((val) => String(val).toUpperCase()),
-    z.string()
+test("Schema.preprocess", () => {
+  const a = Schema.pipe(
+    Schema.transform((val) => String(val).toUpperCase()),
+    Schema.string()
   );
-  type a = z.output<typeof a>;
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string>();
-  expect(z.parse(a, 123)).toEqual("123");
-  expect(z.parse(a, true)).toEqual("TRUE");
-  expect(z.parse(a, BigInt(1234))).toEqual("1234");
-  // expect(() => z.parse(a, Symbol("asdf"))).toThrow();
+  expect(Schema.parse(a, 123)).toEqual("123");
+  expect(Schema.parse(a, true)).toEqual("TRUE");
+  expect(Schema.parse(a, BigInt(1234))).toEqual("1234");
+  // expect(() => Schema.parse(a, Symbol("asdf"))).toThrow();
 });
 
-// test("z.preprocess async", () => {
-//   const a = z.preprocess(async (val) => String(val), z.string());
-//   type a = z.output<typeof a>;
+// test("Schema.preprocess async", () => {
+//   const a = Schema.preprocess(async (val) => String(val), Schema.string());
+//   type a = Schema.output<typeof a>;
 //   expectTypeOf<a>().toEqualTypeOf<string>();
-//   expect(z.parse(a, 123)).toEqual("123");
-//   expect(z.parse(a, true)).toEqual("true");
-//   expect(() => z.parse(a, {})).toThrow();
+//   expect(Schema.parse(a, 123)).toEqual("123");
+//   expect(Schema.parse(a, true)).toEqual("true");
+//   expect(() => Schema.parse(a, {})).toThrow();
 // });
 
-test("z.optional", () => {
-  const a = z.optional(z.string());
-  type a = z.output<typeof a>;
+test("Schema.optional", () => {
+  const a = Schema.optional(Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string | undefined>();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, undefined)).toEqual(undefined);
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, undefined)).toEqual(undefined);
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.nullable", () => {
-  const a = z.nullable(z.string());
-  type a = z.output<typeof a>;
+test("Schema.nullable", () => {
+  const a = Schema.nullable(Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string | null>();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, null)).toEqual(null);
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, null)).toEqual(null);
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.default", () => {
-  const a = z._default(z.string(), "default");
-  type a = z.output<typeof a>;
+test("Schema.default", () => {
+  const a = Schema._default(Schema.string(), "default");
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string>();
-  expect(z.parse(a, undefined)).toEqual("default");
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, undefined)).toEqual("default");
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(() => Schema.parse(a, 123)).toThrow();
 
-  const b = z._default(z.string(), () => "default");
-  expect(z.parse(b, undefined)).toEqual("default");
-  expect(z.parse(b, "hello")).toEqual("hello");
-  expect(() => z.parse(b, 123)).toThrow();
+  const b = Schema._default(Schema.string(), () => "default");
+  expect(Schema.parse(b, undefined)).toEqual("default");
+  expect(Schema.parse(b, "hello")).toEqual("hello");
+  expect(() => Schema.parse(b, 123)).toThrow();
 });
 
-test("z.catch", () => {
-  const a = z.catch(z.string(), "default");
-  type a = z.output<typeof a>;
+test("Schema.catch", () => {
+  const a = Schema.catch(Schema.string(), "default");
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string>();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, 123)).toEqual("default");
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, 123)).toEqual("default");
 
-  const b = z.catch(z.string(), () => "default");
-  expect(z.parse(b, "hello")).toEqual("hello");
-  expect(z.parse(b, 123)).toEqual("default");
+  const b = Schema.catch(Schema.string(), () => "default");
+  expect(Schema.parse(b, "hello")).toEqual("hello");
+  expect(Schema.parse(b, 123)).toEqual("default");
 
-  const c = z.catch(z.string(), (ctx) => {
+  const c = Schema.catch(Schema.string(), (ctx) => {
     return `${ctx.error.issues.length}issues`;
   });
-  expect(z.parse(c, 1234)).toEqual("1issues");
+  expect(Schema.parse(c, 1234)).toEqual("1issues");
 });
 
-test("z.nan", () => {
-  const a = z.nan();
-  type a = z.output<typeof a>;
+test("Schema.nan", () => {
+  const a = Schema.nan();
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<number>();
-  expect(z.parse(a, Number.NaN)).toEqual(Number.NaN);
-  expect(() => z.parse(a, 123)).toThrow();
-  expect(() => z.parse(a, "NaN")).toThrow();
+  expect(Schema.parse(a, Number.NaN)).toEqual(Number.NaN);
+  expect(() => Schema.parse(a, 123)).toThrow();
+  expect(() => Schema.parse(a, "NaN")).toThrow();
 });
 
-test("z.pipe", () => {
-  const a = z.pipe(
-    z.pipe(
-      z.string(),
-      z.transform((val) => val.length)
+test("Schema.pipe", () => {
+  const a = Schema.pipe(
+    Schema.pipe(
+      Schema.string(),
+      Schema.transform((val) => val.length)
     ),
-    z.number()
+    Schema.number()
   );
-  type a_in = z.input<typeof a>;
+  type a_in = Schema.input<typeof a>;
   expectTypeOf<a_in>().toEqualTypeOf<string>();
-  type a_out = z.output<typeof a>;
+  type a_out = Schema.output<typeof a>;
   expectTypeOf<a_out>().toEqualTypeOf<number>();
 
-  expect(z.parse(a, "123")).toEqual(3);
-  expect(z.parse(a, "hello")).toEqual(5);
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "123")).toEqual(3);
+  expect(Schema.parse(a, "hello")).toEqual(5);
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.readonly", () => {
-  const a = z.readonly(z.string());
-  type a = z.output<typeof a>;
+test("Schema.readonly", () => {
+  const a = Schema.readonly(Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<Readonly<string>>();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.templateLiteral", () => {
-  const a = z.templateLiteral([z.string(), z.number()]);
-  type a = z.output<typeof a>;
+test("Schema.templateLiteral", () => {
+  const a = Schema.templateLiteral([Schema.string(), Schema.number()]);
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<`${string}${number}`>();
-  expect(z.parse(a, "hello123")).toEqual("hello123");
-  expect(() => z.parse(a, "hello")).toThrow();
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello123")).toEqual("hello123");
+  expect(() => Schema.parse(a, "hello")).toThrow();
+  expect(() => Schema.parse(a, 123)).toThrow();
 
   // multipart
-  const b = z.templateLiteral([z.string(), z.number(), z.string()]);
-  type b = z.output<typeof b>;
+  const b = Schema.templateLiteral([Schema.string(), Schema.number(), Schema.string()]);
+  type b = Schema.output<typeof b>;
   expectTypeOf<b>().toEqualTypeOf<`${string}${number}${string}`>();
-  expect(z.parse(b, "hello123world")).toEqual("hello123world");
-  expect(z.parse(b, "123")).toEqual("123");
-  expect(() => z.parse(b, "hello")).toThrow();
-  expect(() => z.parse(b, 123)).toThrow();
+  expect(Schema.parse(b, "hello123world")).toEqual("hello123world");
+  expect(Schema.parse(b, "123")).toEqual("123");
+  expect(() => Schema.parse(b, "hello")).toThrow();
+  expect(() => Schema.parse(b, 123)).toThrow();
 
   // include boolean
-  const c = z.templateLiteral([z.string(), z.boolean()]);
-  type c = z.output<typeof c>;
+  const c = Schema.templateLiteral([Schema.string(), Schema.boolean()]);
+  type c = Schema.output<typeof c>;
   expectTypeOf<c>().toEqualTypeOf<`${string}${boolean}`>();
-  expect(z.parse(c, "hellotrue")).toEqual("hellotrue");
-  expect(z.parse(c, "hellofalse")).toEqual("hellofalse");
-  expect(() => z.parse(c, "hello")).toThrow();
-  expect(() => z.parse(c, 123)).toThrow();
+  expect(Schema.parse(c, "hellotrue")).toEqual("hellotrue");
+  expect(Schema.parse(c, "hellofalse")).toEqual("hellofalse");
+  expect(() => Schema.parse(c, "hello")).toThrow();
+  expect(() => Schema.parse(c, 123)).toThrow();
 
   // include literal prefix
-  const d = z.templateLiteral([z.literal("hello"), z.number()]);
-  type d = z.output<typeof d>;
+  const d = Schema.templateLiteral([Schema.literal("hello"), Schema.number()]);
+  type d = Schema.output<typeof d>;
   expectTypeOf<d>().toEqualTypeOf<`hello${number}`>();
-  expect(z.parse(d, "hello123")).toEqual("hello123");
-  expect(() => z.parse(d, 123)).toThrow();
-  expect(() => z.parse(d, "world123")).toThrow();
+  expect(Schema.parse(d, "hello123")).toEqual("hello123");
+  expect(() => Schema.parse(d, 123)).toThrow();
+  expect(() => Schema.parse(d, "world123")).toThrow();
 
   // include literal union
-  const e = z.templateLiteral([z.literal(["aa", "bb"]), z.number()]);
-  type e = z.output<typeof e>;
+  const e = Schema.templateLiteral([Schema.literal(["aa", "bb"]), Schema.number()]);
+  type e = Schema.output<typeof e>;
   expectTypeOf<e>().toEqualTypeOf<`aa${number}` | `bb${number}`>();
-  expect(z.parse(e, "aa123")).toEqual("aa123");
-  expect(z.parse(e, "bb123")).toEqual("bb123");
-  expect(() => z.parse(e, "cc123")).toThrow();
-  expect(() => z.parse(e, 123)).toThrow();
+  expect(Schema.parse(e, "aa123")).toEqual("aa123");
+  expect(Schema.parse(e, "bb123")).toEqual("bb123");
+  expect(() => Schema.parse(e, "cc123")).toThrow();
+  expect(() => Schema.parse(e, 123)).toThrow();
 });
 
 // this returns both a schema and a check
-test("z.custom schema", () => {
-  const a = z.custom((val) => {
+test("Schema.custom schema", () => {
+  const a = Schema.custom((val) => {
     return typeof val === "string";
   });
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
-test("z.custom check", () => {
-  // @ts-expect-error Inference not possible, use z.refine()
-  z.date().check(z.custom((val) => val.getTime() > 0));
+test("Schema.custom check", () => {
+  // @ts-expect-error Inference not possible, use Schema.refine()
+  Schema.date().check(Schema.custom((val) => val.getTime() > 0));
 });
 
-test("z.check", () => {
-  // this is a more flexible version of z.custom that accepts an arbitrary _parse logic the function should return base.$ZodResult
-  const a = z.any().check(
-    z.check<string>((ctx) => {
+test("Schema.check", () => {
+  // this is a more flexible version of Schema.custom that accepts an arbitrary _parse logic the function should return base.$SchemaResult
+  const a = Schema.any().check(
+    Schema.check<string>((ctx) => {
       if (typeof ctx.value === "string") return;
       ctx.issues.push({
         code: "custom",
@@ -665,20 +665,20 @@ test("z.check", () => {
       });
     })
   );
-  expect(z.safeParse(a, "hello")).toMatchObject({
+  expect(Schema.safeParse(a, "hello")).toMatchObject({
     success: true,
     data: "hello",
   });
-  expect(z.safeParse(a, 123)).toMatchObject({
+  expect(Schema.safeParse(a, 123)).toMatchObject({
     success: false,
     error: { issues: [{ code: "custom", message: "Expected a string" }] },
   });
 });
 
-test("z.with (alias for z.check)", () => {
+test("Schema.with (alias for Schema.check)", () => {
   // .with() should work exactly the same as .check()
-  const a = z.any().with(
-    z.check<string>((ctx) => {
+  const a = Schema.any().with(
+    Schema.check<string>((ctx) => {
       if (typeof ctx.value === "string") return;
       ctx.issues.push({
         code: "custom",
@@ -688,22 +688,22 @@ test("z.with (alias for z.check)", () => {
       });
     })
   );
-  expect(z.safeParse(a, "hello")).toMatchObject({
+  expect(Schema.safeParse(a, "hello")).toMatchObject({
     success: true,
     data: "hello",
   });
-  expect(z.safeParse(a, 123)).toMatchObject({
+  expect(Schema.safeParse(a, 123)).toMatchObject({
     success: false,
     error: { issues: [{ code: "custom", message: "Expected a string" }] },
   });
 
   // Test with refine
-  const b = z.string().with(z.refine((val) => val.length > 3, "Must be longer than 3"));
-  expect(z.safeParse(b, "hello").success).toBe(true);
-  expect(z.safeParse(b, "hi").success).toBe(false);
+  const b = Schema.string().with(Schema.refine((val) => val.length > 3, "Must be longer than 3"));
+  expect(Schema.safeParse(b, "hello").success).toBe(true);
+  expect(Schema.safeParse(b, "hi").success).toBe(false);
 
   // Test with function
-  const c = z.string().with(({ value, issues }) => {
+  const c = Schema.string().with(({ value, issues }) => {
     if (value.length <= 3) {
       issues.push({
         code: "custom",
@@ -712,39 +712,39 @@ test("z.with (alias for z.check)", () => {
       });
     }
   });
-  expect(z.safeParse(c, "hello").success).toBe(true);
-  expect(z.safeParse(c, "hi").success).toBe(false);
+  expect(Schema.safeParse(c, "hello").success).toBe(true);
+  expect(Schema.safeParse(c, "hi").success).toBe(false);
 });
 
-test("z.instanceof", () => {
+test("Schema.instanceof", () => {
   class A {}
 
-  const a = z.instanceof(A);
-  expect(z.parse(a, new A())).toBeInstanceOf(A);
-  expect(() => z.parse(a, {})).toThrow();
+  const a = Schema.instanceof(A);
+  expect(Schema.parse(a, new A())).toBeInstanceOf(A);
+  expect(() => Schema.parse(a, {})).toThrow();
 });
 
-test("z.refine", () => {
-  const a = z.number().check(
-    z.refine((val) => val > 3),
-    z.refine((val) => val < 10)
+test("Schema.refine", () => {
+  const a = Schema.number().check(
+    Schema.refine((val) => val > 3),
+    Schema.refine((val) => val < 10)
   );
-  expect(z.parse(a, 5)).toEqual(5);
-  expect(() => z.parse(a, 2)).toThrow();
-  expect(() => z.parse(a, 11)).toThrow();
-  expect(() => z.parse(a, "hi")).toThrow();
+  expect(Schema.parse(a, 5)).toEqual(5);
+  expect(() => Schema.parse(a, 2)).toThrow();
+  expect(() => Schema.parse(a, 11)).toThrow();
+  expect(() => Schema.parse(a, "hi")).toThrow();
 });
 
-test("z.superRefine preserves explicit nullish issue input", () => {
-  const schema = z.string().check(
-    z.superRefine((_, ctx) => {
+test("Schema.superRefine preserves explicit nullish issue input", () => {
+  const schema = Schema.string().check(
+    Schema.superRefine((_, ctx) => {
       ctx.addIssue({ code: "custom", message: "default" });
       ctx.addIssue({ code: "custom", message: "null", input: null });
       ctx.addIssue({ code: "custom", message: "undefined", input: undefined });
     })
   );
 
-  const result = z.safeParse(schema, "sensitive", { reportInput: true });
+  const result = Schema.safeParse(schema, "sensitive", { reportInput: true });
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues).toHaveLength(3);
@@ -755,9 +755,9 @@ test("z.superRefine preserves explicit nullish issue input", () => {
   }
 });
 
-// test("z.superRefine", () => {
-//   const a = z.number([
-//     z.superRefine((val, ctx) => {
+// test("Schema.superRefine", () => {
+//   const a = Schema.number([
+//     Schema.superRefine((val, ctx) => {
 //       if (val < 3) {
 //         return ctx.addIssue({
 //           code: "custom",
@@ -772,115 +772,115 @@ test("z.superRefine preserves explicit nullish issue input", () => {
 //     }),
 //   ]);
 
-//   expect(z.parse(a, 5)).toEqual(5);
-//   expect(() => z.parse(a, 2)).toThrow();
-//   expect(() => z.parse(a, 11)).toThrow();
-//   expect(() => z.parse(a, "hi")).toThrow();
+//   expect(Schema.parse(a, 5)).toEqual(5);
+//   expect(() => Schema.parse(a, 2)).toThrow();
+//   expect(() => Schema.parse(a, 11)).toThrow();
+//   expect(() => Schema.parse(a, "hi")).toThrow();
 // });
 
-test("z.transform", () => {
-  const a = z.transform((val: number) => {
+test("Schema.transform", () => {
+  const a = Schema.transform((val: number) => {
     return `${val}`;
   });
-  type a_in = z.input<typeof a>;
+  type a_in = Schema.input<typeof a>;
   expectTypeOf<a_in>().toEqualTypeOf<number>();
-  type a_out = z.output<typeof a>;
+  type a_out = Schema.output<typeof a>;
   expectTypeOf<a_out>().toEqualTypeOf<string>();
-  expect(z.parse(a, 123)).toEqual("123");
+  expect(Schema.parse(a, 123)).toEqual("123");
 });
 
-test("z.$brand()", () => {
-  const a = z.string().brand<"my-brand">();
-  type a = z.output<typeof a>;
+test("Schema.$brand()", () => {
+  const a = Schema.string().brand<"my-brand">();
+  type a = Schema.output<typeof a>;
   const branded = (_: a) => {};
   // @ts-expect-error
   branded("asdf");
 });
 
-test("z.lazy", () => {
-  const a = z.lazy(() => z.string());
-  type a = z.output<typeof a>;
+test("Schema.lazy", () => {
+  const a = Schema.lazy(() => Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<string>();
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(() => z.parse(a, 123)).toThrow();
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(() => Schema.parse(a, 123)).toThrow();
 });
 
 // schema that validates JSON-like data
-test("z.json", () => {
-  const a = z.json();
-  type a = z.output<typeof a>;
+test("Schema.json", () => {
+  const a = Schema.json();
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<util.JSONType>();
 
-  expect(z.parse(a, "hello")).toEqual("hello");
-  expect(z.parse(a, 123)).toEqual(123);
-  expect(z.parse(a, true)).toEqual(true);
-  expect(z.parse(a, null)).toEqual(null);
-  expect(z.parse(a, {})).toEqual({});
-  expect(z.parse(a, { a: "hello" })).toEqual({ a: "hello" });
-  expect(z.parse(a, [1, 2, 3])).toEqual([1, 2, 3]);
-  expect(z.parse(a, [{ a: "hello" }])).toEqual([{ a: "hello" }]);
+  expect(Schema.parse(a, "hello")).toEqual("hello");
+  expect(Schema.parse(a, 123)).toEqual(123);
+  expect(Schema.parse(a, true)).toEqual(true);
+  expect(Schema.parse(a, null)).toEqual(null);
+  expect(Schema.parse(a, {})).toEqual({});
+  expect(Schema.parse(a, { a: "hello" })).toEqual({ a: "hello" });
+  expect(Schema.parse(a, [1, 2, 3])).toEqual([1, 2, 3]);
+  expect(Schema.parse(a, [{ a: "hello" }])).toEqual([{ a: "hello" }]);
 
   // fail cases
-  expect(() => z.parse(a, new Date())).toThrow();
-  expect(() => z.parse(a, Symbol())).toThrow();
-  expect(() => z.parse(a, { a: new Date() })).toThrow();
-  expect(() => z.parse(a, undefined)).toThrow();
-  expect(() => z.parse(a, { a: undefined })).toThrow();
+  expect(() => Schema.parse(a, new Date())).toThrow();
+  expect(() => Schema.parse(a, Symbol())).toThrow();
+  expect(() => Schema.parse(a, { a: new Date() })).toThrow();
+  expect(() => Schema.parse(a, undefined)).toThrow();
+  expect(() => Schema.parse(a, { a: undefined })).toThrow();
 });
 
 // promise
-test("z.promise", async () => {
-  const a = z.promise(z.string());
-  type a = z.output<typeof a>;
+test("Schema.promise", async () => {
+  const a = Schema.promise(Schema.string());
+  type a = Schema.output<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<Promise<string>>();
 
-  expect(await z.safeParseAsync(a, Promise.resolve("hello"))).toMatchObject({
+  expect(await Schema.safeParseAsync(a, Promise.resolve("hello"))).toMatchObject({
     success: true,
     data: "hello",
   });
-  expect(await z.safeParseAsync(a, Promise.resolve(123))).toMatchObject({
+  expect(await Schema.safeParseAsync(a, Promise.resolve(123))).toMatchObject({
     success: false,
   });
 
-  const b = z.string();
-  expect(() => z.parse(b, Promise.resolve("hello"))).toThrow();
+  const b = Schema.string();
+  expect(() => Schema.parse(b, Promise.resolve("hello"))).toThrow();
 });
 // test("type assertions", () => {
-//   const schema = z.pipe(
-//     z.string(),
-//     z.transform((val) => val.length)
+//   const schema = Schema.pipe(
+//     Schema.string(),
+//     Schema.transform((val) => val.length)
 //   );
-//   schema.assertInput<string>();
+//   Schema.assertInput<string>();
 //   // @ts-expect-error
-//   schema.assertInput<number>();
+//   Schema.assertInput<number>();
 
-//   schema.assertOutput<number>();
+//   Schema.assertOutput<number>();
 //   // @ts-expect-error
-//   schema.assertOutput<string>();
+//   Schema.assertOutput<string>();
 // });
 
 test("isPlainObject", () => {
-  expect(z.core.util.isPlainObject({})).toEqual(true);
-  expect(z.core.util.isPlainObject(Object.create(null))).toEqual(true);
-  expect(z.core.util.isPlainObject([])).toEqual(false);
-  expect(z.core.util.isPlainObject(new Date())).toEqual(false);
-  expect(z.core.util.isPlainObject(null)).toEqual(false);
-  expect(z.core.util.isPlainObject(undefined)).toEqual(false);
-  expect(z.core.util.isPlainObject("string")).toEqual(false);
-  expect(z.core.util.isPlainObject(123)).toEqual(false);
-  expect(z.core.util.isPlainObject(Symbol())).toEqual(false);
-  expect(z.core.util.isPlainObject({ constructor: "string" })).toEqual(true);
-  expect(z.core.util.isPlainObject({ constructor: 123 })).toEqual(true);
-  expect(z.core.util.isPlainObject({ constructor: null })).toEqual(true);
-  expect(z.core.util.isPlainObject({ constructor: undefined })).toEqual(true);
-  expect(z.core.util.isPlainObject({ constructor: true })).toEqual(true);
-  expect(z.core.util.isPlainObject({ constructor: {} })).toEqual(true);
-  expect(z.core.util.isPlainObject({ constructor: [] })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({})).toEqual(true);
+  expect(Schema.core.util.isPlainObject(Object.create(null))).toEqual(true);
+  expect(Schema.core.util.isPlainObject([])).toEqual(false);
+  expect(Schema.core.util.isPlainObject(new Date())).toEqual(false);
+  expect(Schema.core.util.isPlainObject(null)).toEqual(false);
+  expect(Schema.core.util.isPlainObject(undefined)).toEqual(false);
+  expect(Schema.core.util.isPlainObject("string")).toEqual(false);
+  expect(Schema.core.util.isPlainObject(123)).toEqual(false);
+  expect(Schema.core.util.isPlainObject(Symbol())).toEqual(false);
+  expect(Schema.core.util.isPlainObject({ constructor: "string" })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({ constructor: 123 })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({ constructor: null })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({ constructor: undefined })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({ constructor: true })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({ constructor: {} })).toEqual(true);
+  expect(Schema.core.util.isPlainObject({ constructor: [] })).toEqual(true);
 });
 
 test("shallowClone with constructor field", () => {
   const objWithConstructor = { constructor: "string", key: "value" };
-  const cloned = z.core.util.shallowClone(objWithConstructor);
+  const cloned = Schema.core.util.shallowClone(objWithConstructor);
 
   expect(cloned).toEqual(objWithConstructor);
   expect(cloned).not.toBe(objWithConstructor);
@@ -896,63 +896,63 @@ test("shallowClone with constructor field", () => {
   ];
 
   for (const testCase of testCases) {
-    const clonedCase = z.core.util.shallowClone(testCase);
+    const clonedCase = Schema.core.util.shallowClone(testCase);
     expect(clonedCase).toEqual(testCase);
     expect(clonedCase).not.toBe(testCase);
   }
 });
 
 test("def typing", () => {
-  z.string().def.type satisfies "string";
-  z.number().def.type satisfies "number";
-  z.bigint().def.type satisfies "bigint";
-  z.boolean().def.type satisfies "boolean";
-  z.date().def.type satisfies "date";
-  z.symbol().def.type satisfies "symbol";
-  z.undefined().def.type satisfies "undefined";
-  z.string().nullable().def.type satisfies "nullable";
-  z.null().def.type satisfies "null";
-  z.any().def.type satisfies "any";
-  z.unknown().def.type satisfies "unknown";
-  z.never().def.type satisfies "never";
-  z.void().def.type satisfies "void";
-  z.array(z.string()).def.type satisfies "array";
-  z.object({ key: z.string() }).def.type satisfies "object";
-  z.union([z.string(), z.number()]).def.type satisfies "union";
-  z.intersection(z.string(), z.number()).def.type satisfies "intersection";
-  z.tuple([z.string(), z.number()]).def.type satisfies "tuple";
-  z.record(z.string(), z.number()).def.type satisfies "record";
-  z.map(z.string(), z.number()).def.type satisfies "map";
-  z.set(z.string()).def.type satisfies "set";
-  z.literal("example").def.type satisfies "literal";
-  z.enum(["a", "b", "c"]).def.type satisfies "enum";
-  z.promise(z.string()).def.type satisfies "promise";
-  z.lazy(() => z.string()).def.type satisfies "lazy";
-  z.string().optional().def.type satisfies "optional";
-  z.string().default("default").def.type satisfies "default";
-  z.templateLiteral([z.literal("a"), z.literal("b")]).def.type satisfies "template_literal";
-  z.custom<string>((val) => typeof val === "string").def.type satisfies "custom";
-  z.transform((val) => val as string).def.type satisfies "transform";
-  z.string().optional().nonoptional().def.type satisfies "nonoptional";
-  z.object({ key: z.string() }).readonly().def.type satisfies "readonly";
-  z.nan().def.type satisfies "nan";
-  z.unknown().pipe(z.number()).def.type satisfies "pipe";
-  z.success(z.string()).def.type satisfies "success";
-  z.string().catch("fallback").def.type satisfies "catch";
-  z.file().def.type satisfies "file";
+  Schema.string().def.type satisfies "string";
+  Schema.number().def.type satisfies "number";
+  Schema.bigint().def.type satisfies "bigint";
+  Schema.boolean().def.type satisfies "boolean";
+  Schema.date().def.type satisfies "date";
+  Schema.symbol().def.type satisfies "symbol";
+  Schema.undefined().def.type satisfies "undefined";
+  Schema.string().nullable().def.type satisfies "nullable";
+  Schema.null().def.type satisfies "null";
+  Schema.any().def.type satisfies "any";
+  Schema.unknown().def.type satisfies "unknown";
+  Schema.never().def.type satisfies "never";
+  Schema.void().def.type satisfies "void";
+  Schema.array(Schema.string()).def.type satisfies "array";
+  Schema.object({ key: Schema.string() }).def.type satisfies "object";
+  Schema.union([Schema.string(), Schema.number()]).def.type satisfies "union";
+  Schema.intersection(Schema.string(), Schema.number()).def.type satisfies "intersection";
+  Schema.tuple([Schema.string(), Schema.number()]).def.type satisfies "tuple";
+  Schema.record(Schema.string(), Schema.number()).def.type satisfies "record";
+  Schema.map(Schema.string(), Schema.number()).def.type satisfies "map";
+  Schema.set(Schema.string()).def.type satisfies "set";
+  Schema.literal("example").def.type satisfies "literal";
+  Schema.enum(["a", "b", "c"]).def.type satisfies "enum";
+  Schema.promise(Schema.string()).def.type satisfies "promise";
+  Schema.lazy(() => Schema.string()).def.type satisfies "lazy";
+  Schema.string().optional().def.type satisfies "optional";
+  Schema.string().default("default").def.type satisfies "default";
+  Schema.templateLiteral([Schema.literal("a"), Schema.literal("b")]).def.type satisfies "template_literal";
+  Schema.custom<string>((val) => typeof val === "string").def.type satisfies "custom";
+  Schema.transform((val) => val as string).def.type satisfies "transform";
+  Schema.string().optional().nonoptional().def.type satisfies "nonoptional";
+  Schema.object({ key: Schema.string() }).readonly().def.type satisfies "readonly";
+  Schema.nan().def.type satisfies "nan";
+  Schema.unknown().pipe(Schema.number()).def.type satisfies "pipe";
+  Schema.success(Schema.string()).def.type satisfies "success";
+  Schema.string().catch("fallback").def.type satisfies "catch";
+  Schema.file().def.type satisfies "file";
 });
 
 test("runtime type property exists and returns correct values", () => {
-  const stringSchema = z.string();
+  const stringSchema = Schema.string();
   expect(stringSchema.type).toBe("string");
 });
 
 test("type narrowing works with type property", () => {
-  type ArrayOrRecord = z.ZodArray<z.ZodString> | z.ZodRecord<z.ZodString, z.ZodAny>;
-  const arraySchema = z.array(z.string()) as ArrayOrRecord;
+  type ArrayOrRecord = Schema.SchemaArray<Schema.SchemaString> | Schema.SchemaRecord<Schema.SchemaString, Schema.SchemaAny>;
+  const arraySchema = Schema.array(Schema.string()) as ArrayOrRecord;
 
   if (arraySchema.type === "array") {
-    expectTypeOf(arraySchema).toEqualTypeOf<z.ZodArray<z.ZodString>>();
+    expectTypeOf(arraySchema).toEqualTypeOf<Schema.SchemaArray<Schema.SchemaString>>();
     expect(arraySchema.element).toBeDefined();
   }
 });

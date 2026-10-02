@@ -1,29 +1,29 @@
 import { makeSchema } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
-const { zod3, zod4 } = makeSchema((z) => {
-  const aSchema = z.object({
-    type: z.literal("a"),
+const { schema3, schema4 } = makeSchema((z) => {
+  const aSchema = Schema.object({
+    type: Schema.literal("a"),
   });
 
-  const bSchema = z.object({
-    type: z.literal("b"),
+  const bSchema = Schema.object({
+    type: Schema.literal("b"),
   });
 
-  const cSchema = z.object({
-    type: z.literal("c"),
+  const cSchema = Schema.object({
+    type: Schema.literal("c"),
   });
 
-  return z.union([aSchema, bSchema, cSchema]);
+  return Schema.union([aSchema, bSchema, cSchema]);
 });
 
 const DATA = { type: "c" };
-const bench = metabench("z.union().parse")
-  .add("zod3", () => {
-    zod3.parse(DATA);
+const bench = metabench("Schema.union().parse")
+  .add("schema3", () => {
+    schema3.parse(DATA);
   })
-  .add("zod4", () => {
-    zod4.parse(DATA);
+  .add("schema4", () => {
+    schema4.parse(DATA);
   });
 
 await bench.run();

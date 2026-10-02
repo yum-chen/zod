@@ -1,37 +1,37 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 import { Mocker } from "./Mocker.js";
 
-const literalStringSchema = z.literal("asdf");
-const literalNumberSchema = z.literal(12);
-const literalBooleanSchema = z.literal(true);
-const literalBigIntSchema = z.literal(BigInt(42));
+const literalStringSchema = Schema.literal("asdf");
+const literalNumberSchema = Schema.literal(12);
+const literalBooleanSchema = Schema.literal(true);
+const literalBigIntSchema = Schema.literal(BigInt(42));
 const MySymbol = Symbol("stuff");
-const literalSymbolSchema = z.literal(MySymbol);
-const stringSchema = z.string();
-const numberSchema = z.number();
-const bigintSchema = z.bigint();
-const booleanSchema = z.boolean();
-const dateSchema = z.date();
-const symbolSchema = z.symbol();
+const literalSymbolSchema = Schema.literal(MySymbol);
+const stringSchema = Schema.string();
+const numberSchema = Schema.number();
+const bigintSchema = Schema.bigint();
+const booleanSchema = Schema.boolean();
+const dateSchema = Schema.date();
+const symbolSchema = Schema.symbol();
 
-const nullSchema = z.null();
-const undefinedSchema = z.undefined();
-const stringSchemaOptional = z.string().optional();
-const stringSchemaNullable = z.string().nullable();
-const numberSchemaOptional = z.number().optional();
-const numberSchemaNullable = z.number().nullable();
-const bigintSchemaOptional = z.bigint().optional();
-const bigintSchemaNullable = z.bigint().nullable();
-const booleanSchemaOptional = z.boolean().optional();
-const booleanSchemaNullable = z.boolean().nullable();
-const dateSchemaOptional = z.date().optional();
-const dateSchemaNullable = z.date().nullable();
-const symbolSchemaOptional = z.symbol().optional();
-const symbolSchemaNullable = z.symbol().nullable();
+const nullSchema = Schema.null();
+const undefinedSchema = Schema.undefined();
+const stringSchemaOptional = Schema.string().optional();
+const stringSchemaNullable = Schema.string().nullable();
+const numberSchemaOptional = Schema.number().optional();
+const numberSchemaNullable = Schema.number().nullable();
+const bigintSchemaOptional = Schema.bigint().optional();
+const bigintSchemaNullable = Schema.bigint().nullable();
+const booleanSchemaOptional = Schema.boolean().optional();
+const booleanSchemaNullable = Schema.boolean().nullable();
+const dateSchemaOptional = Schema.date().optional();
+const dateSchemaNullable = Schema.date().nullable();
+const symbolSchemaOptional = Schema.symbol().optional();
+const symbolSchemaNullable = Schema.symbol().nullable();
 
 const val = new Mocker();
 
@@ -137,7 +137,7 @@ test("literal bigint object", () => {
 });
 
 test("literal symbol", () => {
-  util.assertEqual<z.infer<typeof literalSymbolSchema>, typeof MySymbol>(true);
+  util.assertEqual<Schema.infer<typeof literalSymbolSchema>, typeof MySymbol>(true);
   literalSymbolSchema.parse(MySymbol);
   expect(() => literalSymbolSchema.parse(Symbol("asdf"))).toThrow();
 });
@@ -283,7 +283,7 @@ test("parse dateSchema invalid date", async () => {
   try {
     await dateSchema.parseAsync(new Date("invalid"));
   } catch (err) {
-    expect((err as z.ZodError).issues[0].code).toEqual(z.ZodIssueCode.invalid_date);
+    expect((err as Schema  .SchemaError).issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_date);
   }
 });
 // ==============
@@ -373,31 +373,31 @@ test("parse nullSchema null", () => {
 });
 
 test("primitive inference", () => {
-  util.assertEqual<z.TypeOf<typeof literalStringSchema>, "asdf">(true);
-  util.assertEqual<z.TypeOf<typeof literalNumberSchema>, 12>(true);
-  util.assertEqual<z.TypeOf<typeof literalBooleanSchema>, true>(true);
-  util.assertEqual<z.TypeOf<typeof literalBigIntSchema>, bigint>(true);
-  util.assertEqual<z.TypeOf<typeof stringSchema>, string>(true);
-  util.assertEqual<z.TypeOf<typeof numberSchema>, number>(true);
-  util.assertEqual<z.TypeOf<typeof bigintSchema>, bigint>(true);
-  util.assertEqual<z.TypeOf<typeof booleanSchema>, boolean>(true);
-  util.assertEqual<z.TypeOf<typeof dateSchema>, Date>(true);
-  util.assertEqual<z.TypeOf<typeof symbolSchema>, symbol>(true);
+  util.assertEqual<Schema.TypeOf<typeof literalStringSchema>, "asdf">(true);
+  util.assertEqual<Schema.TypeOf<typeof literalNumberSchema>, 12>(true);
+  util.assertEqual<Schema.TypeOf<typeof literalBooleanSchema>, true>(true);
+  util.assertEqual<Schema.TypeOf<typeof literalBigIntSchema>, bigint>(true);
+  util.assertEqual<Schema.TypeOf<typeof stringSchema>, string>(true);
+  util.assertEqual<Schema.TypeOf<typeof numberSchema>, number>(true);
+  util.assertEqual<Schema.TypeOf<typeof bigintSchema>, bigint>(true);
+  util.assertEqual<Schema.TypeOf<typeof booleanSchema>, boolean>(true);
+  util.assertEqual<Schema.TypeOf<typeof dateSchema>, Date>(true);
+  util.assertEqual<Schema.TypeOf<typeof symbolSchema>, symbol>(true);
 
-  util.assertEqual<z.TypeOf<typeof nullSchema>, null>(true);
-  util.assertEqual<z.TypeOf<typeof undefinedSchema>, undefined>(true);
-  util.assertEqual<z.TypeOf<typeof stringSchemaOptional>, string | undefined>(true);
-  util.assertEqual<z.TypeOf<typeof stringSchemaNullable>, string | null>(true);
-  util.assertEqual<z.TypeOf<typeof numberSchemaOptional>, number | undefined>(true);
-  util.assertEqual<z.TypeOf<typeof numberSchemaNullable>, number | null>(true);
-  util.assertEqual<z.TypeOf<typeof bigintSchemaOptional>, bigint | undefined>(true);
-  util.assertEqual<z.TypeOf<typeof bigintSchemaNullable>, bigint | null>(true);
-  util.assertEqual<z.TypeOf<typeof booleanSchemaOptional>, boolean | undefined>(true);
-  util.assertEqual<z.TypeOf<typeof booleanSchemaNullable>, boolean | null>(true);
-  util.assertEqual<z.TypeOf<typeof dateSchemaOptional>, Date | undefined>(true);
-  util.assertEqual<z.TypeOf<typeof dateSchemaNullable>, Date | null>(true);
-  util.assertEqual<z.TypeOf<typeof symbolSchemaOptional>, symbol | undefined>(true);
-  util.assertEqual<z.TypeOf<typeof symbolSchemaNullable>, symbol | null>(true);
+  util.assertEqual<Schema.TypeOf<typeof nullSchema>, null>(true);
+  util.assertEqual<Schema.TypeOf<typeof undefinedSchema>, undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof stringSchemaOptional>, string | undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof stringSchemaNullable>, string | null>(true);
+  util.assertEqual<Schema.TypeOf<typeof numberSchemaOptional>, number | undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof numberSchemaNullable>, number | null>(true);
+  util.assertEqual<Schema.TypeOf<typeof bigintSchemaOptional>, bigint | undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof bigintSchemaNullable>, bigint | null>(true);
+  util.assertEqual<Schema.TypeOf<typeof booleanSchemaOptional>, boolean | undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof booleanSchemaNullable>, boolean | null>(true);
+  util.assertEqual<Schema.TypeOf<typeof dateSchemaOptional>, Date | undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof dateSchemaNullable>, Date | null>(true);
+  util.assertEqual<Schema.TypeOf<typeof symbolSchemaOptional>, symbol | undefined>(true);
+  util.assertEqual<Schema.TypeOf<typeof symbolSchemaNullable>, symbol | null>(true);
 
   // [
   //   literalStringSchemaTest,
@@ -434,7 +434,7 @@ test("get literal value", () => {
 });
 
 test("optional convenience method", () => {
-  z.ostring().parse(undefined);
-  z.onumber().parse(undefined);
-  z.oboolean().parse(undefined);
+  Schema.ostring().parse(undefined);
+  Schema.onumber().parse(undefined);
+  Schema.oboolean().parse(undefined);
 });

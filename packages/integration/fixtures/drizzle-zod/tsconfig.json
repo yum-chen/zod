@@ -4,7 +4,7 @@
     "target": "es2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "customConditions": ["@zod/source"],
+    "customConditions": ["@schema/source"],
     "incremental": false,
     "noEmit": true,
     "types": ["node"],

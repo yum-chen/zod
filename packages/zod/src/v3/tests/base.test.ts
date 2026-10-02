@@ -1,16 +1,16 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
 test("type guard", () => {
-  const stringToNumber = z.string().transform((arg) => arg.length);
+  const stringToNumber = Schema.string().transform((arg) => arg.length);
 
-  const s1 = z.object({
+  const s1 = Schema.object({
     stringToNumber,
   });
-  type t1 = z.input<typeof s1>;
+  type t1 = Schema.input<typeof s1>;
 
   const data = { stringToNumber: "asdf" };
   const parsed = s1.safeParse(data);
@@ -24,6 +24,6 @@ test("test this binding", () => {
     return predicate("hello");
   };
 
-  expect(callback((value) => z.string().safeParse(value).success)).toBe(true); // true
-  expect(callback((value) => z.string().safeParse(value).success)).toBe(true); // true
+  expect(callback((value) => Schema.string().safeParse(value).success)).toBe(true); // true
+  expect(callback((value) => Schema.string().safeParse(value).success)).toBe(true); // true
 });

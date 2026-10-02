@@ -4,7 +4,7 @@ import { Table } from "console-table-printer";
 import * as mitata from "mitata";
 import { Bench } from "tinybench";
 
-// import { assertNever } from "../packages/zod-core/src/index.js";
+// import { assertNever } from "../packages/schema-core/src/index.js";
 import { formatNumber } from "./benchUtil.js";
 
 type BENCH = "tinybench" | "benchmarkjs" | "mitata";

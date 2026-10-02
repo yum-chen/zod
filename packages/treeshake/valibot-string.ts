@@ -1,4 +1,4 @@
-import * as z from "valibot";
+import * as Schema from "valibot";
 
-const schema = z.pipe(z.string(), z.minLength(1));
-console.log(z.parse(schema, "hi"));
+const schema = Schema.pipe(Schema.string(), Schema.minLength(1));
+console.log(Schema.parse(schema, "hi"));

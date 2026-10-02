@@ -1,13 +1,13 @@
-import * as z9 from "@zod/mini";
-import * as z1 from "zod";
-import z2 from "zod";
-import { z as z3 } from "zod";
-import * as z7 from "zod/mini";
-import * as z5 from "zod/v3";
-import * as z4 from "zod/v4";
-import * as z8 from "zod/v4-mini";
-import fr from "zod/v4/locales/fr.js";
-import * as z6 from "zod/v4/mini";
+import * as z9 from "@schema/mini";
+import * as z1 from "schema";
+import z2 from "schema";
+import { Schema as z3 } from "schema";
+import * as z7 from "schema/mini";
+import * as z5 from "schema/v3";
+import * as z4 from "schema/v4";
+import * as z8 from "schema/v4-mini";
+import fr from "schema/v4/locales/fr.js";
+import * as z6 from "schema/v4/mini";
 
 console.log(z1.string().parse("Hello, world!"));
 console.log(z2.string().parse("Hello, world!"));
@@ -23,15 +23,15 @@ z4.config(fr());
 const schema = z4.object({
   name: z4.string(),
 });
-const success = JSON.stringify(schema.safeParse({ name: "John Doe" }));
+const success = JSON.stringify(Schema.safeParse({ name: "John Doe" }));
 if (success !== `{"success":true,"data":{"name":"John Doe"}}`) {
   throw new Error();
 }
 
-const failure = JSON.stringify(schema.safeParse({ name: 123 }));
+const failure = JSON.stringify(Schema.safeParse({ name: 123 }));
 if (
   failure !==
-  '{"success":false,"error":{"name":"ZodError","message":"[\\n  {\\n    \\"expected\\": \\"string\\",\\n    \\"code\\": \\"invalid_type\\",\\n    \\"path\\": [\\n      \\"name\\"\\n    ],\\n    \\"message\\": \\"Entrée invalide : chaîne de caractères attendu, nombre reçu\\"\\n  }\\n]"}}'
+  '{"success":false,"error":{"name":"SchemaError","message":"[\\n  {\\n    \\"expected\\": \\"string\\",\\n    \\"code\\": \\"invalid_type\\",\\n    \\"path\\": [\\n      \\"name\\"\\n    ],\\n    \\"message\\": \\"Entrée invalide : chaîne de caractères attendu, nombre reçu\\"\\n  }\\n]"}}'
 ) {
   throw new Error();
 }

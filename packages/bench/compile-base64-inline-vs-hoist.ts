@@ -1,6 +1,6 @@
-import * as z from "zod/v4";
-import * as zcore from "zod/v4/core";
-import { isValidBase64 } from "zod/v4/core";
+import * as Schema from "schema/v4";
+import * as zcore from "schema/v4/core";
+import { isValidBase64 } from "schema/v4/core";
 import { metabench } from "./metabench.js";
 
 const INVALID = Symbol("invalid");
@@ -8,7 +8,7 @@ const VALID = "SGVsbG8gV29ybGQ=";
 const INVALID_LENGTH = "12345";
 const INVALID_WHITESPACE = "SGVsbG8gV29ybGQ= ";
 
-const base64 = z.base64();
+const base64 = Schema.base64();
 const compiled = zcore.compile(base64);
 const compiledFn = zcore.compileFn(base64);
 
@@ -71,7 +71,7 @@ for (const value of [VALID, INVALID_LENGTH, INVALID_WHITESPACE]) {
 }
 console.log("");
 
-await metabench("single z.base64() validator — valid input", {
+await metabench("single Schema.base64() validator — valid input", {
   "runtime helper direct"() {
     return isValidBase64(VALID);
   },
@@ -84,18 +84,18 @@ await metabench("single z.base64() validator — valid input", {
   "manual inline body + hoisted regex"() {
     return manualInlineHoistedRegex(VALID);
   },
-  "compileFn(z.base64())"() {
+  "compileFn(Schema.base64())"() {
     return compiledFn(VALID);
   },
-  "z.compile(z.base64()).safeParse"() {
+  "Schema.compile(Schema.base64()).safeParse"() {
     return compiled.safeParse(VALID);
   },
-  "z.base64().safeParse"() {
+  "Schema.base64().safeParse"() {
     return base64.safeParse(VALID);
   },
 }).run();
 
-await metabench("single z.base64() validator — invalid length", {
+await metabench("single Schema.base64() validator — invalid length", {
   "runtime helper direct"() {
     return isValidBase64(INVALID_LENGTH);
   },
@@ -108,13 +108,13 @@ await metabench("single z.base64() validator — invalid length", {
   "manual inline body + hoisted regex"() {
     return manualInlineHoistedRegex(INVALID_LENGTH);
   },
-  "compileFn(z.base64())"() {
+  "compileFn(Schema.base64())"() {
     return compiledFn(INVALID_LENGTH);
   },
-  "z.compile(z.base64()).safeParse"() {
+  "Schema.compile(Schema.base64()).safeParse"() {
     return compiled.safeParse(INVALID_LENGTH);
   },
-  "z.base64().safeParse"() {
+  "Schema.base64().safeParse"() {
     return base64.safeParse(INVALID_LENGTH);
   },
 }).run();

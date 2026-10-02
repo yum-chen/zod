@@ -1,6 +1,6 @@
-import * as z4 from "zod/v4";
-import * as z3 from "zod3";
-import { zod4 as z4lib } from "./benchUtil.js";
+import * as z4 from "schema/v4";
+import * as z3 from "schema3";
+import { schema4 as z4lib } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
 z4.config({
@@ -74,14 +74,14 @@ console.log(z3Schema.parse(DATA[0]));
 console.log(z4Schema.parse(DATA[0]));
 console.log(z4LibSchema.parse(DATA[0]));
 
-const bench = metabench("z.object() safeParse", {
-  zod3() {
+const bench = metabench("Schema.object() safeParse", {
+  schema3() {
     for (const _ of DATA) z3Schema.parse(_);
   },
-  zod4lib() {
+  schema4lib() {
     for (const _ of DATA) z4LibSchema.parse(_);
   },
-  zod4() {
+  schema4() {
     for (const _ of DATA) z4Schema.parse(_);
   },
 });

@@ -29,23 +29,23 @@ async function bundle(entrypoint: string, source: string): Promise<string> {
   return result.outputFiles[0]!.text;
 }
 
-test("a minimal zod/mini schema drops the declarations it cannot reach", async () => {
-  const out = await bundle(MINI, `import * as z from "%ENTRY%";\nconsole.log(z.boolean().parse(true));`);
+test("a minimal schema/mini schema drops the declarations it cannot reach", async () => {
+  const out = await bundle(MINI, `import * as Schema from "%ENTRY%";\nconsole.log(Schema.boolean().parse(true));`);
 
   // Sanity check: the schema itself is present, so an empty bundle cannot pass this test.
   expect(out).toContain("boolean");
 
-  expect(out, "core.ts `$brand` lost its @__PURE__ annotation").not.toContain("zod_brand");
+  expect(out, "core.ts `$brand` lost its @__PURE__ annotation").not.toContain("schema_brand");
   expect(out, "util.ts `NUMBER_FORMAT_RANGES` escaped its @__PURE__ IIFE").not.toContain("MAX_SAFE_INTEGER");
   expect(out, "regexes.ts `date` is pinned again — was `anchor()` inlined?").not.toContain("02-29");
 }, 30000);
 
 // `registries.ts` is dropped from the mini module graph entirely, so its two symbols are absent there before and after. Classic is the entrypoint that exercises them.
 test("a minimal classic schema drops the registry symbols", async () => {
-  const out = await bundle(CLASSIC, `import * as z from "%ENTRY%";\nconsole.log(z.boolean().parse(true));`);
+  const out = await bundle(CLASSIC, `import * as Schema from "%ENTRY%";\nconsole.log(Schema.boolean().parse(true));`);
 
   expect(out).toContain("boolean");
 
-  expect(out, "registries.ts `$output` lost its @__PURE__ annotation").not.toContain("ZodOutput");
-  expect(out, "registries.ts `$input` lost its @__PURE__ annotation").not.toContain("ZodInput");
+  expect(out, "registries.ts `$output` lost its @__PURE__ annotation").not.toContain("SchemaOutput");
+  expect(out, "registries.ts `$input` lost its @__PURE__ annotation").not.toContain("SchemaInput");
 }, 30000);

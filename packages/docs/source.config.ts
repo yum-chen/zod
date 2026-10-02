@@ -10,7 +10,7 @@ export const docs = defineDocs({
 export const blogPosts = defineCollections({
   type: "doc",
   dir: "content/blog",
-  // No schema to avoid zod version mismatch; frontmatter is optional
+  // No schema to avoid schema version mismatch; frontmatter is optional
 });
 
 export default defineConfig({

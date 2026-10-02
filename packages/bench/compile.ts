@@ -1,5 +1,5 @@
-import * as z4 from "zod/v4";
-import * as z4core from "zod/v4/core";
+import * as z4 from "schema/v4";
+import * as z4core from "schema/v4/core";
 import { metabench } from "./metabench.js";
 
 // Schema for benchmarking - same as moltar benchmark
@@ -43,23 +43,23 @@ const DATA = Array.from({ length: 1000 }, () =>
 // Verify correctness
 console.log("=== Correctness Check ===");
 console.log("AOT raw fast path:", aotValidator(DATA[0]));
-console.log("Compiled schema.safeParse:", compiledSchema.safeParse(DATA[0]).success);
-console.log("Zod JIT:", schema.safeParse(DATA[0]).success);
-console.log("Zod non-JIT:", schema.safeParse(DATA[0], { jitless: true }).success);
+console.log("Compiled Schema.safeParse:", compiledSchema.safeParse(DATA[0]).success);
+console.log("Schema JIT:", Schema.safeParse(DATA[0]).success);
+console.log("Schema non-JIT:", Schema.safeParse(DATA[0], { jitless: true }).success);
 console.log("");
 
-const bench = metabench("z.compile() vs z.safeParse()", {
+const bench = metabench("Schema.compile() vs Schema.safeParse()", {
   "AOT raw fast path"() {
     for (const d of DATA) aotValidator(d);
   },
-  "Compiled schema.safeParse (wrapped)"() {
+  "Compiled Schema.safeParse (wrapped)"() {
     for (const d of DATA) compiledSchema.safeParse(d);
   },
-  "Zod JIT"() {
-    for (const d of DATA) schema.safeParse(d);
+  "Schema JIT"() {
+    for (const d of DATA) Schema.safeParse(d);
   },
-  "Zod non-JIT"() {
-    for (const d of DATA) schema.safeParse(d, { jitless: true });
+  "Schema non-JIT"() {
+    for (const d of DATA) Schema.safeParse(d, { jitless: true });
   },
 });
 

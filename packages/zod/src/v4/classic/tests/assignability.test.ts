@@ -1,190 +1,190 @@
 import { expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
-import * as core from "zod/v4/core";
+import * as Schema from "schema/v4";
+import * as core from "schema/v4/core";
 
 test("assignability", () => {
-  // $ZodString
-  z.string() satisfies z.core.$ZodString;
-  z.string() satisfies z.ZodString;
+  // $SchemaString
+  Schema.string() satisfies Schema.core.$SchemaString;
+  Schema.string() satisfies Schema.SchemaString;
 
-  // $ZodNumber
-  z.number() satisfies z.core.$ZodNumber;
-  z.number() satisfies z.ZodNumber;
+  // $SchemaNumber
+  Schema.number() satisfies Schema.core.$SchemaNumber;
+  Schema.number() satisfies Schema.SchemaNumber;
 
-  // $ZodBigInt
-  z.bigint() satisfies z.core.$ZodBigInt;
-  z.bigint() satisfies z.ZodBigInt;
+  // $SchemaBigInt
+  Schema.bigint() satisfies Schema.core.$SchemaBigInt;
+  Schema.bigint() satisfies Schema.SchemaBigInt;
 
-  // $ZodBoolean
-  z.boolean() satisfies z.core.$ZodBoolean;
-  z.boolean() satisfies z.ZodBoolean;
+  // $SchemaBoolean
+  Schema.boolean() satisfies Schema.core.$SchemaBoolean;
+  Schema.boolean() satisfies Schema.SchemaBoolean;
 
-  // $ZodDate
-  z.date() satisfies z.core.$ZodDate;
-  z.date() satisfies z.ZodDate;
+  // $SchemaDate
+  Schema.date() satisfies Schema.core.$SchemaDate;
+  Schema.date() satisfies Schema.SchemaDate;
 
-  // $ZodSymbol
-  z.symbol() satisfies z.core.$ZodSymbol;
-  z.symbol() satisfies z.ZodSymbol;
+  // $SchemaSymbol
+  Schema.symbol() satisfies Schema.core.$SchemaSymbol;
+  Schema.symbol() satisfies Schema.SchemaSymbol;
 
-  // $ZodUndefined
-  z.undefined() satisfies z.core.$ZodUndefined;
-  z.undefined() satisfies z.ZodUndefined;
+  // $SchemaUndefined
+  Schema.undefined() satisfies Schema.core.$SchemaUndefined;
+  Schema.undefined() satisfies Schema.SchemaUndefined;
 
-  // $ZodNullable
-  z.string().nullable() satisfies z.core.$ZodNullable;
-  z.string().nullable() satisfies z.ZodNullable;
+  // $SchemaNullable
+  Schema.string().nullable() satisfies Schema.core.$SchemaNullable;
+  Schema.string().nullable() satisfies Schema.SchemaNullable;
 
-  // $ZodNull
-  z.null() satisfies z.core.$ZodNull;
-  z.null() satisfies z.ZodNull;
+  // $SchemaNull
+  Schema.null() satisfies Schema.core.$SchemaNull;
+  Schema.null() satisfies Schema.SchemaNull;
 
-  // $ZodAny
-  z.any() satisfies z.core.$ZodAny;
-  z.any() satisfies z.ZodAny;
+  // $SchemaAny
+  Schema.any() satisfies Schema.core.$SchemaAny;
+  Schema.any() satisfies Schema.SchemaAny;
 
-  // $ZodUnknown
-  z.unknown() satisfies z.core.$ZodUnknown;
-  z.unknown() satisfies z.ZodUnknown;
+  // $SchemaUnknown
+  Schema.unknown() satisfies Schema.core.$SchemaUnknown;
+  Schema.unknown() satisfies Schema.SchemaUnknown;
 
-  // $ZodNever
-  z.never() satisfies z.core.$ZodNever;
-  z.never() satisfies z.ZodNever;
+  // $SchemaNever
+  Schema.never() satisfies Schema.core.$SchemaNever;
+  Schema.never() satisfies Schema.SchemaNever;
 
-  // $ZodVoid
-  z.void() satisfies z.core.$ZodVoid;
-  z.void() satisfies z.ZodVoid;
+  // $SchemaVoid
+  Schema.void() satisfies Schema.core.$SchemaVoid;
+  Schema.void() satisfies Schema.SchemaVoid;
 
-  // $ZodArray
-  z.array(z.string()) satisfies z.core.$ZodArray;
-  z.array(z.string()) satisfies z.ZodArray;
-  z.array(z.string()) satisfies z.ZodType<Array<unknown>>;
+  // $SchemaArray
+  Schema.array(Schema.string()) satisfies Schema.core.$SchemaArray;
+  Schema.array(Schema.string()) satisfies Schema.SchemaArray;
+  Schema.array(Schema.string()) satisfies Schema.SchemaType<Array<unknown>>;
 
-  // $ZodObject
-  z.object({ key: z.string() }) satisfies z.core.$ZodObject;
-  z.object({ key: z.string() }) satisfies z.ZodObject<{ key: z.ZodType }>;
-  z.object({ key: z.string() }) satisfies z.ZodType<{ key: string }>;
+  // $SchemaObject
+  Schema.object({ key: Schema.string() }) satisfies Schema.core.$SchemaObject;
+  Schema.object({ key: Schema.string() }) satisfies Schema.SchemaObject<{ key: Schema.SchemaType }>;
+  Schema.object({ key: Schema.string() }) satisfies Schema.SchemaType<{ key: string }>;
 
-  // $ZodUnion
-  z.union([z.string(), z.number()]) satisfies z.core.$ZodUnion;
-  z.union([z.string(), z.number()]) satisfies z.ZodUnion;
-  z.union([z.string(), z.number()]) satisfies z.ZodType<string | number>;
+  // $SchemaUnion
+  Schema.union([Schema.string(), Schema.number()]) satisfies Schema.core.$SchemaUnion;
+  Schema.union([Schema.string(), Schema.number()]) satisfies Schema.SchemaUnion;
+  Schema.union([Schema.string(), Schema.number()]) satisfies Schema.SchemaType<string | number>;
 
-  // $ZodIntersection
-  z.intersection(z.string(), z.number()) satisfies z.core.$ZodIntersection;
-  z.intersection(z.string(), z.number()) satisfies z.ZodIntersection;
+  // $SchemaIntersection
+  Schema.intersection(Schema.string(), Schema.number()) satisfies Schema.core.$SchemaIntersection;
+  Schema.intersection(Schema.string(), Schema.number()) satisfies Schema.SchemaIntersection;
 
-  // $ZodTuple
-  z.tuple([z.string(), z.number()]) satisfies z.core.$ZodTuple;
-  z.tuple([z.string(), z.number()]) satisfies z.ZodTuple;
+  // $SchemaTuple
+  Schema.tuple([Schema.string(), Schema.number()]) satisfies Schema.core.$SchemaTuple;
+  Schema.tuple([Schema.string(), Schema.number()]) satisfies Schema.SchemaTuple;
 
-  // $ZodRecord
-  z.record(z.string(), z.number()) satisfies z.core.$ZodRecord;
-  z.record(z.string(), z.number()) satisfies z.ZodRecord;
+  // $SchemaRecord
+  Schema.record(Schema.string(), Schema.number()) satisfies Schema.core.$SchemaRecord;
+  Schema.record(Schema.string(), Schema.number()) satisfies Schema.SchemaRecord;
 
-  // $ZodMap
-  z.map(z.string(), z.number()) satisfies z.core.$ZodMap;
-  z.map(z.string(), z.number()) satisfies z.ZodMap;
+  // $SchemaMap
+  Schema.map(Schema.string(), Schema.number()) satisfies Schema.core.$SchemaMap;
+  Schema.map(Schema.string(), Schema.number()) satisfies Schema.SchemaMap;
 
-  // $ZodSet
-  z.set(z.string()) satisfies z.core.$ZodSet;
-  z.set(z.string()) satisfies z.ZodSet;
+  // $SchemaSet
+  Schema.set(Schema.string()) satisfies Schema.core.$SchemaSet;
+  Schema.set(Schema.string()) satisfies Schema.SchemaSet;
 
-  // $ZodLiteral
-  z.literal("example") satisfies z.core.$ZodLiteral;
-  z.literal("example") satisfies z.ZodLiteral;
+  // $SchemaLiteral
+  Schema.literal("example") satisfies Schema.core.$SchemaLiteral;
+  Schema.literal("example") satisfies Schema.SchemaLiteral;
 
-  // $ZodEnum
-  z.enum(["a", "b", "c"]) satisfies z.core.$ZodEnum;
-  z.enum(["a", "b", "c"]) satisfies z.ZodEnum;
+  // $SchemaEnum
+  Schema.enum(["a", "b", "c"]) satisfies Schema.core.$SchemaEnum;
+  Schema.enum(["a", "b", "c"]) satisfies Schema.SchemaEnum;
 
-  // $ZodPromise
-  z.promise(z.string()) satisfies z.core.$ZodPromise;
-  z.promise(z.string()) satisfies z.ZodPromise;
+  // $SchemaPromise
+  Schema.promise(Schema.string()) satisfies Schema.core.$SchemaPromise;
+  Schema.promise(Schema.string()) satisfies Schema.SchemaPromise;
 
-  // $ZodLazy
-  const lazySchema = z.lazy(() => z.string());
-  lazySchema satisfies z.core.$ZodLazy;
-  lazySchema satisfies z.ZodLazy;
+  // $SchemaLazy
+  const lazySchema = Schema.lazy(() => Schema.string());
+  lazySchema satisfies Schema.core.$SchemaLazy;
+  lazySchema satisfies Schema.SchemaLazy;
 
-  // $ZodOptional
-  z.string().optional() satisfies z.core.$ZodOptional;
-  z.string().optional() satisfies z.ZodOptional;
+  // $SchemaOptional
+  Schema.string().optional() satisfies Schema.core.$SchemaOptional;
+  Schema.string().optional() satisfies Schema.SchemaOptional;
 
-  // $ZodDefault
-  z.string().default("default") satisfies z.core.$ZodDefault;
-  z.string().default("default") satisfies z.ZodDefault;
+  // $SchemaDefault
+  Schema.string().default("default") satisfies Schema.core.$SchemaDefault;
+  Schema.string().default("default") satisfies Schema.SchemaDefault;
 
-  // $ZodTemplateLiteral
-  z.templateLiteral([z.literal("a"), z.literal("b")]) satisfies z.core.$ZodTemplateLiteral;
-  z.templateLiteral([z.literal("a"), z.literal("b")]) satisfies z.ZodTemplateLiteral;
+  // $SchemaTemplateLiteral
+  Schema.templateLiteral([Schema.literal("a"), Schema.literal("b")]) satisfies Schema.core.$SchemaTemplateLiteral;
+  Schema.templateLiteral([Schema.literal("a"), Schema.literal("b")]) satisfies Schema.SchemaTemplateLiteral;
 
-  // $ZodCustom
-  z.custom<string>((val) => typeof val === "string") satisfies z.core.$ZodCustom;
-  z.custom<string>((val) => typeof val === "string") satisfies z.ZodCustom;
+  // $SchemaCustom
+  Schema.custom<string>((val) => typeof val === "string") satisfies Schema.core.$SchemaCustom;
+  Schema.custom<string>((val) => typeof val === "string") satisfies Schema.SchemaCustom;
 
-  // $ZodTransform
-  z.transform((val) => val as string) satisfies z.core.$ZodTransform;
-  z.transform((val) => val as string) satisfies z.ZodTransform;
+  // $SchemaTransform
+  Schema.transform((val) => val as string) satisfies Schema.core.$SchemaTransform;
+  Schema.transform((val) => val as string) satisfies Schema.SchemaTransform;
 
-  // $ZodNonOptional
-  z.string().optional().nonoptional() satisfies z.core.$ZodNonOptional;
-  z.string().optional().nonoptional() satisfies z.ZodNonOptional;
+  // $SchemaNonOptional
+  Schema.string().optional().nonoptional() satisfies Schema.core.$SchemaNonOptional;
+  Schema.string().optional().nonoptional() satisfies Schema.SchemaNonOptional;
 
-  // $ZodReadonly
-  z.object({ key: z.string() }).readonly() satisfies z.core.$ZodReadonly;
-  z.object({ key: z.string() }).readonly() satisfies z.ZodReadonly;
+  // $SchemaReadonly
+  Schema.object({ key: Schema.string() }).readonly() satisfies Schema.core.$SchemaReadonly;
+  Schema.object({ key: Schema.string() }).readonly() satisfies Schema.SchemaReadonly;
 
-  // $ZodNaN
-  z.nan() satisfies z.core.$ZodNaN;
-  z.nan() satisfies z.ZodNaN;
+  // $SchemaNaN
+  Schema.nan() satisfies Schema.core.$SchemaNaN;
+  Schema.nan() satisfies Schema.SchemaNaN;
 
-  // $ZodPipe
-  z.unknown().pipe(z.number()) satisfies z.core.$ZodPipe;
-  z.unknown().pipe(z.number()) satisfies z.ZodPipe;
+  // $SchemaPipe
+  Schema.unknown().pipe(Schema.number()) satisfies Schema.core.$SchemaPipe;
+  Schema.unknown().pipe(Schema.number()) satisfies Schema.SchemaPipe;
 
-  // $ZodPreprocess
-  z.preprocess((v) => v, z.number()) satisfies z.core.$ZodPreprocess;
-  z.preprocess((v) => v, z.number()) satisfies z.ZodPreprocess;
-  z.preprocess((v) => v, z.number()) satisfies z.core.$ZodPipe<z.core.$ZodTransform, z.ZodNumber>;
-  z.preprocess((v) => v, z.number()) satisfies z.ZodPipe<z.core.$ZodTransform, z.ZodNumber>;
+  // $SchemaPreprocess
+  Schema.preprocess((v) => v, Schema.number()) satisfies Schema.core.$SchemaPreprocess;
+  Schema.preprocess((v) => v, Schema.number()) satisfies Schema.SchemaPreprocess;
+  Schema.preprocess((v) => v, Schema.number()) satisfies Schema.core.$SchemaPipe<Schema.core.$SchemaTransform, Schema.SchemaNumber>;
+  Schema.preprocess((v) => v, Schema.number()) satisfies Schema.SchemaPipe<Schema.core.$SchemaTransform, Schema.SchemaNumber>;
 
-  // $ZodSuccess
-  z.success(z.string()) satisfies z.core.$ZodSuccess;
-  z.success(z.string()) satisfies z.ZodSuccess;
+  // $SchemaSuccess
+  Schema.success(Schema.string()) satisfies Schema.core.$SchemaSuccess;
+  Schema.success(Schema.string()) satisfies Schema.SchemaSuccess;
 
-  // $ZodCatch
-  z.string().catch("fallback") satisfies z.core.$ZodCatch;
-  z.string().catch("fallback") satisfies z.ZodCatch;
+  // $SchemaCatch
+  Schema.string().catch("fallback") satisfies Schema.core.$SchemaCatch;
+  Schema.string().catch("fallback") satisfies Schema.SchemaCatch;
 
-  // $ZodFile
-  z.file() satisfies z.core.$ZodFile;
-  z.file() satisfies z.ZodFile;
+  // $SchemaFile
+  Schema.file() satisfies Schema.core.$SchemaFile;
+  Schema.file() satisfies Schema.SchemaFile;
 });
 
-test("toZod", () => {
+test("toSchema", () => {
   type Company = {
     id: string;
     name: string;
     webAddress: string | null;
   };
 
-  const CompanySchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    webAddress: z.string().url().nullable(),
+  const CompanySchema = Schema.object({
+    id: Schema.string(),
+    name: Schema.string(),
+    webAddress: Schema.string().url().nullable(),
   });
-  const Company = z.toZod<Company>()(CompanySchema);
+  const Company = Schema.toSchema<Company>()(CompanySchema);
 
   Company.shape.id.min(1);
-  expectTypeOf<z.output<typeof Company>>().toEqualTypeOf<Company>();
+  expectTypeOf<Schema.output<typeof Company>>().toEqualTypeOf<Company>();
 
-  const CoreCompany = core.toZod<Company>()(CompanySchema);
+  const CoreCompany = core.toSchema<Company>()(CompanySchema);
   expectTypeOf<core.output<typeof CoreCompany>>().toEqualTypeOf<Company>();
 
-  const UtilCompany = z.core.util.toZod<Company>()(CompanySchema);
-  expectTypeOf<z.output<typeof UtilCompany>>().toEqualTypeOf<Company>();
+  const UtilCompany = Schema.core.util.toSchema<Company>()(CompanySchema);
+  expectTypeOf<Schema.output<typeof UtilCompany>>().toEqualTypeOf<Company>();
 
   type Complex = {
     kind: "company";
@@ -197,47 +197,47 @@ test("toZod", () => {
     status: "active" | "inactive";
   };
 
-  const Complex = z.toZod<Complex>()(
-    z.object({
-      kind: z.literal("company"),
-      nested: z.object({
-        founded: z.date(),
-        tags: z.array(z.string()),
+  const Complex = Schema.toSchema<Complex>()(
+    Schema.object({
+      kind: Schema.literal("company"),
+      nested: Schema.object({
+        founded: Schema.date(),
+        tags: Schema.array(Schema.string()),
       }),
-      scores: z.record(z.enum(["a", "b"]), z.number()),
-      tuple: z.tuple([z.string(), z.number()]),
-      status: z.union([z.literal("active"), z.literal("inactive")]),
+      scores: Schema.record(Schema.enum(["a", "b"]), Schema.number()),
+      tuple: Schema.tuple([Schema.string(), Schema.number()]),
+      status: Schema.union([Schema.literal("active"), Schema.literal("inactive")]),
     })
   );
-  expectTypeOf<z.output<typeof Complex>>().toEqualTypeOf<Complex>();
+  expectTypeOf<Schema.output<typeof Complex>>().toEqualTypeOf<Complex>();
 
   type Items = {
     items: { value: string }[];
   };
 
-  const Items = z.toZod<Items>()(
-    z.object({
-      items: z.array(z.object({ value: z.string() })),
+  const Items = Schema.toSchema<Items>()(
+    Schema.object({
+      items: Schema.array(Schema.object({ value: Schema.string() })),
     })
   );
-  expectTypeOf<z.output<typeof Items>>().toEqualTypeOf<Items>();
+  expectTypeOf<Schema.output<typeof Items>>().toEqualTypeOf<Items>();
 
   type ReadonlyItem = Readonly<{
     id: string;
   }>;
 
-  const ReadonlyItem = z.toZod<ReadonlyItem>()(z.object({ id: z.string() }).readonly());
-  expectTypeOf<z.output<typeof ReadonlyItem>>().toEqualTypeOf<ReadonlyItem>();
+  const ReadonlyItem = Schema.toSchema<ReadonlyItem>()(Schema.object({ id: Schema.string() }).readonly());
+  expectTypeOf<Schema.output<typeof ReadonlyItem>>().toEqualTypeOf<ReadonlyItem>();
 
-  const Transformed = z.toZod<{ count: number }>()(
-    z.object({
-      count: z.string().transform((value) => value.length),
+  const Transformed = Schema.toSchema<{ count: number }>()(
+    Schema.object({
+      count: Schema.string().transform((value) => value.length),
     })
   );
-  expectTypeOf<z.input<typeof Transformed>>().toEqualTypeOf<{ count: string }>();
-  expectTypeOf<z.output<typeof Transformed>>().toEqualTypeOf<{ count: number }>();
+  expectTypeOf<Schema.input<typeof Transformed>>().toEqualTypeOf<{ count: string }>();
+  expectTypeOf<Schema.output<typeof Transformed>>().toEqualTypeOf<{ count: number }>();
 
-  // An enum target matches z.enum(...) even though the enum reference is not identical to the union of its members (#6524)
+  // An enum target matches Schema.enum(...) even though the enum reference is not identical to the union of its members (#6524)
   enum SkillLevel {
     Noob = "noob",
     Pro = "pro",
@@ -247,8 +247,8 @@ test("toZod", () => {
     Second = 2,
   }
 
-  z.toZod<SkillLevel>()(z.enum(SkillLevel));
-  const Enums = z.toZod<{
+  Schema.toSchema<SkillLevel>()(Schema.enum(SkillLevel));
+  const Enums = Schema.toSchema<{
     skill: SkillLevel;
     members: SkillLevel.Noob | SkillLevel.Pro;
     rank: Rank;
@@ -256,133 +256,133 @@ test("toZod", () => {
     list: SkillLevel[];
     nested: { skill: SkillLevel };
   }>()(
-    z.object({
-      skill: z.enum(SkillLevel),
-      members: z.enum(SkillLevel),
-      rank: z.enum(Rank),
-      maybe: z.enum(SkillLevel).nullable(),
-      list: z.array(z.enum(SkillLevel)),
-      nested: z.object({ skill: z.enum(SkillLevel) }),
+    Schema.object({
+      skill: Schema.enum(SkillLevel),
+      members: Schema.enum(SkillLevel),
+      rank: Schema.enum(Rank),
+      maybe: Schema.enum(SkillLevel).nullable(),
+      list: Schema.array(Schema.enum(SkillLevel)),
+      nested: Schema.object({ skill: Schema.enum(SkillLevel) }),
     })
   );
-  expectTypeOf<z.output<typeof Enums>["skill"]>().toEqualTypeOf<SkillLevel>();
+  expectTypeOf<Schema.output<typeof Enums>["skill"]>().toEqualTypeOf<SkillLevel>();
 
   // @ts-expect-error a member subset is not the enum
-  z.toZod<{ skill: SkillLevel }>()(z.object({ skill: z.literal(SkillLevel.Noob) }));
+  Schema.toSchema<{ skill: SkillLevel }>()(Schema.object({ skill: Schema.literal(SkillLevel.Noob) }));
 
   // @ts-expect-error plain literals do not match a nominal enum target
-  z.toZod<{ skill: SkillLevel }>()(z.object({ skill: z.enum(["noob", "pro"]) }));
+  Schema.toSchema<{ skill: SkillLevel }>()(Schema.object({ skill: Schema.enum(["noob", "pro"]) }));
 
   // @ts-expect-error an enum schema does not match a plain literal-union target
-  z.toZod<{ skill: "noob" | "pro" }>()(z.object({ skill: z.enum(SkillLevel) }));
+  Schema.toSchema<{ skill: "noob" | "pro" }>()(Schema.object({ skill: Schema.enum(SkillLevel) }));
 
   // @ts-expect-error plain numeric literals do not match a numeric enum target either
-  z.toZod<{ rank: Rank }>()(z.object({ rank: z.union([z.literal(1), z.literal(2)]) }));
+  Schema.toSchema<{ rank: Rank }>()(Schema.object({ rank: Schema.union([Schema.literal(1), Schema.literal(2)]) }));
 
-  z.toZod<Company>()(
+  Schema.toSchema<Company>()(
     // @ts-expect-error missing optional keys still fail exact output matching
-    z.object({
-      id: z.string(),
-      name: z.string(),
+    Schema.object({
+      id: Schema.string(),
+      name: Schema.string(),
     })
   );
 
-  z.toZod<Company>()(
+  Schema.toSchema<Company>()(
     // @ts-expect-error extra keys fail exact output matching
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      webAddress: z.string().url().nullable(),
-      extra: z.string(),
+    Schema.object({
+      id: Schema.string(),
+      name: Schema.string(),
+      webAddress: Schema.string().url().nullable(),
+      extra: Schema.string(),
     })
   );
 
-  z.toZod<Company>()(
+  Schema.toSchema<Company>()(
     // @ts-expect-error wrong property output fails matching
-    z.object({
-      id: z.number(),
-      name: z.string(),
-      webAddress: z.string().url().nullable(),
+    Schema.object({
+      id: Schema.number(),
+      name: Schema.string(),
+      webAddress: Schema.string().url().nullable(),
     })
   );
 
-  z.toZod<ReadonlyItem>()(
+  Schema.toSchema<ReadonlyItem>()(
     // @ts-expect-error readonly output is required
-    z.object({
-      id: z.string(),
+    Schema.object({
+      id: Schema.string(),
     })
   );
 
   // @ts-expect-error any is only an exact match for any
-  z.toZod<string>()(z.any());
+  Schema.toSchema<string>()(Schema.any());
 
-  // @ts-expect-error toZod checks output, not input
-  z.toZod<string>()(z.string().transform((value) => value.length));
+  // @ts-expect-error toSchema checks output, not input
+  Schema.toSchema<string>()(Schema.string().transform((value) => value.length));
 
   // Exact equality is deliberately the only mode. A bidirectional-assignability mode would accept both of the two cases above — `any` is assignable in both directions by construction, and `readonly` is not part of assignability — so it would silently drop the guarantees the rest of this test pins.
 
   // An intersection and the flat object with the same keys are interchangeable as targets, since the normalizer flattens both.
   type Intersected = { a: number } & { b: string };
-  const viaAnd = z.object({ a: z.number() }).and(z.object({ b: z.string() }));
-  const viaExtend = z.object({ a: z.number() }).safeExtend({ b: z.string() });
+  const viaAnd = Schema.object({ a: Schema.number() }).and(Schema.object({ b: Schema.string() }));
+  const viaExtend = Schema.object({ a: Schema.number() }).safeExtend({ b: Schema.string() });
 
-  z.toZod<Intersected>()(viaAnd);
-  z.toZod<Intersected>()(viaExtend);
-  z.toZod<{ a: number; b: string }>()(viaAnd);
-  z.toZod<{ a: number; b: string }>()(viaExtend);
+  Schema.toSchema<Intersected>()(viaAnd);
+  Schema.toSchema<Intersected>()(viaExtend);
+  Schema.toSchema<{ a: number; b: string }>()(viaAnd);
+  Schema.toSchema<{ a: number; b: string }>()(viaExtend);
 
   // @ts-expect-error a missing key is still a missing key
-  z.toZod<Intersected>()(z.object({ a: z.number() }));
+  Schema.toSchema<Intersected>()(Schema.object({ a: Schema.number() }));
 
   // `keyof` a function is `never`, so the normalizer must not walk into one — mapping it would erase the signature and make every callable compare equal
-  z.toZod<() => string>()(z.custom<() => string>());
+  Schema.toSchema<() => string>()(Schema.custom<() => string>());
 
   // @ts-expect-error an incompatible callable output is still rejected
-  z.toZod<() => string>()(z.custom<() => number>());
+  Schema.toSchema<() => string>()(Schema.custom<() => number>());
 
   // @ts-expect-error and so is an incompatible function-valued property
-  z.toZod<{ cb: (x: number) => void }>()(z.object({ cb: z.custom<(x: string) => void>() }));
+  Schema.toSchema<{ cb: (x: number) => void }>()(Schema.object({ cb: Schema.custom<(x: string) => void>() }));
 
   // @ts-expect-error a method-bearing generic keeps its type arguments
-  z.toZod<{ m: Map<string, number> }>()(z.object({ m: z.custom<Map<string, string>>() }));
+  Schema.toSchema<{ m: Map<string, number> }>()(Schema.object({ m: Schema.custom<Map<string, string>>() }));
 });
 
 test("checks", () => {
-  const _a: z.core.$ZodCheck = {} as any as z.core.$ZodChecks;
-  const _b: z.core.$ZodCheck = {} as any as z.core.$ZodStringFormatChecks;
-  const _c: z.core.$ZodType = {} as any as z.core.$ZodTypes;
-  const _d: z.core.$ZodType = {} as any as z.core.$ZodStringFormatTypes;
-  z.currencyCode() satisfies z.core.$ZodStringFormatTypes;
+  const _a: Schema.core.$SchemaCheck = {} as any as Schema  .core.$SchemaChecks;
+  const _b: Schema.core.$SchemaCheck = {} as any as Schema  .core.$SchemaStringFormatChecks;
+  const _c: Schema.core.$SchemaType = {} as any as Schema  .core.$SchemaTypes;
+  const _d: Schema.core.$SchemaType = {} as any as Schema  .core.$SchemaStringFormatTypes;
+  Schema.currencyCode() satisfies Schema.core.$SchemaStringFormatTypes;
 });
 
-test("assignability to $ZodType", () => {
-  z.string() satisfies z.ZodType;
-  z.number() satisfies z.ZodType;
-  z.boolean() satisfies z.ZodType;
-  z.object({ key: z.string() }) satisfies z.ZodType;
-  z.object({ key: z.string() }) satisfies z.ZodType<{ key: string }>;
-  z.array(z.string()) satisfies z.ZodType;
-  z.union([z.string(), z.number()]) satisfies z.ZodType;
-  z.intersection(z.string(), z.number()) satisfies z.ZodType;
-  z.tuple([z.string(), z.number()]) satisfies z.ZodType;
-  z.record(z.string(), z.number()) satisfies z.ZodType;
-  z.map(z.string(), z.number()) satisfies z.ZodType;
-  z.set(z.string()) satisfies z.ZodType;
-  z.literal("example") satisfies z.ZodType;
+test("assignability to $SchemaType", () => {
+  Schema.string() satisfies Schema.SchemaType;
+  Schema.number() satisfies Schema.SchemaType;
+  Schema.boolean() satisfies Schema.SchemaType;
+  Schema.object({ key: Schema.string() }) satisfies Schema.SchemaType;
+  Schema.object({ key: Schema.string() }) satisfies Schema.SchemaType<{ key: string }>;
+  Schema.array(Schema.string()) satisfies Schema.SchemaType;
+  Schema.union([Schema.string(), Schema.number()]) satisfies Schema.SchemaType;
+  Schema.intersection(Schema.string(), Schema.number()) satisfies Schema.SchemaType;
+  Schema.tuple([Schema.string(), Schema.number()]) satisfies Schema.SchemaType;
+  Schema.record(Schema.string(), Schema.number()) satisfies Schema.SchemaType;
+  Schema.map(Schema.string(), Schema.number()) satisfies Schema.SchemaType;
+  Schema.set(Schema.string()) satisfies Schema.SchemaType;
+  Schema.literal("example") satisfies Schema.SchemaType;
 
-  expectTypeOf<z.ZodType extends z.core.$ZodType ? true : false>().toEqualTypeOf<true>();
+  expectTypeOf<Schema.SchemaType extends Schema.core.$SchemaType ? true : false>().toEqualTypeOf<true>();
 });
 
 test("assignability with narrowing", () => {
-  type _RefinedSchema<T extends z.ZodType<object> | z.ZodUnion> = T extends z.ZodUnion
+  type _RefinedSchema<T extends Schema.SchemaType<object> | Schema.SchemaUnion> = T extends Schema.SchemaUnion
     ? RefinedUnionSchema<T> // <-- Type instantiation is excessively deep and possibly infinite.
-    : T extends z.ZodType<object>
-      ? RefinedTypeSchema<z.output<T>> // <-- Type instantiation is excessively deep and possibly infinite.
+    : T extends Schema.SchemaType<object>
+      ? RefinedTypeSchema<Schema.output<T>> // <-- Type instantiation is excessively deep and possibly infinite.
       : never;
 
   type RefinedTypeSchema<T extends object> = T;
 
-  type RefinedUnionSchema<T extends z.ZodUnion> = T;
+  type RefinedUnionSchema<T extends Schema.SchemaUnion> = T;
 });
 
 test("generic assignability in objects", () => {
@@ -391,12 +391,12 @@ test("generic assignability in objects", () => {
     order: string;
   }
 
-  const createSortItemSchema = <T extends z.ZodType<string>>(sortKeySchema: T) =>
-    z.object({
+  const createSortItemSchema = <T extends Schema.SchemaType<string>>(sortKeySchema: T) =>
+    Schema.object({
       key: sortKeySchema,
-      order: z.string(),
+      order: Schema.string(),
     });
 
-  <T extends z.ZodType<string>>(sortKeySchema: T, defaultSortBy: SortItem<z.output<T>>[] = []) =>
+  <T extends Schema.SchemaType<string>>(sortKeySchema: T, defaultSortBy: SortItem<Schema.output<T>>[] = []) =>
     createSortItemSchema(sortKeySchema).array().default(defaultSortBy);
 });

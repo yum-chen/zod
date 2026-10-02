@@ -15,10 +15,10 @@ export const config = {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const imagePrefix = process.env.VERCEL_URL ? `https://zod.dev` : "http://localhost:3000";
+    const imagePrefix = process.env.VERCEL_URL ? `https://Schema.dev` : "http://localhost:3000";
 
     // Get dynamic params
-    const title = searchParams.get("title") || "Zod Documentation";
+    const title = searchParams.get("title") || "Schema Documentation";
     // a long title wraps to three or more lines, and the description would push the footer off the canvas
     const description = title.length > 60 ? null : searchParams.get("description");
 
@@ -46,14 +46,14 @@ export async function GET(request: Request) {
             justifyContent: "center",
           }}
         >
-          <img width="150" height="125" alt="Zod logo" src={`${imagePrefix}/logo/logo.png`} />
+          <img width="150" height="125" alt="Schema logo" src={`${imagePrefix}/logo/logo.png`} />
         </div>
 
         {/* Main content */}
         <div tw="flex flex-col w-full pr-52">
           {/* Added right padding to avoid text overlapping with logo */}
           {/* <p tw="text-4xl font-bold tracking-tight text-white m-0 leading-none mb-6 border-b border-gray-700 pb-4">
-            Zod
+            Schema
           </p> */}
           <h1 tw="text-7xl font-bold tracking-tight text-white m-0 leading-tight">{title}</h1>
           {description ? <p tw="text-2xl text-gray-300 mt-6 max-w-4xl">{description}</p> : null}
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
                 height={225}
                 tw="h-10 w-10 mr-2"
               />
-              <span tw="text-3xl font-semibold text-gray-300">colinhacks/zod</span>
+              <span tw="text-3xl font-semibold text-gray-300">colinhacks/schema</span>
             </div>
           </div>
         </div>

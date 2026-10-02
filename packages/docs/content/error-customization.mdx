@@ -5,21 +5,21 @@ description: "Guide to customizing validation error messages and error handling 
 
 import { Tabs, Tab } from 'fumadocs-ui/components/tabs';
 
-{/* ## `$ZodError` */}
+{/* ## `$SchemaError` */}
 
-In Zod, validation errors are surfaced as instances of the `z.core.$ZodError` class.
+In Schema, validation errors are surfaced as instances of the `Schema.core.$SchemaError` class.
 
-> The `ZodError` class in the `zod` package is a subclass that implements some additional convenience methods.
+> The `SchemaError` class in the `schema` package is a subclass that implements some additional convenience methods.
 
-Instances of `$ZodError` contain an `.issues` array. Each issue contains a human-readable `message` and additional structured metadata about the issue.
+Instances of `$SchemaError` contain an `.issues` array. Each issue contains a human-readable `message` and additional structured metadata about the issue.
 
 
-<Tabs groupId="lib" items={["Zod", "Zod Mini"]}>
-<Tab value="Zod">
+<Tabs groupId="lib" items={["Schema", "Schema Mini"]}>
+<Tab value="Schema">
 ```ts
-import * as z from "zod";
+import * as Schema   from "schema";
 
-const result = z.string().safeParse(12); // { success: false, error: ZodError }
+const result = Schema.string().safeParse(12); // { success: false, error: SchemaError }
 result.error.issues;
 // [
 //   {
@@ -31,11 +31,11 @@ result.error.issues;
 // ]
 ```
 </Tab>
-<Tab value="Zod Mini">
+<Tab value="Schema Mini">
 ```ts
-import * as z from "zod/mini";
+import * as Schema from "schema/mini";
 
-const result = z.string().safeParse(12); // { success: false, error: z.core.$ZodError }
+const result = Schema.string().safeParse(12); // { success: false, error: Schema.core.$SchemaError }
 result.error.issues;
 // [
 //   {
@@ -57,17 +57,17 @@ Every issue contains a `message` property with a human-readable error message. E
 
 ## The `error` param
 
-Virtually every Zod API accepts an optional error message.
+Virtually every Schema API accepts an optional error message.
 
 ```ts
-z.string("Not a string!");
+Schema.string("Not a string!");
 ```
 
-This custom error will show up as the `message` property of any validation issues that originate from this schema.
+This custom error will show up as the `message` property of any validation issues that originate from this Schema.
 
 ```ts
-z.string("Not a string!").parse(12);
-// ❌ throws ZodError {
+Schema.string("Not a string!").parse(12);
+// ❌ throws SchemaError {
 //   issues: [
 //     {
 //       expected: 'string',
@@ -81,70 +81,70 @@ z.string("Not a string!").parse(12);
 
 All `z` functions and schema methods accept custom errors.
 
-<Tabs groupId="lib" items={["Zod", "Zod Mini"]}>
-<Tab value="Zod">
+<Tabs groupId="lib" items={["Schema", "Schema Mini"]}>
+<Tab value="Schema">
 ```ts
-z.string("Bad!");
-z.string().min(5, "Too short!");
-z.uuid("Bad UUID!");
-z.iso.date("Bad date!");
-z.array(z.string(), "Not an array!");
-z.array(z.string()).min(5, "Too few items!");
-z.set(z.string(), "Bad set!");
+Schema.string("Bad!");
+Schema.string().min(5, "Too short!");
+Schema.uuid("Bad UUID!");
+Schema.iso.date("Bad date!");
+Schema.array(Schema.string(), "Not an array!");
+Schema.array(Schema.string()).min(5, "Too few items!");
+Schema.set(Schema.string(), "Bad set!");
 ```
 </Tab>
-<Tab value="Zod Mini">
+<Tab value="Schema Mini">
 ```ts
-z.string("Bad!");
-z.string().check(z.minLength(5, "Too short!"));
-z.uuid("Bad UUID!");
-z.iso.date("Bad date!");
-z.array(z.string(), "Bad array!");
-z.array(z.string()).check(z.minLength(5, "Too few items!"));
-z.set(z.string(), "Bad set!");
+Schema.string("Bad!");
+Schema.string().check(Schema.minLength(5, "Too short!"));
+Schema.uuid("Bad UUID!");
+Schema.iso.date("Bad date!");
+Schema.array(Schema.string(), "Bad array!");
+Schema.array(Schema.string()).check(Schema.minLength(5, "Too few items!"));
+Schema.set(Schema.string(), "Bad set!");
 ```
 </Tab>
 </Tabs>
 
 If you prefer, you can pass a params object with an `error` parameter instead.
 
-<Tabs groupId="lib" items={["Zod", "Zod Mini"]}>
-<Tab value="Zod">
+<Tabs groupId="lib" items={["Schema", "Schema Mini"]}>
+<Tab value="Schema">
 ```ts
-z.string({ error: "Bad!" });
-z.string().min(5, { error: "Too short!" });
-z.uuid({ error: "Bad UUID!" });
-z.iso.date({ error: "Bad date!" });
-z.array(z.string(), { error: "Bad array!" });
-z.array(z.string()).min(5, { error: "Too few items!" });
-z.set(z.string(), { error: "Bad set!" });
+Schema.string({ error: "Bad!" });
+Schema.string().min(5, { error: "Too short!" });
+Schema.uuid({ error: "Bad UUID!" });
+Schema.iso.date({ error: "Bad date!" });
+Schema.array(Schema.string(), { error: "Bad array!" });
+Schema.array(Schema.string()).min(5, { error: "Too few items!" });
+Schema.set(Schema.string(), { error: "Bad set!" });
 ```
 </Tab>
-<Tab value="Zod Mini">
+<Tab value="Schema Mini">
 ```ts
-z.string({ error: "Bad!" });
-z.string().check(z.minLength(5, { error: "Too short!" }));
-z.uuid({ error: "Bad UUID!" });
-z.iso.date({ error: "Bad date!" });
-z.array(z.string(), { error: "Bad array!" });
-z.array(z.string()).check(z.minLength(5, { error: "Too few items!" }));
-z.set(z.string(), { error: "Bad set!" });
+Schema.string({ error: "Bad!" });
+Schema.string().check(Schema.minLength(5, { error: "Too short!" }));
+Schema.uuid({ error: "Bad UUID!" });
+Schema.iso.date({ error: "Bad date!" });
+Schema.array(Schema.string(), { error: "Bad array!" });
+Schema.array(Schema.string()).check(Schema.minLength(5, { error: "Too few items!" }));
+Schema.set(Schema.string(), { error: "Bad set!" });
 ```
 
 </Tab>
 </Tabs>
 
 
-The `error` param optionally accepts a function. An error customization function is known as an **error map** in Zod terminology. The error map will run at parse time if a validation error occurs.
+The `error` param optionally accepts a function. An error customization function is known as an **error map** in Schema terminology. The error map will run at parse time if a validation error occurs.
 
 ```ts
-z.string({ error: ()=>`[${Date.now()}]: Validation failure.` });
+Schema.string({ error: ()=>`[${Date.now()}]: Validation failure.` });
 ```
 
 The error map receives a context object you can use to customize the error message based on the validation issue.
 
 ```ts
-z.string({
+Schema.string({
   error: (iss) => iss.input === undefined ? "Field is required." : "Invalid input."
 });
 ```
@@ -152,7 +152,7 @@ z.string({
 For advanced cases, the `iss` object provides additional information you can use to customize the error.
 
 ```ts
-z.string({
+Schema.string({
   error: (iss) => {
     iss.code; // the issue code
     iss.input; // the input data
@@ -166,21 +166,21 @@ z.string({
 Unlike `iss.inst`, `iss.schema` is always the schema, even when a check originated the issue. Use it to read the owning schema's [metadata](/metadata).
 
 ```ts
-z.config({
+Schema.config({
   customError: (iss) => {
-    const meta = iss.schema && z.globalRegistry.get(iss.schema);
+    const meta = iss.schema && Schema.globalRegistry.get(iss.schema);
     return `${meta?.title ?? "Field"} is invalid.`;
   },
 });
 
-z.string().min(5).meta({ title: "Password" }).safeParse("abc");
+Schema.string().min(5).meta({ title: "Password" }).safeParse("abc");
 // => "Password is invalid."
 ```
 
 Depending on the API you are using, there may be additional properties available. Use TypeScript's autocomplete to explore the available properties.
 
 ```ts
-z.string().min(5, {
+Schema.string().min(5, {
   error: (iss) => {
     // ...the same as above
     iss.minimum; // the minimum value
@@ -190,10 +190,10 @@ z.string().min(5, {
 });
 ```
 
-Return `undefined` to avoid customizing the error message and fall back to the default message. (More specifically, Zod will yield control to the next error map in the [precedence chain](#error-precedence).) This is useful for selectively customizing certain error messages but not others.
+Return `undefined` to avoid customizing the error message and fall back to the default message. (More specifically, Schema will yield control to the next error map in the [precedence chain](#error-precedence).) This is useful for selectively customizing certain error messages but not others.
 
 ```ts
-z.int64({
+Schema.int64({
   error: (issue) => {
     // override too_big error message
     if (issue.code === "too_big") {
@@ -211,9 +211,9 @@ z.int64({
 To customize errors on a *per-parse* basis, pass an error map into the parse method:
 
 ```ts
-const schema = z.string();
+const schema = Schema.string();
 
-schema.parse(12, {
+Schema.parse(12, {
   error: iss => "per-parse custom error"
 });
 ```
@@ -221,8 +221,8 @@ schema.parse(12, {
 This has *lower precedence* than any schema-level custom messages.
 
 ```ts
-const schema = z.string({ error: "highest priority" });
-const result = schema.safeParse(12, {
+const schema = Schema.string({ error: "highest priority" });
+const result = Schema.safeParse(12, {
   error: (iss) => "lower priority",
 });
 
@@ -232,10 +232,10 @@ result.error.issues;
 
 The `iss` object is a [discriminated union](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions) of all possible issue types. Use the `code` property to discriminate between them.
 
-> For a breakdown of all Zod issue codes, see the [`zod/v4/core`](/packages/core#issue-types) documentation.
+> For a breakdown of all Schema issue codes, see the [`schema/v4/core`](/packages/core#issue-types) documentation.
 
 ```ts
-const result = schema.safeParse(12, {
+const result = Schema.safeParse(12, {
   error: (iss) => {
     if (iss.code === "invalid_type") {
       return `invalid type, expected ${iss.expected}`;
@@ -250,14 +250,14 @@ const result = schema.safeParse(12, {
 
 ### Include input in issues
 
-By default, Zod does not include input data in issues. This is to prevent unintentional logging of potentially sensitive input data. To include the input data in each issue, use the `reportInput` flag:
+By default, Schema does not include input data in issues. This is to prevent unintentional logging of potentially sensitive input data. To include the input data in each issue, use the `reportInput` flag:
 
 ```ts
-z.string().parse(12, {
+Schema.string().parse(12, {
   reportInput: true
 })
 
-// ZodError: [
+// SchemaError: [
 //   {
 //     "expected": "string",
 //     "code": "invalid_type",
@@ -270,10 +270,10 @@ z.string().parse(12, {
 
 ## Global error customization
 
-To specify a global error map, use `z.config()` to set Zod's `customError` configuration setting:
+To specify a global error map, use `Schema.config()` to set Schema's `customError` configuration setting:
 
 ```ts
-z.config({
+Schema.config({
   customError: (iss) => {
     return "globally modified error";
   },
@@ -284,10 +284,10 @@ Global error messages have *lower precedence* than schema-level or per-parse err
 
 The `iss` object is a [discriminated union](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions) of all possible issue types. Use the `code` property to discriminate between them.
 
-> For a breakdown of all Zod issue codes, see the [`zod/v4/core`](/packages/core#issue-types) documentation.
+> For a breakdown of all Schema issue codes, see the [`schema/v4/core`](/packages/core#issue-types) documentation.
 
 ```ts
-z.config({
+Schema.config({
   customError: (iss) => {
     if (iss.code === "invalid_type") {
       return `invalid type, expected ${iss.expected}`;
@@ -302,25 +302,25 @@ z.config({
 
 ## Internationalization
 
-To support internationalization of error message, Zod provides several built-in **locales**. These are exported from the `zod/v4/core` package.
+To support internationalization of error message, Schema provides several built-in **locales**. These are exported from the `schema/v4/core` package.
 
-> **Note** — The regular `zod` library loads the `en` locale automatically. Zod Mini does not load any locale by default; instead all error messages default to `Invalid input`.
+> **Note** — The regular `schema` library loads the `en` locale automatically. Schema Mini does not load any locale by default; instead all error messages default to `Invalid input`.
 
-<Tabs groupId="lib" items={["Zod", "Zod Mini"]}>
-<Tab value="Zod">
+<Tabs groupId="lib" items={["Schema", "Schema Mini"]}>
+<Tab value="Schema">
 ```ts
-import * as z from "zod";
-import { en } from "zod/locales"
+import * as Schema   from "schema";
+import { en } from "schema/locales"
 
-z.config(en());
+Schema.config(en());
 ```
 </Tab>
-<Tab value="Zod Mini">
+<Tab value="Schema Mini">
 ```ts
-import * as z from "zod/mini"
-import { en } from "zod/locales";
+import * as Schema from "schema/mini"
+import { en } from "schema/locales";
 
-z.config(en());
+Schema.config(en());
 ```
 </Tab>
 </Tabs>
@@ -328,22 +328,22 @@ z.config(en());
 To lazily load a locale, consider dynamic imports:
 
 ```ts
-import * as z from "zod";
+import * as Schema   from "schema";
 
 async function loadLocale(locale: string) {
-  const { default: locale } = await import(`zod/v4/locales/${locale}.js`);
-  z.config(locale());
+  const { default: locale } = await import(`schema/v4/locales/${locale}.js`);
+  Schema.config(locale());
 };
 
 await loadLocale("fr");
 ```
 
-All locales are also exported as `z.locales`. Rollup and Webpack tree-shake that down to the ones you use; esbuild ([evanw/esbuild#1420](https://github.com/evanw/esbuild/issues/1420)) and Turbopack don't.
+All locales are also exported as `Schema.locales`. Rollup and Webpack tree-shake that down to the ones you use; esbuild ([evanw/esbuild#1420](https://github.com/evanw/esbuild/issues/1420)) and Turbopack don't.
 
 With your own translation function, the `error` param is called during `.parse()`, not when the schema is constructed — a schema defined once picks up the current language on every parse. To translate at render time, translate the issue itself: `code` is the key, and the issue's other properties are the interpolation values.
 
 ```ts
-z.string().min(5, { error: (iss) => t("too_short", iss) }); // at parse time
+Schema.string().min(5, { error: (iss) => t("too_short", iss) }); // at parse time
 result.error?.issues.map((iss) => t(iss.code, iss)); // at render time
 ```
 
@@ -421,35 +421,35 @@ Below is a quick reference for determining error precedence: if multiple error c
 1. **Check-level error** — An error defined on the individual check that failed.
 
   ```ts
-  z.string().min(5, "Too short!");
+  Schema.string().min(5, "Too short!");
   ```
 
 2. **Schema-level error** — Any error message "hard coded" into a schema definition. It covers issues raised by the schema's own checks, so it is the fallback when the check defines no error of its own.
 
   ```ts
-  z.string("Invalid name").safeParse(12);          // => "Invalid name"
-  z.string("Invalid name").min(5).safeParse("ab"); // => "Invalid name"
+  Schema.string("Invalid name").safeParse(12);          // => "Invalid name"
+  Schema.string("Invalid name").min(5).safeParse("ab"); // => "Invalid name"
   ```
 
 3. **Per-parse error** — A custom error map passed into the `.parse()` method.
 
   ```ts
-  z.string().parse(12, {
+  Schema.string().parse(12, {
     error: (iss) => "My custom error"
   });
   ```
 
-4. **Global error map** — A custom error map passed into `z.config()`.
+4. **Global error map** — A custom error map passed into `Schema.config()`.
 
   ```ts
-  z.config({
+  Schema.config({
     customError: (iss) => "My custom error"
   });
   ```
 
-5. **Locale error map** — A custom error map passed into `z.config()`.
+5. **Locale error map** — A custom error map passed into `Schema.config()`.
 
   ```ts
-  import { en } from "zod/locales";
+  import { en } from "schema/locales";
 
-  z.config(en());
+  Schema.config(en());

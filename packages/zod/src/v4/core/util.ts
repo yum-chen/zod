@@ -1,6 +1,6 @@
 import type * as checks from "./checks.js";
 import { globalConfig } from "./core.js";
-import type { $ZodConfig } from "./core.js";
+import type { $SchemaConfig } from "./core.js";
 import type * as errors from "./errors.js";
 import type * as schemas from "./schemas.js";
 
@@ -86,58 +86,58 @@ export type ParsedTypes =
 export type AssertEqual<T, U> = (<V>() => V extends T ? 1 : 2) extends <V>() => V extends U ? 1 : 2 ? true : false;
 export type AssertNotEqual<T, U> = (<V>() => V extends T ? 1 : 2) extends <V>() => V extends U ? 1 : 2 ? false : true;
 export type AssertExtends<T, U> = T extends U ? T : never;
-type ToZodMismatch<T, S extends schemas.$ZodType> = {
+type ToSchemaMismatch<T, S extends schemas.$SchemaType> = {
   "types do not match": {
     expected: T;
-    received: S["_zod"]["output"];
+    received: S["_schema"]["output"];
   };
 };
 
-// Stays a `$ZodType` so it still satisfies the shape constraint, and carries a brand no real schema has so the offending property is the one TypeScript reports as unassignable.
-type ToZodKeyMismatch<Expected, Received> = schemas.$ZodType & {
+// Stays a `$SchemaType` so it still satisfies the shape constraint, and carries a brand no real schema has so the offending property is the one TypeScript reports as unassignable.
+type ToSchemaKeyMismatch<Expected, Received> = schemas.$SchemaType & {
   "types do not match": { expected: Expected; received: Received };
 };
 
-// An enum reference and the union of exactly its members are mutually assignable but not identical, so `AssertEqual` alone rejects `z.enum(SomeEnum)` against a `SomeEnum` target. Unioning each side with a private dummy forces the union to be rebuilt, which collapses that one difference and nothing else — plain literals against an enum, member subsets, brands and `any` all still fail. The symbol is not exported, so no user type can smuggle it in and cancel a real difference.
-declare const toZodDummy: unique symbol;
+// An enum reference and the union of exactly its members are mutually assignable but not identical, so `AssertEqual` alone rejects `Schema.enum(SomeEnum)` against a `SomeEnum` target. Unioning each side with a private dummy forces the union to be rebuilt, which collapses that one difference and nothing else — plain literals against an enum, member subsets, brands and `any` all still fail. The symbol is not exported, so no user type can smuggle it in and cancel a real difference.
+declare const toSchemaDummy: unique symbol;
 
 // Homomorphic, so `readonly` and optional modifiers survive the rebuild and only leaves are normalized. An intersection flattens here, which is why an intersection target and the flat object with the same keys match each other. A callable stops the walk because `keyof` a function is `never`, so mapping one would erase its signature and make every function compare equal.
-type ToZodNormalize<T> = [T] extends [(...args: any[]) => any]
+type ToSchemaNormalize<T> = [T] extends [(...args: any[]) => any]
   ? T
   : [T] extends [object]
-    ? { [K in keyof T]: ToZodNormalize<T[K]> }
-    : T | typeof toZodDummy;
+    ? { [K in keyof T]: ToSchemaNormalize<T[K]> }
+    : T | typeof toSchemaDummy;
 
-type ToZodEqual<Output, T> = AssertEqual<Output, T> extends true
+type ToSchemaEqual<Output, T> = AssertEqual<Output, T> extends true
   ? true
   : IsAny<Output> extends true
     ? false
     : IsAny<T> extends true
       ? false
-      : AssertEqual<ToZodNormalize<Output>, ToZodNormalize<T>>;
+      : AssertEqual<ToSchemaNormalize<Output>, ToSchemaNormalize<T>>;
 
 // Rebuilds the shape with a marker on each key that disagrees, so the diagnostic names the key instead of failing the whole schema at the top level. A key the target lacks reports `expected: never`; a key the schema lacks reports `received: never`.
-type ToZodShape<Shape, T> = {
-  [K in keyof Shape]: Shape[K] extends schemas.$ZodType
+type ToSchemaShape<Shape, T> = {
+  [K in keyof Shape]: Shape[K] extends schemas.$SchemaType
     ? K extends keyof T
-      ? ToZodEqual<Shape[K]["_zod"]["output"], T[K]> extends true
+      ? ToSchemaEqual<Shape[K]["_schema"]["output"], T[K]> extends true
         ? Shape[K]
-        : ToZodKeyMismatch<T[K], Shape[K]["_zod"]["output"]>
-      : ToZodKeyMismatch<never, Shape[K]["_zod"]["output"]>
+        : ToSchemaKeyMismatch<T[K], Shape[K]["_schema"]["output"]>
+      : ToSchemaKeyMismatch<never, Shape[K]["_schema"]["output"]>
     : Shape[K];
-} & { [K in Exclude<keyof T, keyof Shape>]: ToZodKeyMismatch<T[K], never> };
+} & { [K in Exclude<keyof T, keyof Shape>]: ToSchemaKeyMismatch<T[K], never> };
 
 // Forces the mapped type to display expanded, so the error prints the keys rather than the alias name.
-type ToZodExpand<X> = { [K in keyof X]: X[K] } & {};
+type ToSchemaExpand<X> = { [K in keyof X]: X[K] } & {};
 
 // Only localizes when a key is genuinely at fault. A whole-type difference the per-key walk cannot see — a `readonly` modifier, an intersection versus the flat object with the same keys — leaves every key agreeing, and reporting nothing there would silently accept what the top-level check rejected.
-type ToZodTarget<S extends schemas.$ZodType, T> = S extends schemas.$ZodObject<infer Shape, infer Config>
+type ToSchemaTarget<S extends schemas.$SchemaType, T> = S extends schemas.$SchemaObject<infer Shape, infer Config>
   ? T extends object
-    ? AssertEqual<ToZodExpand<ToZodShape<Shape, T>>, ToZodExpand<Shape>> extends true
-      ? S & ToZodMismatch<T, S>
-      : schemas.$ZodObject<ToZodExpand<ToZodShape<Shape, T>>, Config>
-    : S & ToZodMismatch<T, S>
-  : S & ToZodMismatch<T, S>;
+    ? AssertEqual<ToSchemaExpand<ToSchemaShape<Shape, T>>, ToSchemaExpand<Shape>> extends true
+      ? S & ToSchemaMismatch<T, S>
+      : schemas.$SchemaObject<ToSchemaExpand<ToSchemaShape<Shape, T>>, Config>
+    : S & ToSchemaMismatch<T, S>
+  : S & ToSchemaMismatch<T, S>;
 export type IsAny<T> = 0 extends 1 & T ? true : false;
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type OmitKeys<T, K extends string> = Pick<T, Exclude<keyof T, K>>;
@@ -226,7 +226,7 @@ export type ExtractIndexSignature<T> = {
 export type Keys<T extends object> = keyof OmitIndexSignature<T>;
 
 export type SchemaClass<T extends schemas.SomeType> = {
-  new (def: T["_zod"]["def"]): T;
+  new (def: T["_schema"]["def"]): T;
 };
 export type EnumValue = string | number; // | bigint | boolean | symbol;
 export type EnumLike = Readonly<Record<string, EnumValue>>;
@@ -245,7 +245,7 @@ export type SafeParseSuccess<T> = { success: true; data: T; error?: never };
 export type SafeParseError<T> = {
   success: false;
   data?: never;
-  error: errors.$ZodError<T>;
+  error: errors.$SchemaError<T>;
 };
 
 export type PropValues = Record<string, Set<Primitive>>;
@@ -260,8 +260,8 @@ export function assertNotEqual<A, B>(val: AssertNotEqual<A, B>): AssertNotEqual<
   return val;
 }
 
-export function toZod<T>(): <S extends schemas.$ZodType>(
-  schema: ToZodEqual<S["_zod"]["output"], T> extends true ? S : ToZodTarget<S, T>
+export function toSchema<T>(): <S extends schemas.$SchemaType>(
+  schema: ToSchemaEqual<S["_schema"]["output"], T> extends true ? S : ToSchemaTarget<S, T>
 ) => S {
   return (schema) => schema as any;
 }
@@ -394,8 +394,8 @@ export function rawShape(def: any): Record<PropertyKey, any> | undefined {
 }
 
 // where a builder reads its source's keys and descriptors, resolving only a shape a def answers for itself. A shape resolves by object spread, so only its enumerable keys are ever part of it.
-function sourceShape(schema: schemas.$ZodObject): Record<PropertyKey, any> {
-  return rawShape(schema._zod.def) ?? (schema._zod.def.shape as any);
+function sourceShape(schema: schemas.$SchemaObject): Record<PropertyKey, any> {
+  return rawShape(Schema._schema.def) ?? (Schema._schema.def.shape as any);
 }
 
 // a key whose value is not settled yet, self-caching so every read after the first gets the same one
@@ -420,11 +420,11 @@ function putProp(target: any, key: PropertyKey, value: any): void {
 /**
  * Copies `keys` of `source`'s shape onto `target`, each value passed through `wrap`.
  *
- * A key the source has resolved is copied through now, so the derived shape states it outright and nothing has to resolve it to learn what it holds. A key the source still defers stays deferred, and reads back through the source's own `shape`, so it resolves once and both shapes get that one schema.
+ * A key the source has resolved is copied through now, so the derived shape states it outright and nothing has to resolve it to learn what it holds. A key the source still defers stays deferred, and reads back through the source's own `shape`, so it resolves once and both shapes get that one Schema.
  */
 function mirrorShape(
   target: object,
-  source: schemas.$ZodObject,
+  source: schemas.$SchemaObject,
   keys: PropertyKey[],
   wrap?: ((value: any, key: PropertyKey) => any) | null
 ): void {
@@ -434,7 +434,7 @@ function mirrorShape(
     if (!desc.enumerable) continue;
     if (desc.get) {
       deferProp(target, key, () => {
-        const value = (source._zod.def.shape as any)[key];
+        const value = (source._schema.def.shape as any)[key];
         return wrap ? wrap(value, key) : value;
       });
     } else putProp(target, key, wrap ? wrap(desc.value, key) : desc.value);
@@ -462,8 +462,8 @@ export function mergeDefs(...defs: Record<string, any>[]): any {
   return Object.defineProperties({}, mergedDescriptors);
 }
 
-export function cloneDef(schema: schemas.$ZodType): any {
-  return mergeDefs(schema._zod.def);
+export function cloneDef(schema: schemas.$SchemaType): any {
+  return mergeDefs(Schema._schema.def);
 }
 
 export function getElementAtPath(obj: any, path: (string | number)[] | null | undefined): any {
@@ -641,10 +641,10 @@ export function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// zod-specific utils
-export function clone<T extends schemas.$ZodType>(inst: T, def?: T["_zod"]["def"], params?: { parent: boolean }): T {
-  const cl = new inst._zod.constr(def ?? inst._zod.def);
-  if (!def || params?.parent) cl._zod.parent = inst;
+// schema-specific utils
+export function clone<T extends schemas.$SchemaType>(inst: T, def?: T["_schema"]["def"], params?: { parent: boolean }): T {
+  const cl = new inst._schema.constr(def ?? inst._schema.def);
+  if (!def || params?.parent) cl._schema.parent = inst;
   return cl as any;
 }
 
@@ -723,22 +723,22 @@ export function stringifyPrimitive(value: any): string {
   return `${value}`;
 }
 
-export function optionalKeys(shape: schemas.$ZodShape): string[] {
+export function optionalKeys(shape: schemas.$SchemaShape): string[] {
   return Object.keys(shape).filter((k) => {
-    return shape[k]!._zod.optin !== undefined && shape[k]!._zod.optout === "optional";
+    return shape[k]!._schema.optin !== undefined && shape[k]!._schema.optout === "optional";
   });
 }
 
 export type CleanKey<T extends PropertyKey> = T extends `?${infer K}` ? K : T extends `${infer K}?` ? K : T;
-export type ToCleanMap<T extends schemas.$ZodLooseShape> = {
+export type ToCleanMap<T extends schemas.$SchemaLooseShape> = {
   [k in keyof T]: k extends `?${infer K}` ? K : k extends `${infer K}?` ? K : k;
 };
-export type FromCleanMap<T extends schemas.$ZodLooseShape> = {
+export type FromCleanMap<T extends schemas.$SchemaLooseShape> = {
   [k in keyof T as k extends `?${infer K}` ? K : k extends `${infer K}?` ? K : k]: k;
 };
 
 // Wrapped in a `@__PURE__` IIFE: esbuild never tree-shakes a top-level initializer that contains a member access on `Number`, so the bare object literal survived into every bundle.
-export const NUMBER_FORMAT_RANGES: Record<checks.$ZodNumberFormats, [number, number]> = /*@__PURE__*/ (() => ({
+export const NUMBER_FORMAT_RANGES: Record<checks.$SchemaNumberFormats, [number, number]> = /*@__PURE__*/ (() => ({
   safeint: [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER],
   int32: [-2147483648, 2147483647],
   uint32: [0, 4294967295],
@@ -746,13 +746,13 @@ export const NUMBER_FORMAT_RANGES: Record<checks.$ZodNumberFormats, [number, num
   float64: [-Number.MAX_VALUE, Number.MAX_VALUE],
 }))();
 
-export const BIGINT_FORMAT_RANGES: Record<checks.$ZodBigIntFormats, [bigint, bigint]> = {
+export const BIGINT_FORMAT_RANGES: Record<checks.$SchemaBigIntFormats, [bigint, bigint]> = {
   int64: [/* @__PURE__*/ BigInt("-9223372036854775808"), /* @__PURE__*/ BigInt("9223372036854775807")],
   uint64: [/* @__PURE__*/ BigInt(0), /* @__PURE__*/ BigInt("18446744073709551615")],
 };
 
-export function pick(schema: schemas.$ZodObject, mask: Record<string, unknown>): any {
-  const currDef = schema._zod.def;
+export function pick(schema: schemas.$SchemaObject, mask: Record<string, unknown>): any {
+  const currDef = Schema._schema.def;
 
   const checks = currDef.checks;
   const hasChecks = checks && checks.length > 0;
@@ -760,14 +760,14 @@ export function pick(schema: schemas.$ZodObject, mask: Record<string, unknown>):
     throw new Error(".pick() cannot be used on object schemas containing refinements");
   }
 
-  const newShape: Writeable<schemas.$ZodShape> = {};
+  const newShape: Writeable<schemas.$SchemaShape> = {};
   mirrorShape(newShape, schema, maskedKeys(schema, mask));
 
   return clone(schema, mergeDefs(currDef, { shape: newShape, checks: [] })) as any;
 }
 
 // the mask keys that select something, checked against the source's shape without resolving it
-function maskedKeys(schema: schemas.$ZodObject, mask: object): PropertyKey[] {
+function maskedKeys(schema: schemas.$SchemaObject, mask: object): PropertyKey[] {
   const raw = sourceShape(schema);
   const keys: PropertyKey[] = [];
   // `for...in` skips symbols, so a symbol in the mask would select nothing
@@ -780,8 +780,8 @@ function maskedKeys(schema: schemas.$ZodObject, mask: object): PropertyKey[] {
   return keys;
 }
 
-export function omit(schema: schemas.$ZodObject, mask: object): any {
-  const currDef = schema._zod.def;
+export function omit(schema: schemas.$SchemaObject, mask: object): any {
+  const currDef = Schema._schema.def;
 
   const checks = currDef.checks;
   const hasChecks = checks && checks.length > 0;
@@ -790,7 +790,7 @@ export function omit(schema: schemas.$ZodObject, mask: object): any {
   }
 
   const omitted = new Set(maskedKeys(schema, mask));
-  const newShape: Writeable<schemas.$ZodShape> = {};
+  const newShape: Writeable<schemas.$SchemaShape> = {};
   mirrorShape(
     newShape,
     schema,
@@ -800,12 +800,12 @@ export function omit(schema: schemas.$ZodObject, mask: object): any {
   return clone(schema, mergeDefs(currDef, { shape: newShape, checks: [] }));
 }
 
-export function extend(schema: schemas.$ZodObject, shape: schemas.$ZodShape): any {
+export function extend(schema: schemas.$SchemaObject, shape: schemas.$SchemaShape): any {
   if (!isPlainObject(shape)) {
     throw new Error("Invalid input to extend: expected a plain object");
   }
 
-  const checks = schema._zod.def.checks;
+  const checks = Schema._schema.def.checks;
   const hasChecks = checks && checks.length > 0;
   if (hasChecks) {
     // Only throw if new shape overlaps with existing shape. Use getOwnPropertyDescriptor to check key existence without accessing values
@@ -817,53 +817,53 @@ export function extend(schema: schemas.$ZodObject, shape: schemas.$ZodShape): an
     }
   }
 
-  return clone(schema, mergeDefs(schema._zod.def, { shape: extended(schema, shape) })) as any;
+  return clone(schema, mergeDefs(Schema._schema.def, { shape: extended(schema, shape) })) as any;
 }
 
 // the source's keys, then the caller's overlaid on top
-function extended(schema: schemas.$ZodObject, shape: schemas.$ZodShape): schemas.$ZodShape {
-  const newShape: Writeable<schemas.$ZodShape> = {};
+function extended(schema: schemas.$SchemaObject, shape: schemas.$SchemaShape): schemas.$SchemaShape {
+  const newShape: Writeable<schemas.$SchemaShape> = {};
   mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)));
   mirrorProps(newShape, shape);
   return newShape;
 }
 
-export function safeExtend(schema: schemas.$ZodObject, shape: schemas.$ZodShape): any {
+export function safeExtend(schema: schemas.$SchemaObject, shape: schemas.$SchemaShape): any {
   if (!isPlainObject(shape)) {
     throw new Error("Invalid input to safeExtend: expected a plain object");
   }
-  return clone(schema, mergeDefs(schema._zod.def, { shape: extended(schema, shape) })) as any;
+  return clone(schema, mergeDefs(Schema._schema.def, { shape: extended(schema, shape) })) as any;
 }
 
-export function merge(a: schemas.$ZodObject, b: schemas.$ZodObject): any {
-  if (!b?._zod?.def) {
-    throw new Error("Invalid input to merge: expected an object schema. To merge a plain shape, use `.extend()`.");
+export function merge(a: schemas.$SchemaObject, b: schemas.$SchemaObject): any {
+  if (!b?._schema?.def) {
+    throw new Error("Invalid input to merge: expected an object Schema. To merge a plain shape, use `.extend()`.");
   }
-  if (a._zod.def.checks?.length) {
+  if (a._schema.def.checks?.length) {
     throw new Error(".merge() cannot be used on object schemas containing refinements. Use .safeExtend() instead.");
   }
-  const newShape: Writeable<schemas.$ZodShape> = {};
+  const newShape: Writeable<schemas.$SchemaShape> = {};
   mirrorShape(newShape, a, Reflect.ownKeys(sourceShape(a)));
   mirrorShape(newShape, b, Reflect.ownKeys(sourceShape(b)));
 
-  const def = mergeDefs(a._zod.def, {
+  const def = mergeDefs(a._schema.def, {
     shape: newShape,
     get catchall() {
-      return b._zod.def.catchall;
+      return b._schema.def.catchall;
     },
-    checks: b._zod.def.checks ?? [],
+    checks: b._schema.def.checks ?? [],
   });
 
   return clone(a, def) as any;
 }
 
 export function partial(
-  Class: SchemaClass<schemas.$ZodOptional> | null,
-  schema: schemas.$ZodObject,
+  Class: SchemaClass<schemas.$SchemaOptional> | null,
+  schema: schemas.$SchemaObject,
   mask: object | undefined,
   name = "partial"
 ): any {
-  const currDef = schema._zod.def;
+  const currDef = Schema._schema.def;
   const checks = currDef.checks;
   const hasChecks = checks && checks.length > 0;
   if (hasChecks) {
@@ -871,7 +871,7 @@ export function partial(
   }
 
   const selected = mask ? new Set(maskedKeys(schema, mask)) : undefined;
-  const newShape: Writeable<schemas.$ZodShape> = {};
+  const newShape: Writeable<schemas.$SchemaShape> = {};
   mirrorShape(
     newShape,
     schema,
@@ -880,22 +880,22 @@ export function partial(
       ((value, key) => (selected && !selected.has(key) ? value : new Class({ type: "optional", innerType: value })))
   );
 
-  return clone(schema, mergeDefs(schema._zod.def, { shape: newShape, checks: [] })) as any;
+  return clone(schema, mergeDefs(Schema._schema.def, { shape: newShape, checks: [] })) as any;
 }
 
 export function required(
-  Class: SchemaClass<schemas.$ZodNonOptional>,
-  schema: schemas.$ZodObject,
+  Class: SchemaClass<schemas.$SchemaNonOptional>,
+  schema: schemas.$SchemaObject,
   mask: object | undefined
 ): any {
   const selected = mask ? new Set(maskedKeys(schema, mask)) : undefined;
-  const newShape: Writeable<schemas.$ZodShape> = {};
+  const newShape: Writeable<schemas.$SchemaShape> = {};
   mirrorShape(newShape, schema, Reflect.ownKeys(sourceShape(schema)), (value, key) =>
     // overwrite with non-optional
     selected && !selected.has(key) ? value : new Class({ type: "nonoptional", innerType: value })
   );
 
-  return clone(schema, mergeDefs(schema._zod.def, { shape: newShape })) as any;
+  return clone(schema, mergeDefs(Schema._schema.def, { shape: newShape })) as any;
 }
 
 export type Constructor<T, Def extends any[] = any[]> = new (...args: Def) => T;
@@ -922,7 +922,7 @@ export function explicitlyAborted(x: schemas.ParsePayload, startIndex = 0): bool
   return false;
 }
 
-export function prefixIssues(path: PropertyKey, issues: errors.$ZodRawIssue[]): errors.$ZodRawIssue[] {
+export function prefixIssues(path: PropertyKey, issues: errors.$SchemaRawIssue[]): errors.$SchemaRawIssue[] {
   return issues.map((iss) => {
     (iss as any).path ??= [];
     (iss as any).path.unshift(path);
@@ -935,29 +935,29 @@ export function unwrapMessage(message: string | { message: string } | undefined 
 }
 
 /* A check holds no link back to the schema it is attached to — the same check instance is shared by every clone of that schema — so the owner is stamped onto the issues a check just raised, at the only point where both are in scope. Runs on the failure path only; `start` is the issue count from before the check ran. */
-export function attachSchema(issues: errors.$ZodRawIssue[], start: number, inst: schemas.$ZodType): void {
+export function attachSchema(issues: errors.$SchemaRawIssue[], start: number, inst: schemas.$SchemaType): void {
   for (let i = start; i < issues.length; i++) {
     (issues[i] as any).schema ??= inst;
   }
 }
 
 export function finalizeIssue(
-  iss: errors.$ZodRawIssue,
+  iss: errors.$SchemaRawIssue,
   ctx: schemas.ParseContextInternal | undefined,
-  config: $ZodConfig
-): errors.$ZodIssue {
-  // A schema that raised an issue itself owns it outright, and outranks any stamp an enclosing check left in `attachSchema`. String formats and z.custom() are schema and check at once, so when they act as a check they defer to that stamp instead.
-  const traits: Set<string> | undefined = (iss.inst as any)?._zod?.traits;
-  if (traits?.has("$ZodType")) {
-    if (traits.has("$ZodCheck")) (iss as any).schema ??= iss.inst;
+  config: $SchemaConfig
+): errors.$SchemaIssue {
+  // A schema that raised an issue itself owns it outright, and outranks any stamp an enclosing check left in `attachSchema`. String formats and Schema.custom() are schema and check at once, so when they act as a check they defer to that stamp instead.
+  const traits: Set<string> | undefined = (iss.inst as any)?._schema?.traits;
+  if (traits?.has("$SchemaType")) {
+    if (traits.has("$SchemaCheck")) (iss as any).schema ??= iss.inst;
     else (iss as any).schema = iss.inst;
   }
 
   // Decreasing specificity, first map to return a message wins. `inst` is whatever raised the issue, so a check's own map outranks the owning schema's.
-  const schemaError = iss.schema !== iss.inst ? iss.schema?._zod.def?.error : undefined;
+  const schemaError = iss.schema !== iss.inst ? iss.schema?._schema.def?.error : undefined;
   const message = iss.message
     ? iss.message
-    : (unwrapMessage(iss.inst?._zod.def?.error?.(iss as never)) ??
+    : (unwrapMessage(iss.inst?._schema.def?.error?.(iss as never)) ??
       unwrapMessage(schemaError?.(iss as never)) ??
       unwrapMessage(ctx?.error?.(iss as never)) ??
       unwrapMessage(config.customError?.(iss)) ??
@@ -1008,7 +1008,7 @@ export function getLengthableOrigin(input: any): "array" | "string" | "unknown" 
   return "unknown";
 }
 
-export function parsedType(data: unknown): errors.$ZodInvalidTypeExpected {
+export function parsedType(data: unknown): errors.$SchemaInvalidTypeExpected {
   const t = typeof data;
   switch (t) {
     case "number": {
@@ -1032,9 +1032,9 @@ export function parsedType(data: unknown): errors.$ZodInvalidTypeExpected {
 }
 
 //////////    REFINES     //////////
-export function issue(_iss: string, input: any, inst: any): errors.$ZodRawIssue;
-export function issue(_iss: errors.$ZodRawIssue): errors.$ZodRawIssue;
-export function issue(...args: [string | errors.$ZodRawIssue, any?, any?]): errors.$ZodRawIssue {
+export function issue(_iss: string, input: any, inst: any): errors.$SchemaRawIssue;
+export function issue(_iss: errors.$SchemaRawIssue): errors.$SchemaRawIssue;
+export function issue(...args: [string | errors.$SchemaRawIssue, any?, any?]): errors.$SchemaRawIssue {
   const [iss, input, inst] = args;
   if (typeof iss === "string") {
     return {
@@ -1122,7 +1122,7 @@ export function members(proto: object, table: object): void {
     const desc = Object.getOwnPropertyDescriptor(table, key)!;
     // a getter installs as written, so it stays live: `description` reads through to the registry on every access. not enumerable: an object literal's is, and a prototype member never was
     if (desc.get) Object.defineProperty(proto, key, { ...desc, enumerable: false });
-    // a method materializes bound on first read, which is what keeps a detached member working: `const opt = schema.optional; opt()`
+    // a method materializes bound on first read, which is what keeps a detached member working: `const opt = Schema.optional; opt()`
     else defineBound(proto, key, desc.value);
   }
 }
@@ -1200,22 +1200,22 @@ const breaker: PropertyDescriptor = {
 };
 
 /**
- * Installs a lazily-derived internal on the `_zod` prototype of `inst`'s
+ * Installs a lazily-derived internal on the `_schema` prototype of `inst`'s
  * constructor, computed from the internals object itself and cached there on
  * first read. One accessor per constructor rather than one per instance.
  */
-export function defineLazyInternal<T extends { _zod: any }>(
+export function defineLazyInternal<T extends { _schema: any }>(
   inst: T,
   key: string,
-  compute: (zod: T["_zod"]) => unknown
+  compute: (schema: T["_schema"]) => unknown
 ): void {
-  const proto = Object.getPrototypeOf(inst._zod);
-  if (key in proto && installing !== inst._zod) {
+  const proto = Object.getPrototypeOf(inst._schema);
+  if (key in proto && installing !== inst._schema) {
     // A repeat construction: everything is installed already. Cleared here so the reference is not held past the first construction of every type.
     installing = undefined;
     return;
   }
-  installing = inst._zod;
+  installing = inst._schema;
 
   Object.defineProperty(proto, key, {
     configurable: true,

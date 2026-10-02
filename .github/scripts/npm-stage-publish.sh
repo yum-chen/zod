@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Stage one package directory on npm: `npm stage publish` through OIDC trusted publishing.
 #
-# CI can only STAGE. The trusted publisher on zod and on @zod/mini is stage-only, so a version
+# CI can only STAGE. The trusted publisher on schema and on @schema/mini is stage-only, so a version
 # reaches the registry only once a maintainer approves it with 2FA — a proof of presence that no
 # token, and no stolen push credential, can supply.
 #
@@ -18,7 +18,7 @@ shift
 version="${VERSION:?VERSION must name the version being staged}"
 
 name="$(nub --node -p "require('./$dir/package.json').name")"
-# registry.npmjs.org wants the scope separator percent-encoded: @zod/mini -> @zod%2fmini.
+# registry.npmjs.org wants the scope separator percent-encoded: @schema/mini -> @schema%2fmini.
 encoded="${name/\//%2f}"
 
 if curl -sf "https://registry.npmjs.org/$encoded/$version" > /dev/null; then

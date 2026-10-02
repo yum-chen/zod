@@ -1,7 +1,7 @@
 import { randomString } from "./benchUtil.js";
 import { benchWithData } from "./metabench.js";
 
-class ZodFail {
+class SchemaFail {
   status = "fail";
   constructor(public value: string) {
     // super();
@@ -35,7 +35,7 @@ const bench = benchWithData({
     },
     union(d) {
       if (typeof d !== "string") {
-        return new ZodFail("too big");
+        return new SchemaFail("too big");
       } else {
         return d;
       }
@@ -46,7 +46,7 @@ const bench = benchWithData({
 //   // const value = Math.random();
 
 //   if (typeof d !== "string") {
-//     return new ZodFail("too big");
+//     return new SchemaFail("too big");
 //     // biome-ignore lint: bug in biome
 //   } else {
 //   }

@@ -26,7 +26,7 @@ type TabsBlock = {
 
 const apiDocsPath = resolve(dirname(fileURLToPath(import.meta.url)), "api.mdx");
 
-test("Zod and Zod Mini tabbed API examples have matching code block heights", async () => {
+test("Schema and Schema Mini tabbed API examples have matching code block heights", async () => {
   const source = await readFile(apiDocsPath, "utf8");
   const tabsBlocks = extractTabsBlocks(source);
   const failures: string[] = [];
@@ -35,15 +35,15 @@ test("Zod and Zod Mini tabbed API examples have matching code block heights", as
   for (const block of tabsBlocks) {
     assertExpectedTabLabels(block, failures);
 
-    const zodTab = block.tabs.find((tab) => tab.value === "Zod");
-    const zodMiniTab = block.tabs.find((tab) => tab.value === "Zod Mini");
+    const schemaTab = block.tabs.find((tab) => tab.value === "Schema");
+    const schemaMiniTab = block.tabs.find((tab) => tab.value === "Schema Mini");
 
-    if (!zodTab || !zodMiniTab) {
+    if (!schemaTab || !schemaMiniTab) {
       continue;
     }
 
     comparedBlocks += 1;
-    compareCodeFences(block, zodTab, zodMiniTab, failures);
+    compareCodeFences(block, schemaTab, schemaMiniTab, failures);
   }
 
   expect(comparedBlocks).toBeGreaterThan(0);
@@ -180,15 +180,15 @@ function readCodeFence(lines: SourceLine[], fenceStartIndex: number, startLine: 
 }
 
 function assertExpectedTabLabels(block: TabsBlock, failures: string[]): void {
-  const hasZodishTab = block.tabs.some((tab) => isLikelyTabValue(tab.value, "Zod"));
-  const hasZodMiniishTab = block.tabs.some((tab) => isLikelyTabValue(tab.value, "Zod Mini"));
+  const hasSchemaishTab = block.tabs.some((tab) => isLikelyTabValue(tab.value, "Schema"));
+  const hasSchemaMiniishTab = block.tabs.some((tab) => isLikelyTabValue(tab.value, "Schema Mini"));
 
-  if (!hasZodishTab || !hasZodMiniishTab) {
+  if (!hasSchemaishTab || !hasSchemaMiniishTab) {
     return;
   }
 
   for (const tab of block.tabs) {
-    for (const expectedValue of ["Zod", "Zod Mini"]) {
+    for (const expectedValue of ["Schema", "Schema Mini"]) {
       if (tab.value !== expectedValue && isLikelyTabValue(tab.value, expectedValue)) {
         failures.push(
           `api.mdx:${tab.line} has likely ${expectedValue} tab label typo: expected value="${expectedValue}", found value="${tab.value}".`
@@ -198,24 +198,24 @@ function assertExpectedTabLabels(block: TabsBlock, failures: string[]): void {
   }
 }
 
-function compareCodeFences(block: TabsBlock, zodTab: TabBlock, zodMiniTab: TabBlock, failures: string[]): void {
-  if (zodTab.codeFences.length !== zodMiniTab.codeFences.length) {
+function compareCodeFences(block: TabsBlock, schemaTab: TabBlock, schemaMiniTab: TabBlock, failures: string[]): void {
+  if (schemaTab.codeFences.length !== schemaMiniTab.codeFences.length) {
     failures.push(
-      `api.mdx:${block.startLine} has ${zodTab.codeFences.length} Zod code fence(s) and ${zodMiniTab.codeFences.length} Zod Mini code fence(s).`
+      `api.mdx:${block.startLine} has ${schemaTab.codeFences.length} Schema code fence(s) and ${schemaMiniTab.codeFences.length} Schema Mini code fence(s).`
     );
     return;
   }
 
-  for (let index = 0; index < zodTab.codeFences.length; index++) {
-    const zodFence = zodTab.codeFences[index];
-    const zodMiniFence = zodMiniTab.codeFences[index];
+  for (let index = 0; index < schemaTab.codeFences.length; index++) {
+    const schemaFence = schemaTab.codeFences[index];
+    const schemaMiniFence = schemaMiniTab.codeFences[index];
 
-    if (!zodFence || !zodMiniFence || zodFence.lineCount === zodMiniFence.lineCount) {
+    if (!schemaFence || !schemaMiniFence || schemaFence.lineCount === schemaMiniFence.lineCount) {
       continue;
     }
 
     failures.push(
-      `api.mdx:${block.startLine} code fence #${index + 1} has ${zodFence.lineCount} Zod line(s) at line ${zodFence.startLine} and ${zodMiniFence.lineCount} Zod Mini line(s) at line ${zodMiniFence.startLine}.`
+      `api.mdx:${block.startLine} code fence #${index + 1} has ${schemaFence.lineCount} Schema line(s) at line ${schemaFence.startLine} and ${schemaMiniFence.lineCount} Schema Mini line(s) at line ${schemaMiniFence.startLine}.`
     );
   }
 }

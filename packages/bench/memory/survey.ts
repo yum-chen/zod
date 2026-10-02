@@ -7,15 +7,15 @@
  * properties, so `own` is also a proxy for whether instances pay for a
  * NameDictionary instead of inline slots.
  */
-import * as z from "zod";
+import * as Schema   from "schema";
 import { table } from "./harness.js";
 
-function census(a: any, b: any): { own: number; zod: number; funcs: number; accessors: number } {
+function census(a: any, b: any): { own: number; schema: number; funcs: number; accessors: number } {
   let funcs = 0;
   let accessors = 0;
   for (const [objA, objB] of [
     [a, b],
-    [a._zod, b._zod],
+    [a._schema, b._schema],
   ] as const) {
     for (const key of Reflect.ownKeys(objA)) {
       const d = Object.getOwnPropertyDescriptor(objA, key)!;
@@ -27,39 +27,39 @@ function census(a: any, b: any): { own: number; zod: number; funcs: number; acce
       }
     }
   }
-  return { own: Reflect.ownKeys(a).length, zod: Reflect.ownKeys(a._zod).length, funcs, accessors };
+  return { own: Reflect.ownKeys(a).length, schema: Reflect.ownKeys(a._schema).length, funcs, accessors };
 }
 
 const cases: Array<[string, () => any]> = [
-  ["string", () => z.string()],
-  ["number", () => z.number()],
-  ["boolean", () => z.boolean()],
-  ["bigint", () => z.bigint()],
-  ["date", () => z.date()],
-  ["file", () => z.file()],
-  ["symbol", () => z.symbol()],
-  ["literal", () => z.literal("a")],
-  ["enum", () => z.enum(["a", "b"])],
-  ["array", () => z.array(z.string())],
-  ["object", () => z.object({ a: z.string() })],
-  ["record", () => z.record(z.string(), z.string())],
-  ["map", () => z.map(z.string(), z.string())],
-  ["set", () => z.set(z.string())],
-  ["tuple", () => z.tuple([z.string()])],
-  ["union", () => z.union([z.string(), z.number()])],
-  ["intersection", () => z.intersection(z.object({}), z.object({}))],
-  ["optional", () => z.string().optional()],
-  ["nullable", () => z.string().nullable()],
-  ["default", () => z.string().default("x")],
-  ["catch", () => z.string().catch("x")],
-  ["pipe", () => z.string().pipe(z.string())],
-  ["lazy", () => z.lazy(() => z.string())],
-  ["promise", () => z.promise(z.string())],
-  ["readonly", () => z.string().readonly()],
-  ["success", () => z.success(z.string())],
-  ["transform", () => z.transform((x) => x)],
-  ["email (fmt)", () => z.email()],
-  ["custom", () => z.custom(() => true)],
+  ["string", () => Schema.string()],
+  ["number", () => Schema.number()],
+  ["boolean", () => Schema.boolean()],
+  ["bigint", () => Schema.bigint()],
+  ["date", () => Schema.date()],
+  ["file", () => Schema.file()],
+  ["symbol", () => Schema.symbol()],
+  ["literal", () => Schema.literal("a")],
+  ["enum", () => Schema.enum(["a", "b"])],
+  ["array", () => Schema.array(Schema.string())],
+  ["object", () => Schema.object({ a: Schema.string() })],
+  ["record", () => Schema.record(Schema.string(), Schema.string())],
+  ["map", () => Schema.map(Schema.string(), Schema.string())],
+  ["set", () => Schema.set(Schema.string())],
+  ["tuple", () => Schema.tuple([Schema.string()])],
+  ["union", () => Schema.union([Schema.string(), Schema.number()])],
+  ["intersection", () => Schema.intersection(Schema.object({}), Schema.object({}))],
+  ["optional", () => Schema.string().optional()],
+  ["nullable", () => Schema.string().nullable()],
+  ["default", () => Schema.string().default("x")],
+  ["catch", () => Schema.string().catch("x")],
+  ["pipe", () => Schema.string().pipe(Schema.string())],
+  ["lazy", () => Schema.lazy(() => Schema.string())],
+  ["promise", () => Schema.promise(Schema.string())],
+  ["readonly", () => Schema.string().readonly()],
+  ["success", () => Schema.success(Schema.string())],
+  ["transform", () => Schema.transform((x) => x)],
+  ["email (fmt)", () => Schema.email()],
+  ["custom", () => Schema.custom(() => true)],
 ];
 
 const rows = cases.map(([label, f]) => {
@@ -67,7 +67,7 @@ const rows = cases.map(([label, f]) => {
   return {
     schema: label,
     "own(inst)": c.own,
-    "own(_zod)": c.zod,
+    "own(_schema)": c.schema,
     "per-inst fns": c.funcs,
     "per-inst accessors": c.accessors,
     "dict mode?": c.own > 30 ? "LIKELY" : "",

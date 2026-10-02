@@ -1,124 +1,124 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-test("z.stringbool", () => {
-  const a = z.stringbool();
-  type a = z.infer<typeof a>;
+test("Schema.stringbool", () => {
+  const a = Schema.stringbool();
+  type a = Schema.infer<typeof a>;
   expectTypeOf<a>().toEqualTypeOf<boolean>();
-  type a_in = z.input<typeof a>;
+  type a_in = Schema.input<typeof a>;
   expectTypeOf<a_in>().toEqualTypeOf<string>();
 
-  expect(z.parse(a, "true")).toEqual(true);
-  expect(z.parse(a, "yes")).toEqual(true);
-  expect(z.parse(a, "1")).toEqual(true);
-  expect(z.parse(a, "on")).toEqual(true);
-  expect(z.parse(a, "y")).toEqual(true);
-  expect(z.parse(a, "enabled")).toEqual(true);
-  expect(z.parse(a, "TRUE")).toEqual(true);
+  expect(Schema.parse(a, "true")).toEqual(true);
+  expect(Schema.parse(a, "yes")).toEqual(true);
+  expect(Schema.parse(a, "1")).toEqual(true);
+  expect(Schema.parse(a, "on")).toEqual(true);
+  expect(Schema.parse(a, "y")).toEqual(true);
+  expect(Schema.parse(a, "enabled")).toEqual(true);
+  expect(Schema.parse(a, "TRUE")).toEqual(true);
 
-  expect(z.parse(a, "false")).toEqual(false);
-  expect(z.parse(a, "no")).toEqual(false);
-  expect(z.parse(a, "0")).toEqual(false);
-  expect(z.parse(a, "off")).toEqual(false);
-  expect(z.parse(a, "n")).toEqual(false);
-  expect(z.parse(a, "disabled")).toEqual(false);
-  expect(z.parse(a, "FALSE")).toEqual(false);
+  expect(Schema.parse(a, "false")).toEqual(false);
+  expect(Schema.parse(a, "no")).toEqual(false);
+  expect(Schema.parse(a, "0")).toEqual(false);
+  expect(Schema.parse(a, "off")).toEqual(false);
+  expect(Schema.parse(a, "n")).toEqual(false);
+  expect(Schema.parse(a, "disabled")).toEqual(false);
+  expect(Schema.parse(a, "FALSE")).toEqual(false);
 
-  expect(z.safeParse(a, "other")).toMatchObject({ success: false });
-  expect(z.safeParse(a, "")).toMatchObject({ success: false });
-  expect(z.safeParse(a, undefined)).toMatchObject({ success: false });
-  expect(z.safeParse(a, {})).toMatchObject({ success: false });
-  expect(z.safeParse(a, true)).toMatchObject({ success: false });
-  expect(z.safeParse(a, false)).toMatchObject({ success: false });
+  expect(Schema.safeParse(a, "other")).toMatchObject({ success: false });
+  expect(Schema.safeParse(a, "")).toMatchObject({ success: false });
+  expect(Schema.safeParse(a, undefined)).toMatchObject({ success: false });
+  expect(Schema.safeParse(a, {})).toMatchObject({ success: false });
+  expect(Schema.safeParse(a, true)).toMatchObject({ success: false });
+  expect(Schema.safeParse(a, false)).toMatchObject({ success: false });
 });
 
 test("custom values", () => {
-  const b = z.stringbool({
+  const b = Schema.stringbool({
     truthy: ["y"],
     falsy: ["N"],
   });
-  expect(z.parse(b, "y")).toEqual(true);
-  expect(z.parse(b, "Y")).toEqual(true);
-  expect(z.parse(b, "n")).toEqual(false);
-  expect(z.parse(b, "N")).toEqual(false);
-  expect(z.safeParse(b, "true")).toMatchObject({ success: false });
-  expect(z.safeParse(b, "false")).toMatchObject({ success: false });
+  expect(Schema.parse(b, "y")).toEqual(true);
+  expect(Schema.parse(b, "Y")).toEqual(true);
+  expect(Schema.parse(b, "n")).toEqual(false);
+  expect(Schema.parse(b, "N")).toEqual(false);
+  expect(Schema.safeParse(b, "true")).toMatchObject({ success: false });
+  expect(Schema.safeParse(b, "false")).toMatchObject({ success: false });
 });
 
 test("custom values - case sensitive", () => {
-  const c = z.stringbool({
+  const c = Schema.stringbool({
     truthy: ["y"],
     falsy: ["N"],
     case: "sensitive",
   });
-  expect(z.parse(c, "y")).toEqual(true);
-  expect(z.safeParse(c, "Y")).toMatchObject({ success: false });
-  expect(z.parse(c, "N")).toEqual(false);
-  expect(z.safeParse(c, "n")).toMatchObject({ success: false });
-  expect(z.safeParse(c, "TRUE")).toMatchObject({ success: false });
+  expect(Schema.parse(c, "y")).toEqual(true);
+  expect(Schema.safeParse(c, "Y")).toMatchObject({ success: false });
+  expect(Schema.parse(c, "N")).toEqual(false);
+  expect(Schema.safeParse(c, "n")).toMatchObject({ success: false });
+  expect(Schema.safeParse(c, "TRUE")).toMatchObject({ success: false });
 });
 
 // test custom error messages
-test("z.stringbool with custom error messages", () => {
-  const a = z.stringbool("wrong!");
+test("Schema.stringbool with custom error messages", () => {
+  const a = Schema.stringbool("wrong!");
 
   expect(() => a.parse("")).toThrowError("wrong!");
 });
 
-test("z.stringbool codec encoding", () => {
-  const schema = z.stringbool();
+test("Schema.stringbool codec encoding", () => {
+  const schema = Schema.stringbool();
 
   // Test encoding with default values
-  expect(z.encode(schema, true)).toEqual("true");
-  expect(z.encode(schema, false)).toEqual("false");
+  expect(Schema.encode(schema, true)).toEqual("true");
+  expect(Schema.encode(schema, false)).toEqual("false");
 });
 
-test("z.stringbool codec encoding with custom values", () => {
-  const schema = z.stringbool({
+test("Schema.stringbool codec encoding with custom values", () => {
+  const schema = Schema.stringbool({
     truthy: ["yes", "on", "1"],
     falsy: ["no", "off", "0"],
   });
 
   // Should return first element of custom arrays
-  expect(z.encode(schema, true)).toEqual("yes");
-  expect(z.encode(schema, false)).toEqual("no");
+  expect(Schema.encode(schema, true)).toEqual("yes");
+  expect(Schema.encode(schema, false)).toEqual("no");
 });
 
-test("z.stringbool codec round trip", () => {
-  const schema = z.stringbool({
+test("Schema.stringbool codec round trip", () => {
+  const schema = Schema.stringbool({
     truthy: ["enabled", "active"],
     falsy: ["disabled", "inactive"],
   });
 
   // Test round trip: string -> boolean -> string
-  const decoded = z.decode(schema, "enabled");
+  const decoded = Schema.decode(schema, "enabled");
   expect(decoded).toEqual(true);
 
-  const encoded = z.encode(schema, decoded);
+  const encoded = Schema.encode(schema, decoded);
   expect(encoded).toEqual("enabled"); // First element of truthy array
 
   // Test with falsy value
-  const decodedFalse = z.decode(schema, "inactive");
+  const decodedFalse = Schema.decode(schema, "inactive");
   expect(decodedFalse).toEqual(false);
 
-  const encodedFalse = z.encode(schema, decodedFalse);
+  const encodedFalse = Schema.encode(schema, decodedFalse);
   expect(encodedFalse).toEqual("disabled"); // First element of falsy array
 });
 
-test("z.stringbool exposes truthy/falsy/case via _zod.bag", () => {
-  const a = z.stringbool();
-  expect(a._zod.bag.truthy).toEqual(["true", "1", "yes", "on", "y", "enabled"]);
-  expect(a._zod.bag.falsy).toEqual(["false", "0", "no", "off", "n", "disabled"]);
-  expect(a._zod.bag.case).toEqual("insensitive");
+test("Schema.stringbool exposes truthy/falsy/case via _schema.bag", () => {
+  const a = Schema.stringbool();
+  expect(a._schema.bag.truthy).toEqual(["true", "1", "yes", "on", "y", "enabled"]);
+  expect(a._schema.bag.falsy).toEqual(["false", "0", "no", "off", "n", "disabled"]);
+  expect(a._schema.bag.case).toEqual("insensitive");
 
   // values are normalized when case-insensitive
-  const b = z.stringbool({ truthy: ["Y", "yes"], falsy: ["N"] });
-  expect(b._zod.bag.truthy).toEqual(["y", "yes"]);
-  expect(b._zod.bag.falsy).toEqual(["n"]);
-  expect(b._zod.bag.case).toEqual("insensitive");
+  const b = Schema.stringbool({ truthy: ["Y", "yes"], falsy: ["N"] });
+  expect(b._schema.bag.truthy).toEqual(["y", "yes"]);
+  expect(b._schema.bag.falsy).toEqual(["n"]);
+  expect(b._schema.bag.case).toEqual("insensitive");
 
-  const c = z.stringbool({ truthy: ["Y"], falsy: ["N"], case: "sensitive" });
-  expect(c._zod.bag.truthy).toEqual(["Y"]);
-  expect(c._zod.bag.falsy).toEqual(["N"]);
-  expect(c._zod.bag.case).toEqual("sensitive");
+  const c = Schema.stringbool({ truthy: ["Y"], falsy: ["N"], case: "sensitive" });
+  expect(c._schema.bag.truthy).toEqual(["Y"]);
+  expect(c._schema.bag.falsy).toEqual(["N"]);
+  expect(c._schema.bag.case).toEqual("sensitive");
 });

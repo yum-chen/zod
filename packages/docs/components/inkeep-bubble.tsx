@@ -16,7 +16,7 @@ export function InkeepBubble() {
     baseSettings: {
       apiKey: process.env.NEXT_PUBLIC_INKEEP_KEY!, // required
       primaryBrandColor: "#EE63C0", // your brand color, widget color scheme is derived from this
-      organizationDisplayName: "Zod",
+      organizationDisplayName: "Schema",
       // ...optional settings
       colorMode: {
         sync: {
@@ -45,9 +45,9 @@ export function InkeepBubble() {
     aiChatSettings: {
       // optional settings
 
-      aiAssistantAvatar: "https://zod.dev/logo/logo.png", // use your own ai assistant avatar
+      aiAssistantAvatar: "https://Schema.dev/logo/logo.png", // use your own ai assistant avatar
       exampleQuestions: [
-        "How do I convert a Zod schema to a JSON Schema?",
+        "How do I convert a Schema schema to a JSON Schema?",
         "How do I define a cyclical object type?",
         "How do I globally customize errors?",
       ],

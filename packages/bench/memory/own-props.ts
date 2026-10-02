@@ -1,9 +1,9 @@
 /**
  * Enumerates exactly what each schema instance owns: own properties on the
- * instance and on `_zod`, split by whether the value is a per-instance
+ * instance and on `_schema`, split by whether the value is a per-instance
  * function (a closure allocated at construction) or shared/data.
  */
-import * as z from "zod";
+import * as Schema   from "schema";
 import { table } from "./harness.js";
 
 function describe(label: string, a: any, b: any): void {
@@ -11,7 +11,7 @@ function describe(label: string, a: any, b: any): void {
 
   for (const [where, objA, objB] of [
     ["inst", a, b],
-    ["_zod", a._zod, b._zod],
+    ["_schema", a._schema, b._schema],
   ] as const) {
     for (const key of Reflect.ownKeys(objA)) {
       const d = Object.getOwnPropertyDescriptor(objA, key)!;
@@ -39,11 +39,11 @@ function describe(label: string, a: any, b: any): void {
 
   console.log(`\n=== ${label} ===`);
   console.log(
-    `own props: inst=${Reflect.ownKeys(a).length}, _zod=${Reflect.ownKeys(a._zod).length}` +
+    `own props: inst=${Reflect.ownKeys(a).length}, _schema=${Reflect.ownKeys(a._schema).length}` +
       `  |  per-instance functions: ${closures.length}, per-instance objects: ${objects.length}`
   );
   table(report);
 }
 
-describe("z.string()", z.string(), z.string());
-describe("z.object({a: string})", z.object({ a: z.string() }), z.object({ a: z.string() }));
+describe("Schema.string()", Schema.string(), Schema.string());
+describe("Schema.object({a: string})", Schema.object({ a: Schema.string() }), Schema.object({ a: Schema.string() }));

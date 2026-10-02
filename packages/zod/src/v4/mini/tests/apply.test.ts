@@ -1,23 +1,23 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "../index.js";
+import * as Schema from "../index.js";
 
 test("basic apply (number)", () => {
-  const setCommonNumberChecks = <T extends z.ZodMiniNumber>(schema: T) => {
-    return schema.check(z.minimum(0), z.maximum(100));
+  const setCommonNumberChecks = <T extends Schema.SchemaMiniNumber>(schema: T) => {
+    return Schema.check(Schema.minimum(0), Schema.maximum(100));
   };
 
-  const schema = z.nullable(z.number().apply(setCommonNumberChecks));
+  const schema = Schema.nullable(Schema.number().apply(setCommonNumberChecks));
 
-  expect(() => z.parse(schema, -1)).toThrowError();
-  expect(() => z.parse(schema, 101)).toThrowError();
-  expect(z.parse(schema, 0)).toBe(0);
-  expect(z.parse(schema, null)).toBe(null);
-  expectTypeOf<z.infer<typeof schema>>().toEqualTypeOf<number | null>();
+  expect(() => Schema.parse(schema, -1)).toThrowError();
+  expect(() => Schema.parse(schema, 101)).toThrowError();
+  expect(Schema.parse(schema, 0)).toBe(0);
+  expect(Schema.parse(schema, null)).toBe(null);
+  expectTypeOf<Schema.infer<typeof schema>>().toEqualTypeOf<number | null>();
 });
 
 test("The callback's return value becomes the apply's return value.", () => {
   const symbol = Symbol();
-  const result = z.number().apply(() => symbol);
+  const result = Schema.number().apply(() => symbol);
 
   expect(result).toBe(symbol);
   expectTypeOf<typeof result>().toEqualTypeOf<symbol>();
@@ -25,33 +25,33 @@ test("The callback's return value becomes the apply's return value.", () => {
 
 test("apply forwards extra args to the callback", () => {
   const calls: unknown[] = [];
-  const capture = (schema: z.ZodMiniString, ...args: unknown[]) => {
+  const capture = (schema: Schema.SchemaMiniString, ...args: unknown[]) => {
     calls.push(schema, ...args);
     return schema;
   };
 
-  const schema = z.string();
-  const result = schema.apply(capture, "id", 42);
+  const schema = Schema.string();
+  const result = Schema.apply(capture, "id", 42);
 
   expect(calls[0]).toBe(schema);
   expect(calls[1]).toBe("id");
   expect(calls[2]).toBe(42);
-  expect(z.parse(result, "value")).toBe("value");
-  expectTypeOf<z.infer<typeof result>>().toEqualTypeOf<string>();
+  expect(Schema.parse(result, "value")).toBe("value");
+  expectTypeOf<Schema.infer<typeof result>>().toEqualTypeOf<string>();
 });
 
 test("apply type-checks the extra args", () => {
-  const withMin = (schema: z.ZodMiniString, n: number) => schema.check(z.minLength(n));
+  const withMin = (schema: Schema.SchemaMiniString, n: number) => Schema.check(Schema.minLength(n));
 
-  expect(z.parse(z.string().apply(withMin, 3), "abcd")).toBe("abcd");
+  expect(Schema.parse(Schema.string().apply(withMin, 3), "abcd")).toBe("abcd");
   expectTypeOf(
-    z.number().apply<z.ZodMiniNumber>((schema) => schema.check(z.minimum(0)))
-  ).toEqualTypeOf<z.ZodMiniNumber>();
+    Schema.number().apply<Schema.SchemaMiniNumber>((schema) => Schema.check(Schema.minimum(0)))
+  ).toEqualTypeOf<Schema.SchemaMiniNumber>();
 
   // @ts-expect-error wrong arg type
-  z.string().apply(withMin, "3");
+  Schema.string().apply(withMin, "3");
   // @ts-expect-error missing arg
-  z.string().apply(withMin);
+  Schema.string().apply(withMin);
   // @ts-expect-error extra arg for a single-parameter callback
-  z.string().apply((schema: z.ZodMiniString) => schema, 3);
+  Schema.string().apply((schema: Schema.SchemaMiniString) => schema, 3);
 });

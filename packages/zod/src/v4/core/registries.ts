@@ -1,12 +1,12 @@
 import type * as core from "./core.js";
-import type { $ZodType } from "./schemas.js";
+import type { $SchemaType } from "./schemas.js";
 
-export const $output: unique symbol = /*@__PURE__*/ Symbol("ZodOutput");
+export const $output: unique symbol = /*@__PURE__*/ Symbol("SchemaOutput");
 export type $output = typeof $output;
-export const $input: unique symbol = /*@__PURE__*/ Symbol("ZodInput");
+export const $input: unique symbol = /*@__PURE__*/ Symbol("SchemaInput");
 export type $input = typeof $input;
 
-export type $replace<Meta, S extends $ZodType> = Meta extends $output
+export type $replace<Meta, S extends $SchemaType> = Meta extends $output
   ? core.output<S>
   : Meta extends $input
     ? core.input<S>
@@ -24,7 +24,7 @@ export type $replace<Meta, S extends $ZodType> = Meta extends $output
           : Meta;
 
 type MetadataType = object | undefined;
-export class $ZodRegistry<Meta extends MetadataType = MetadataType, Schema extends $ZodType = $ZodType> {
+export class $SchemaRegistry<Meta extends MetadataType = MetadataType, Schema extends $SchemaType = $SchemaType> {
   _meta!: Meta;
   _schema!: Schema;
   _map: WeakMap<Schema, $replace<Meta, Schema>> = new WeakMap();
@@ -61,7 +61,7 @@ export class $ZodRegistry<Meta extends MetadataType = MetadataType, Schema exten
     // return this._map.get(schema) as any;
 
     // inherit metadata
-    const p = schema._zod.parent as Schema;
+    const p = Schema._schema.parent as Schema  ;
     if (p) {
       const pm: any = { ...(this.get(p) ?? {}) };
       delete pm.id; // do not inherit id
@@ -87,8 +87,8 @@ export interface JSONSchemaMeta {
 export interface GlobalMeta extends JSONSchemaMeta {}
 
 // registries
-export function registry<T extends MetadataType = MetadataType, S extends $ZodType = $ZodType>(): $ZodRegistry<T, S> {
-  return new $ZodRegistry<T, S>();
+export function registry<T extends MetadataType = MetadataType, S extends $SchemaType = $SchemaType>(): $SchemaRegistry<T, S> {
+  return new $SchemaRegistry<T, S>();
 }
 
 interface GlobalThisWithRegistry {
@@ -98,8 +98,8 @@ interface GlobalThisWithRegistry {
    * is used regardless of whether the package is loaded via `require` (CJS) or `import` (ESM).
    * This prevents dual package hazards and keeps registry state consistent.
    */
-  __zod_globalRegistry?: $ZodRegistry<GlobalMeta>;
+  __schema_globalRegistry?: $SchemaRegistry<GlobalMeta>;
 }
 
-(globalThis as GlobalThisWithRegistry).__zod_globalRegistry ??= registry<GlobalMeta>();
-export const globalRegistry: $ZodRegistry<GlobalMeta> = (globalThis as GlobalThisWithRegistry).__zod_globalRegistry!;
+(globalThis as GlobalThisWithRegistry).__schema_globalRegistry ??= registry<GlobalMeta>();
+export const globalRegistry: $SchemaRegistry<GlobalMeta> = (globalThis as GlobalThisWithRegistry).__schema_globalRegistry!;

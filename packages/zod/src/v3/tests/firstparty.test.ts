@@ -1,85 +1,85 @@
 // @ts-ignore TS6133
 import { test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
 test("first party switch", () => {
-  const myType = z.string() as z.ZodFirstPartySchemaTypes;
+  const myType = Schema.string() as Schema  .SchemaFirstPartySchemaTypes;
   const def = myType._def;
 
   switch (def.typeName) {
-    case z.ZodFirstPartyTypeKind.ZodString:
+    case Schema.SchemaFirstPartyTypeKind.SchemaString:
       break;
-    case z.ZodFirstPartyTypeKind.ZodNumber:
+    case Schema.SchemaFirstPartyTypeKind.SchemaNumber:
       break;
-    case z.ZodFirstPartyTypeKind.ZodNaN:
+    case Schema.SchemaFirstPartyTypeKind.SchemaNaN:
       break;
-    case z.ZodFirstPartyTypeKind.ZodBigInt:
+    case Schema.SchemaFirstPartyTypeKind.SchemaBigInt:
       break;
-    case z.ZodFirstPartyTypeKind.ZodBoolean:
+    case Schema.SchemaFirstPartyTypeKind.SchemaBoolean:
       break;
-    case z.ZodFirstPartyTypeKind.ZodDate:
+    case Schema.SchemaFirstPartyTypeKind.SchemaDate:
       break;
-    case z.ZodFirstPartyTypeKind.ZodUndefined:
+    case Schema.SchemaFirstPartyTypeKind.SchemaUndefined:
       break;
-    case z.ZodFirstPartyTypeKind.ZodNull:
+    case Schema.SchemaFirstPartyTypeKind.SchemaNull:
       break;
-    case z.ZodFirstPartyTypeKind.ZodAny:
+    case Schema.SchemaFirstPartyTypeKind.SchemaAny:
       break;
-    case z.ZodFirstPartyTypeKind.ZodUnknown:
+    case Schema.SchemaFirstPartyTypeKind.SchemaUnknown:
       break;
-    case z.ZodFirstPartyTypeKind.ZodNever:
+    case Schema.SchemaFirstPartyTypeKind.SchemaNever:
       break;
-    case z.ZodFirstPartyTypeKind.ZodVoid:
+    case Schema.SchemaFirstPartyTypeKind.SchemaVoid:
       break;
-    case z.ZodFirstPartyTypeKind.ZodArray:
+    case Schema.SchemaFirstPartyTypeKind.SchemaArray:
       break;
-    case z.ZodFirstPartyTypeKind.ZodObject:
+    case Schema.SchemaFirstPartyTypeKind.SchemaObject:
       break;
-    case z.ZodFirstPartyTypeKind.ZodUnion:
+    case Schema.SchemaFirstPartyTypeKind.SchemaUnion:
       break;
-    case z.ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
+    case Schema.SchemaFirstPartyTypeKind.SchemaDiscriminatedUnion:
       break;
-    case z.ZodFirstPartyTypeKind.ZodIntersection:
+    case Schema.SchemaFirstPartyTypeKind.SchemaIntersection:
       break;
-    case z.ZodFirstPartyTypeKind.ZodTuple:
+    case Schema.SchemaFirstPartyTypeKind.SchemaTuple:
       break;
-    case z.ZodFirstPartyTypeKind.ZodRecord:
+    case Schema.SchemaFirstPartyTypeKind.SchemaRecord:
       break;
-    case z.ZodFirstPartyTypeKind.ZodMap:
+    case Schema.SchemaFirstPartyTypeKind.SchemaMap:
       break;
-    case z.ZodFirstPartyTypeKind.ZodSet:
+    case Schema.SchemaFirstPartyTypeKind.SchemaSet:
       break;
-    case z.ZodFirstPartyTypeKind.ZodFunction:
+    case Schema.SchemaFirstPartyTypeKind.SchemaFunction:
       break;
-    case z.ZodFirstPartyTypeKind.ZodLazy:
+    case Schema.SchemaFirstPartyTypeKind.SchemaLazy:
       break;
-    case z.ZodFirstPartyTypeKind.ZodLiteral:
+    case Schema.SchemaFirstPartyTypeKind.SchemaLiteral:
       break;
-    case z.ZodFirstPartyTypeKind.ZodEnum:
+    case Schema.SchemaFirstPartyTypeKind.SchemaEnum:
       break;
-    case z.ZodFirstPartyTypeKind.ZodEffects:
+    case Schema.SchemaFirstPartyTypeKind.SchemaEffects:
       break;
-    case z.ZodFirstPartyTypeKind.ZodNativeEnum:
+    case Schema.SchemaFirstPartyTypeKind.SchemaNativeEnum:
       break;
-    case z.ZodFirstPartyTypeKind.ZodOptional:
+    case Schema.SchemaFirstPartyTypeKind.SchemaOptional:
       break;
-    case z.ZodFirstPartyTypeKind.ZodNullable:
+    case Schema.SchemaFirstPartyTypeKind.SchemaNullable:
       break;
-    case z.ZodFirstPartyTypeKind.ZodDefault:
+    case Schema.SchemaFirstPartyTypeKind.SchemaDefault:
       break;
-    case z.ZodFirstPartyTypeKind.ZodCatch:
+    case Schema.SchemaFirstPartyTypeKind.SchemaCatch:
       break;
-    case z.ZodFirstPartyTypeKind.ZodPromise:
+    case Schema.SchemaFirstPartyTypeKind.SchemaPromise:
       break;
-    case z.ZodFirstPartyTypeKind.ZodBranded:
+    case Schema.SchemaFirstPartyTypeKind.SchemaBranded:
       break;
-    case z.ZodFirstPartyTypeKind.ZodPipeline:
+    case Schema.SchemaFirstPartyTypeKind.SchemaPipeline:
       break;
-    case z.ZodFirstPartyTypeKind.ZodSymbol:
+    case Schema.SchemaFirstPartyTypeKind.SchemaSymbol:
       break;
-    case z.ZodFirstPartyTypeKind.ZodReadonly:
+    case Schema.SchemaFirstPartyTypeKind.SchemaReadonly:
       break;
     default:
       util.assertNever(def);

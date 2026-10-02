@@ -1,13 +1,13 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-declare const iss: z.core.$ZodIssueCode;
+declare const iss: Schema.core.$SchemaIssueCode;
 
-const Test = z.object({
-  f1: z.number(),
-  f2: z.string().optional(),
-  f3: z.string().nullable(),
-  f4: z.array(z.object({ t: z.union([z.string(), z.boolean()]) })),
+const Test = Schema.object({
+  f1: Schema.number(),
+  f2: Schema.string().optional(),
+  f3: Schema.string().nullable(),
+  f4: Schema.array(Schema.object({ t: Schema.union([Schema.string(), Schema.boolean()]) })),
 });
 // type TestFlattenedErrors = core.inferFlattenedErrors<typeof Test, { message: string; code: number }>;
 // type TestFormErrors = core.inferFlattenedErrors<typeof Test>;
@@ -16,7 +16,7 @@ const parsed = Test.safeParse({});
 test("regular error", () => {
   expect(parsed).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "number",
         "code": "invalid_type",
@@ -215,7 +215,7 @@ test("custom .format()", () => {
 });
 
 test("all errors", () => {
-  const propertySchema = z.string();
+  const propertySchema = Schema.string();
   const schema = z
     .object({
       a: propertySchema,
@@ -228,23 +228,23 @@ test("all errors", () => {
       { message: "Must be equal" }
     );
 
-  const r1 = schema.safeParse({
+  const r1 = Schema.safeParse({
     a: "asdf",
     b: "qwer",
   });
 
-  expect(z.core.flattenError(r1.error!)).toEqual({
+  expect(Schema.core.flattenError(r1.error!)).toEqual({
     formErrors: ["Must be equal"],
     fieldErrors: {},
   });
 
-  const r2 = schema.safeParse({
+  const r2 = Schema.safeParse({
     a: null,
     b: null,
   });
 
-  // const error = _error as z.ZodError;
-  expect(z.core.flattenError(r2.error!)).toMatchInlineSnapshot(`
+  // const error = _error as Schema  .SchemaError;
+  expect(Schema.core.flattenError(r2.error!)).toMatchInlineSnapshot(`
     {
       "fieldErrors": {
         "a": [
@@ -258,7 +258,7 @@ test("all errors", () => {
     }
   `);
 
-  expect(z.core.flattenError(r2.error!, (iss) => iss.message.toUpperCase())).toMatchInlineSnapshot(`
+  expect(Schema.core.flattenError(r2.error!, (iss) => iss.message.toUpperCase())).toMatchInlineSnapshot(`
     {
       "fieldErrors": {
         "a": [
@@ -273,7 +273,7 @@ test("all errors", () => {
   `);
   // Test identity
 
-  expect(z.core.flattenError(r2.error!, (i: z.ZodIssue) => i)).toMatchInlineSnapshot(`
+  expect(Schema.core.flattenError(r2.error!, (i: Schema.SchemaIssue) => i)).toMatchInlineSnapshot(`
     {
       "fieldErrors": {
         "a": [
@@ -302,7 +302,7 @@ test("all errors", () => {
   `);
 
   // Test mapping
-  const f1 = z.core.flattenError(r2.error!, (i: z.ZodIssue) => i.message.length);
+  const f1 = Schema.core.flattenError(r2.error!, (i: Schema.SchemaIssue) => i.message.length);
   expect(f1).toMatchInlineSnapshot(`
     {
       "fieldErrors": {
@@ -326,14 +326,14 @@ test("all errors", () => {
   // });
 });
 
-const schema = z.strictObject({
-  username: z.string().brand<"username">(),
-  favoriteNumbers: z.array(z.number()),
-  nesting: z.object({
-    a: z.string(),
+const schema = Schema.strictObject({
+  username: Schema.string().brand<"username">(),
+  favoriteNumbers: Schema.array(Schema.number()),
+  nesting: Schema.object({
+    a: Schema.string(),
   }),
 });
-const result = schema.safeParse({
+const result = Schema.safeParse({
   username: 1234,
   favoriteNumbers: [1234, "4567"],
   nesting: {
@@ -342,7 +342,7 @@ const result = schema.safeParse({
   extra: 1234,
 });
 
-const tree = z.treeifyError(result.error!);
+const tree = Schema.treeifyError(result.error!);
 
 expectTypeOf(tree).toEqualTypeOf<{
   errors: string[];
@@ -367,7 +367,7 @@ expectTypeOf(tree).toEqualTypeOf<{
   };
 }>();
 
-test("z.treeifyError", () => {
+test("Schema.treeifyError", () => {
   expect(tree).toMatchInlineSnapshot(`
     {
       "errors": [
@@ -405,11 +405,11 @@ test("z.treeifyError", () => {
   `);
 });
 
-test("z.treeifyError 2", () => {
-  const schema = z.strictObject({
-    name: z.string(),
-    logLevel: z.union([z.string(), z.number()]),
-    env: z.literal(["production", "development"]),
+test("Schema.treeifyError 2", () => {
+  const schema = Schema.strictObject({
+    name: Schema.string(),
+    logLevel: Schema.union([Schema.string(), Schema.number()]),
+    env: Schema.literal(["production", "development"]),
   });
 
   const data = {
@@ -418,8 +418,8 @@ test("z.treeifyError 2", () => {
     extra: 1000,
   };
 
-  const result = schema.safeParse(data);
-  const err = z.treeifyError(result.error!);
+  const result = Schema.safeParse(data);
+  const err = Schema.treeifyError(result.error!);
   expect(err).toMatchInlineSnapshot(`
     {
       "errors": [
@@ -447,8 +447,8 @@ test("z.treeifyError 2", () => {
   `);
 });
 
-test("z.prettifyError", () => {
-  expect(z.prettifyError(result.error!)).toMatchInlineSnapshot(`
+test("Schema.prettifyError", () => {
+  expect(Schema.prettifyError(result.error!)).toMatchInlineSnapshot(`
     "✖ Unrecognized key: "extra"
     ✖ Invalid input: expected string, received number
       → at username
@@ -459,68 +459,68 @@ test("z.prettifyError", () => {
   `);
 });
 
-test("z.toDotPath", () => {
-  expect(z.core.toDotPath(["a", "b", 0, "c"])).toMatchInlineSnapshot(`"a.b[0].c"`);
+test("Schema.toDotPath", () => {
+  expect(Schema.core.toDotPath(["a", "b", 0, "c"])).toMatchInlineSnapshot(`"a.b[0].c"`);
 
-  expect(z.core.toDotPath(["a", Symbol("b"), 0, "c"])).toMatchInlineSnapshot(`"a["Symbol(b)"][0].c"`);
+  expect(Schema.core.toDotPath(["a", Symbol("b"), 0, "c"])).toMatchInlineSnapshot(`"a["Symbol(b)"][0].c"`);
 
   // Test with periods in keys
-  expect(z.core.toDotPath(["user.name", "first.last"])).toMatchInlineSnapshot(`"["user.name"]["first.last"]"`);
+  expect(Schema.core.toDotPath(["user.name", "first.last"])).toMatchInlineSnapshot(`"["user.name"]["first.last"]"`);
 
   // Test with special characters
-  expect(z.core.toDotPath(["user", "$special", Symbol("#symbol")])).toMatchInlineSnapshot(
+  expect(Schema.core.toDotPath(["user", "$special", Symbol("#symbol")])).toMatchInlineSnapshot(
     `"user.$special["Symbol(#symbol)"]"`
   );
 
   // Test with dots and quotes
-  expect(z.core.toDotPath(["search", `query("foo.bar"="abc")`])).toMatchInlineSnapshot(
+  expect(Schema.core.toDotPath(["search", `query("foo.bar"="abc")`])).toMatchInlineSnapshot(
     `"search["query(\\"foo.bar\\"=\\"abc\\")"]"`
   );
 
   // Test with newlines
-  expect(z.core.toDotPath(["search", `foo\nbar`])).toMatchInlineSnapshot(`"search["foo\\nbar"]"`);
+  expect(Schema.core.toDotPath(["search", `foo\nbar`])).toMatchInlineSnapshot(`"search["foo\\nbar"]"`);
 
   // Test with empty strings
-  expect(z.core.toDotPath(["", "empty"])).toMatchInlineSnapshot(`".empty"`);
+  expect(Schema.core.toDotPath(["", "empty"])).toMatchInlineSnapshot(`".empty"`);
 
   // Test with array indices
-  expect(z.core.toDotPath(["items", 0, 1, 2])).toMatchInlineSnapshot(`"items[0][1][2]"`);
+  expect(Schema.core.toDotPath(["items", 0, 1, 2])).toMatchInlineSnapshot(`"items[0][1][2]"`);
 
   // Test with mixed path elements
-  expect(z.core.toDotPath(["users", "user.config", 0, "settings.theme"])).toMatchInlineSnapshot(
+  expect(Schema.core.toDotPath(["users", "user.config", 0, "settings.theme"])).toMatchInlineSnapshot(
     `"users["user.config"][0]["settings.theme"]"`
   );
 
   // Test with square brackets in keys
-  expect(z.core.toDotPath(["data[0]", "value"])).toMatchInlineSnapshot(`"["data[0]"].value"`);
+  expect(Schema.core.toDotPath(["data[0]", "value"])).toMatchInlineSnapshot(`"["data[0]"].value"`);
 
   // Test with empty path
-  expect(z.core.toDotPath([])).toMatchInlineSnapshot(`""`);
+  expect(Schema.core.toDotPath([])).toMatchInlineSnapshot(`""`);
 });
 
 test("inheritance", () => {
-  const e1 = new z.ZodError([]);
-  expect(e1).toBeInstanceOf(z.core.$ZodError);
-  expect(e1).toBeInstanceOf(z.ZodError);
+  const e1 = new Schema.SchemaError([]);
+  expect(e1).toBeInstanceOf(Schema.core.$SchemaError);
+  expect(e1).toBeInstanceOf(Schema.SchemaError);
   // expect(e1).not.toBeInstanceOf(Error);
 
-  const e2 = new z.ZodRealError([]);
-  expect(e2).toBeInstanceOf(z.ZodError);
-  expect(e2).toBeInstanceOf(z.ZodRealError);
+  const e2 = new Schema.SchemaRealError([]);
+  expect(e2).toBeInstanceOf(Schema.SchemaError);
+  expect(e2).toBeInstanceOf(Schema.SchemaRealError);
   expect(e2).toBeInstanceOf(Error);
 });
 
 test("disc union treeify/format", () => {
-  const schema = z.discriminatedUnion(
+  const schema = Schema.discriminatedUnion(
     "foo",
     [
-      z.object({
-        foo: z.literal("x"),
-        x: z.string(),
+      Schema.object({
+        foo: Schema.literal("x"),
+        x: Schema.string(),
       }),
-      z.object({
-        foo: z.literal("y"),
-        y: z.string(),
+      Schema.object({
+        foo: Schema.literal("y"),
+        y: Schema.string(),
       }),
     ],
     {
@@ -528,8 +528,8 @@ test("disc union treeify/format", () => {
     }
   );
 
-  const error = schema.safeParse({ foo: "invalid" }).error;
-  expect(z.treeifyError(error!)).toMatchInlineSnapshot(`
+  const error = Schema.safeParse({ foo: "invalid" }).error;
+  expect(Schema.treeifyError(error!)).toMatchInlineSnapshot(`
     {
       "errors": [],
       "properties": {
@@ -541,11 +541,11 @@ test("disc union treeify/format", () => {
       },
     }
   `);
-  expect(z.prettifyError(error!)).toMatchInlineSnapshot(`
+  expect(Schema.prettifyError(error!)).toMatchInlineSnapshot(`
     "✖ Invalid discriminator
       → at foo"
   `);
-  expect(z.formatError(error!)).toMatchInlineSnapshot(`
+  expect(Schema.formatError(error!)).toMatchInlineSnapshot(`
     {
       "_errors": [],
       "foo": {
@@ -558,7 +558,7 @@ test("disc union treeify/format", () => {
 });
 
 test("update message after adding issues", () => {
-  const e = new z.ZodError([]);
+  const e = new Schema.SchemaError([]);
   e.addIssue({
     code: "custom",
     message: "message",
@@ -600,8 +600,8 @@ test("update message after adding issues", () => {
   `);
 });
 
-test("z.formatError nested union preserves parent path", () => {
-  const syntheticError = new z.ZodError([
+test("Schema.formatError nested union preserves parent path", () => {
+  const syntheticError = new Schema.SchemaError([
     {
       code: "invalid_union",
       path: ["parent"],
@@ -647,7 +647,7 @@ test("z.formatError nested union preserves parent path", () => {
     },
   ] as any);
 
-  const formatted: any = z.formatError(syntheticError);
+  const formatted: any = Schema.formatError(syntheticError);
 
   // "child" must be nested under "parent", not at root
   expect(formatted).not.toHaveProperty("child");
@@ -657,9 +657,9 @@ test("z.formatError nested union preserves parent path", () => {
   expect(formatted.parent.child._errors).toContain("Expected number");
   expect(formatted.parent._errors).toContain("Expected string");
 });
-test("z.treeifyError nested union preserves parent path", () => {
+test("Schema.treeifyError nested union preserves parent path", () => {
   // When a nested invalid_union appears inside another invalid_union, the inner errors must stay nested under their parent path, not flatten to root.
-  const syntheticError = new z.ZodError([
+  const syntheticError = new Schema.SchemaError([
     {
       code: "invalid_union",
       path: ["parent"],
@@ -705,7 +705,7 @@ test("z.treeifyError nested union preserves parent path", () => {
     },
   ] as any);
 
-  const tree: any = z.treeifyError(syntheticError);
+  const tree: any = Schema.treeifyError(syntheticError);
 
   // "child" must be nested under "parent", not at root
   expect(tree.properties).not.toHaveProperty("child");
@@ -716,9 +716,9 @@ test("z.treeifyError nested union preserves parent path", () => {
   expect(tree.properties.parent.errors).toContain("Expected string");
 });
 
-test("z.treeifyError deeply nested union (4 levels) preserves full path", () => {
+test("Schema.treeifyError deeply nested union (4 levels) preserves full path", () => {
   // a > b > c > d — each level wrapped in an invalid_union
-  const syntheticError = new z.ZodError([
+  const syntheticError = new Schema.SchemaError([
     {
       code: "invalid_union",
       path: ["a"],
@@ -755,7 +755,7 @@ test("z.treeifyError deeply nested union (4 levels) preserves full path", () => 
     },
   ] as any);
 
-  const tree: any = z.treeifyError(syntheticError);
+  const tree: any = Schema.treeifyError(syntheticError);
 
   // The full path must be preserved: a.b.c.d
   expect(tree.properties).toHaveProperty("a");
@@ -773,25 +773,25 @@ test("z.treeifyError deeply nested union (4 levels) preserves full path", () => 
   expect(lvlC.properties.d.errors).toContain("Expected string");
 });
 
-test("z.treeifyError nested union with real schema", () => {
-  const innerUnion = z.union([
-    z.object({ type: z.literal("a"), value: z.string() }),
-    z.object({ type: z.literal("b"), value: z.number() }),
+test("Schema.treeifyError nested union with real schema", () => {
+  const innerUnion = Schema.union([
+    Schema.object({ type: Schema.literal("a"), value: Schema.string() }),
+    Schema.object({ type: Schema.literal("b"), value: Schema.number() }),
   ]);
 
-  const schema = z.string().or(
-    z.object({
-      settings: z.object({ name: z.string() }).and(innerUnion),
+  const schema = Schema.string().or(
+    Schema.object({
+      settings: Schema.object({ name: Schema.string() }).and(innerUnion),
     })
   );
 
-  const result = schema.safeParse({
+  const result = Schema.safeParse({
     settings: { name: 123, type: "x", value: true },
   });
 
   expect(result.success).toBe(false);
   if (!result.success) {
-    const tree: any = z.treeifyError(result.error);
+    const tree: any = Schema.treeifyError(result.error);
 
     // All settings-related errors should be under "settings", not at root
     expect(tree.properties).toHaveProperty("settings");
@@ -807,37 +807,37 @@ test("z.treeifyError nested union with real schema", () => {
 
 const prototypePropertyNames = ["__proto__", "constructor", "toString", "hasOwnProperty", "valueOf"] as const;
 
-test.each(prototypePropertyNames)("z.formatError handles Object.prototype property path: %s", (name) => {
-  const schema = z.object({ data: z.string() }).superRefine((_, ctx) => {
+test.each(prototypePropertyNames)("Schema.formatError handles Object.prototype property path: %s", (name) => {
+  const schema = Schema.object({ data: Schema.string() }).superRefine((_, ctx) => {
     ctx.addIssue({ code: "custom", message: "invalid value", path: [name] });
   });
-  const result = schema.safeParse({ data: "hello" });
+  const result = Schema.safeParse({ data: "hello" });
   expect(result.success).toBe(false);
-  const formatted = z.formatError(result.error!);
+  const formatted = Schema.formatError(result.error!);
   expect(Object.prototype.hasOwnProperty.call(formatted, name)).toBe(true);
   expect(Object.getPrototypeOf(formatted)).toBe(Object.prototype);
   expect((formatted as any)[name]._errors).toEqual(["invalid value"]);
 });
 
-test.each(prototypePropertyNames)("z.treeifyError handles Object.prototype property path: %s", (name) => {
-  const schema = z.object({ data: z.string() }).superRefine((_, ctx) => {
+test.each(prototypePropertyNames)("Schema.treeifyError handles Object.prototype property path: %s", (name) => {
+  const schema = Schema.object({ data: Schema.string() }).superRefine((_, ctx) => {
     ctx.addIssue({ code: "custom", message: "invalid value", path: [name] });
   });
-  const result = schema.safeParse({ data: "hello" });
+  const result = Schema.safeParse({ data: "hello" });
   expect(result.success).toBe(false);
-  const tree = z.treeifyError(result.error!);
+  const tree = Schema.treeifyError(result.error!);
   expect(Object.prototype.hasOwnProperty.call(tree.properties, name)).toBe(true);
   expect(Object.getPrototypeOf(tree.properties)).toBe(Object.prototype);
   expect((tree as any).properties[name].errors).toEqual(["invalid value"]);
 });
 
-test.each(prototypePropertyNames)("z.flattenError handles Object.prototype property path: %s", (name) => {
-  const schema = z.object({ data: z.string() }).superRefine((_, ctx) => {
+test.each(prototypePropertyNames)("Schema.flattenError handles Object.prototype property path: %s", (name) => {
+  const schema = Schema.object({ data: Schema.string() }).superRefine((_, ctx) => {
     ctx.addIssue({ code: "custom", message: "invalid value", path: [name] });
   });
-  const result = schema.safeParse({ data: "hello" });
+  const result = Schema.safeParse({ data: "hello" });
   expect(result.success).toBe(false);
-  const { fieldErrors } = z.flattenError(result.error!);
+  const { fieldErrors } = Schema.flattenError(result.error!);
   expect(Object.prototype.hasOwnProperty.call(fieldErrors, name)).toBe(true);
   expect(Object.getPrototypeOf(fieldErrors)).toBe(Object.prototype);
   expect((fieldErrors as any)[name]).toEqual(["invalid value"]);
@@ -847,17 +847,17 @@ test.each(prototypePropertyNames)("z.flattenError handles Object.prototype prope
 const protoNode = (obj: any) => Object.getOwnPropertyDescriptor(obj, "__proto__")!.value;
 
 test("error formatters merge sibling issues under a __proto__ path", () => {
-  const schema = z.string().check((ctx) => {
+  const schema = Schema.string().check((ctx) => {
     ctx.issues.push({ code: "custom", message: "a", path: ["__proto__", "x"], input: ctx.value });
     ctx.issues.push({ code: "custom", message: "b", path: ["__proto__", "y"], input: ctx.value });
   });
-  const error = schema.safeParse("hello").error!;
+  const error = Schema.safeParse("hello").error!;
 
-  const formatted = protoNode(z.formatError(error));
+  const formatted = protoNode(Schema.formatError(error));
   expect(formatted.x._errors).toEqual(["a"]);
   expect(formatted.y._errors).toEqual(["b"]);
 
-  const tree = protoNode((z.treeifyError(error) as any).properties);
+  const tree = protoNode((Schema.treeifyError(error) as any).properties);
   expect(tree.properties.x.errors).toEqual(["a"]);
   expect(tree.properties.y.errors).toEqual(["b"]);
 
@@ -866,31 +866,31 @@ test("error formatters merge sibling issues under a __proto__ path", () => {
 });
 
 test("error formatting leaves Object.prototype untouched for input-derived keys", () => {
-  const record = z.record(z.string(), z.string()).safeParse(JSON.parse('{"toString": 1}'));
+  const record = Schema.record(Schema.string(), Schema.string()).safeParse(JSON.parse('{"toString": 1}'));
   expect(record.success).toBe(false);
-  expect((z.formatError(record.error!) as any).toString._errors).toHaveLength(1);
+  expect((Schema.formatError(record.error!) as any).toString._errors).toHaveLength(1);
 
   const entries = new Map(Object.entries(JSON.parse('{"__proto__": {"pwn": 1}}')));
-  const result = z.map(z.string(), z.object({ pwn: z.string() })).safeParse(entries);
+  const result = Schema.map(Schema.string(), Schema.object({ pwn: Schema.string() })).safeParse(entries);
   expect(result.success).toBe(false);
-  expect(protoNode(z.formatError(result.error!)).pwn._errors).toHaveLength(1);
-  expect(protoNode((z.treeifyError(result.error!) as any).properties).properties.pwn.errors).toHaveLength(1);
+  expect(protoNode(Schema.formatError(result.error!)).pwn._errors).toHaveLength(1);
+  expect(protoNode((Schema.treeifyError(result.error!) as any).properties).properties.pwn.errors).toHaveLength(1);
   expect(({} as any).pwn).toBeUndefined();
 });
 
 test("formatError handles an input-derived _errors path", () => {
-  const schema = z.object({ parent: z.record(z.string(), z.string()) });
-  const result = schema.safeParse({ parent: { _errors: 1 } });
+  const schema = Schema.object({ parent: Schema.record(Schema.string(), Schema.string()) });
+  const result = Schema.safeParse({ parent: { _errors: 1 } });
   expect(result.success).toBe(false);
 
-  const formatted = z.formatError(result.error!);
+  const formatted = Schema.formatError(result.error!);
   expect(formatted.parent?._errors).toEqual(["Invalid input: expected string, received number"]);
 
   const nested = z
-    .object({ parent: z.record(z.string(), z.object({ child: z.string() })) })
+    .object({ parent: Schema.record(Schema.string(), Schema.object({ child: Schema.string() })) })
     .safeParse({ parent: { _errors: { child: 1 } } });
   expect(nested.success).toBe(false);
-  expect((z.formatError(nested.error!) as any).parent.child._errors).toEqual([
+  expect((Schema.formatError(nested.error!) as any).parent.child._errors).toEqual([
     "Invalid input: expected string, received number",
   ]);
 });
@@ -899,15 +899,15 @@ test("error walkers handle path elements named after inherited methods", () => {
   // "toString" and "constructor" are truthy on the prototype, so a plain lookup finds
   // the inherited function instead of creating a node, and the push then throws.
   for (const [schema, input] of [
-    [z.object({ toString: z.string() }), { toString: 1 }],
-    [z.object({ constructor: z.string() }), { constructor: 1 }],
-    [z.object({ toString: z.string(), constructor: z.string() }), { toString: 1, constructor: 2 }],
+    [Schema.object({ toString: Schema.string() }), { toString: 1 }],
+    [Schema.object({ constructor: Schema.string() }), { constructor: 1 }],
+    [Schema.object({ toString: Schema.string(), constructor: Schema.string() }), { toString: 1, constructor: 2 }],
   ] as const) {
     const result = (schema as any).safeParse(input);
     expect(result.success).toBe(false);
 
-    const formatted = z.formatError(result.error) as any;
-    const tree = z.treeifyError(result.error) as any;
+    const formatted = Schema.formatError(result.error) as any;
+    const tree = Schema.treeifyError(result.error) as any;
     for (const key of Object.keys(input)) {
       expect(formatted[key]._errors).toHaveLength(1);
       expect(tree.properties[key].errors).toHaveLength(1);

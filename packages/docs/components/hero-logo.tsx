@@ -16,7 +16,7 @@ export function HeroLogo({ className }: HeroLogoProps) {
         className={`block dark:hidden mx-auto my-0! transition-opacity duration-500 ${
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
-        alt="Zod logo"
+        alt="Schema logo"
         src="/logo/logo-glow.png"
         width={200}
         height={170}
@@ -30,7 +30,7 @@ export function HeroLogo({ className }: HeroLogoProps) {
         className={`hidden dark:block mx-auto my-0! transition-opacity duration-500 ${
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
-        alt="Zod logo"
+        alt="Schema logo"
         src="/logo/logo-glow.png"
         width={200}
         height={170}

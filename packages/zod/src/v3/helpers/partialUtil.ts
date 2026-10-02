@@ -1,33 +1,33 @@
 import type {
-  ZodArray,
-  ZodNullable,
-  ZodObject,
-  ZodOptional,
-  ZodRawShape,
-  ZodTuple,
-  ZodTupleItems,
-  ZodTypeAny,
+  SchemaArray,
+  SchemaNullable,
+  SchemaObject,
+  SchemaOptional,
+  SchemaRawShape,
+  SchemaTuple,
+  SchemaTupleItems,
+  SchemaTypeAny,
 } from "../types.js";
 
 export namespace partialUtil {
-  export type DeepPartial<T extends ZodTypeAny> = T extends ZodObject<ZodRawShape>
-    ? ZodObject<
-        { [k in keyof T["shape"]]: ZodOptional<DeepPartial<T["shape"][k]>> },
+  export type DeepPartial<T extends SchemaTypeAny> = T extends SchemaObject<SchemaRawShape>
+    ? SchemaObject<
+        { [k in keyof T["shape"]]: SchemaOptional<DeepPartial<T["shape"][k]>> },
         T["_def"]["unknownKeys"],
         T["_def"]["catchall"]
       >
-    : T extends ZodArray<infer Type, infer Card>
-      ? ZodArray<DeepPartial<Type>, Card>
-      : T extends ZodOptional<infer Type>
-        ? ZodOptional<DeepPartial<Type>>
-        : T extends ZodNullable<infer Type>
-          ? ZodNullable<DeepPartial<Type>>
-          : T extends ZodTuple<infer Items>
+    : T extends SchemaArray<infer Type, infer Card>
+      ? SchemaArray<DeepPartial<Type>, Card>
+      : T extends SchemaOptional<infer Type>
+        ? SchemaOptional<DeepPartial<Type>>
+        : T extends SchemaNullable<infer Type>
+          ? SchemaNullable<DeepPartial<Type>>
+          : T extends SchemaTuple<infer Items>
             ? {
-                [k in keyof Items]: Items[k] extends ZodTypeAny ? DeepPartial<Items[k]> : never;
+                [k in keyof Items]: Items[k] extends SchemaTypeAny ? DeepPartial<Items[k]> : never;
               } extends infer PI
-              ? PI extends ZodTupleItems
-                ? ZodTuple<PI>
+              ? PI extends SchemaTupleItems
+                ? SchemaTuple<PI>
                 : never
               : never
             : T;

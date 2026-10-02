@@ -1,14 +1,14 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
-import { ZodIssueCode } from "../ZodError.js";
+import * as Schema from "schema/v3";
+import { SchemaIssueCode } from "../SchemaError.js";
 import { util } from "../helpers/util.js";
 
 test("refinement", () => {
-  const obj1 = z.object({
-    first: z.string(),
-    second: z.string(),
+  const obj1 = Schema.object({
+    first: Schema.string(),
+    second: Schema.string(),
   });
   const obj2 = obj1.partial().strict();
 
@@ -28,9 +28,9 @@ test("refinement", () => {
 test("refinement 2", () => {
   const validationSchema = z
     .object({
-      email: z.string().email(),
-      password: z.string(),
-      confirmPassword: z.string(),
+      email: Schema.string().email(),
+      password: Schema.string(),
+      confirmPassword: Schema.string(),
     })
     .refine((data) => data.password === data.confirmPassword, "Both password and confirmation must match");
 
@@ -44,11 +44,11 @@ test("refinement 2", () => {
 });
 
 test("refinement type guard", () => {
-  const validationSchema = z.object({
-    a: z.string().refine((s): s is "a" => s === "a"),
+  const validationSchema = Schema.object({
+    a: Schema.string().refine((s): s is "a" => s === "a"),
   });
-  type Input = z.input<typeof validationSchema>;
-  type Schema = z.infer<typeof validationSchema>;
+  type Input = Schema.input<typeof validationSchema>;
+  type Schema = Schema.infer<typeof validationSchema>;
 
   util.assertEqual<"a", Input["a"]>(false);
   util.assertEqual<string, Input["a"]>(true);
@@ -60,9 +60,9 @@ test("refinement type guard", () => {
 test("refinement Promise", async () => {
   const validationSchema = z
     .object({
-      email: z.string().email(),
-      password: z.string(),
-      confirmPassword: z.string(),
+      email: Schema.string().email(),
+      password: Schema.string(),
+      confirmPassword: Schema.string(),
     })
     .refine(
       (data) => Promise.resolve().then(() => data.password === data.confirmPassword),
@@ -79,8 +79,8 @@ test("refinement Promise", async () => {
 test("custom path", async () => {
   const result = await z
     .object({
-      password: z.string(),
-      confirm: z.string(),
+      password: Schema.string(),
+      confirm: Schema.string(),
     })
     .refine((data) => data.confirm === data.password, { path: ["confirm"] })
     .spa({ password: "asdf", confirm: "qewr" });
@@ -91,10 +91,10 @@ test("custom path", async () => {
 });
 
 test("use path in refinement context", async () => {
-  const noNested = z.string()._refinement((_val, ctx) => {
+  const noNested = Schema.string()._refinement((_val, ctx) => {
     if (ctx.path.length > 0) {
       ctx.addIssue({
-        code: ZodIssueCode.custom,
+        code: SchemaIssueCode.custom,
         message: `schema cannot be nested. path: ${ctx.path.join(".")}`,
       });
       return false;
@@ -103,7 +103,7 @@ test("use path in refinement context", async () => {
     }
   });
 
-  const data = z.object({
+  const data = Schema.object({
     foo: noNested,
   });
 
@@ -118,10 +118,10 @@ test("use path in refinement context", async () => {
 });
 
 test("superRefine", () => {
-  const Strings = z.array(z.string()).superRefine((val, ctx) => {
+  const Strings = Schema.array(Schema.string()).superRefine((val, ctx) => {
     if (val.length > 3) {
       ctx.addIssue({
-        code: z.ZodIssueCode.too_big,
+        code: Schema.SchemaIssueCode.too_big,
         maximum: 3,
         type: "array",
         inclusive: true,
@@ -132,7 +132,7 @@ test("superRefine", () => {
 
     if (val.length !== new Set(val).size) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: Schema.SchemaIssueCode.custom,
         message: `No duplicates allowed.`,
       });
     }
@@ -147,10 +147,10 @@ test("superRefine", () => {
 });
 
 test("superRefine async", async () => {
-  const Strings = z.array(z.string()).superRefine(async (val, ctx) => {
+  const Strings = Schema.array(Schema.string()).superRefine(async (val, ctx) => {
     if (val.length > 3) {
       ctx.addIssue({
-        code: z.ZodIssueCode.too_big,
+        code: Schema.SchemaIssueCode.too_big,
         maximum: 3,
         type: "array",
         inclusive: true,
@@ -161,7 +161,7 @@ test("superRefine async", async () => {
 
     if (val.length !== new Set(val).size) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: Schema.SchemaIssueCode.custom,
         message: `No duplicates allowed.`,
       });
     }
@@ -179,15 +179,15 @@ test("superRefine - type narrowing", () => {
   type NarrowType = { type: string; age: number };
   const schema = z
     .object({
-      type: z.string(),
-      age: z.number(),
+      type: Schema.string(),
+      age: Schema.number(),
     })
     .nullable()
     .superRefine((arg, ctx): arg is NarrowType => {
       if (!arg) {
         // still need to make a call to ctx.addIssue
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: Schema.SchemaIssueCode.custom,
           message: "cannot be null",
           fatal: true,
         });
@@ -196,10 +196,10 @@ test("superRefine - type narrowing", () => {
       return true;
     });
 
-  util.assertEqual<z.infer<typeof schema>, NarrowType>(true);
+  util.assertEqual<Schema.infer<typeof schema>, NarrowType>(true);
 
-  expect(schema.safeParse({ type: "test", age: 0 }).success).toEqual(true);
-  expect(schema.safeParse(null).success).toEqual(false);
+  expect(Schema.safeParse({ type: "test", age: 0 }).success).toEqual(true);
+  expect(Schema.safeParse(null).success).toEqual(false);
 });
 
 test("chained mixed refining types", () => {
@@ -208,9 +208,9 @@ test("chained mixed refining types", () => {
   type thirdRefinement = { first: "bob"; second: 33; third: true };
   const schema = z
     .object({
-      first: z.string(),
-      second: z.number(),
-      third: z.boolean(),
+      first: Schema.string(),
+      second: Schema.number(),
+      third: Schema.boolean(),
     })
     .nullable()
     .refine((arg): arg is firstRefinement => !!arg?.third)
@@ -218,7 +218,7 @@ test("chained mixed refining types", () => {
       util.assertEqual<typeof arg, firstRefinement>(true);
       if (arg.first !== "bob") {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: Schema.SchemaIssueCode.custom,
           message: "`first` property must be `bob`",
         });
         return false;
@@ -230,11 +230,11 @@ test("chained mixed refining types", () => {
       return arg.second === 33;
     });
 
-  util.assertEqual<z.infer<typeof schema>, thirdRefinement>(true);
+  util.assertEqual<Schema.infer<typeof schema>, thirdRefinement>(true);
 });
 
 test("get inner type", () => {
-  z.string()
+  Schema.string()
     .refine(() => true)
     .innerType()
     .parse("asdf");
@@ -243,8 +243,8 @@ test("get inner type", () => {
 test("chained refinements", () => {
   const objectSchema = z
     .object({
-      length: z.number(),
-      size: z.number(),
+      length: Schema.number(),
+      size: Schema.number(),
     })
     .refine(({ length }) => length > 5, {
       path: ["length"],
@@ -275,7 +275,7 @@ test("fatal superRefine", () => {
     .superRefine((val, ctx) => {
       if (val === "") {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: Schema.SchemaIssueCode.custom,
           message: "foo",
           fatal: true,
         });
@@ -284,7 +284,7 @@ test("fatal superRefine", () => {
     .superRefine((val, ctx) => {
       if (val !== " ") {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: Schema.SchemaIssueCode.custom,
           message: "bar",
         });
       }
@@ -307,7 +307,7 @@ test("superRefine after skipped transform", () => {
       }
     });
 
-  const result = schema.safeParse("");
+  const result = Schema.safeParse("");
 
   expect(result.success).toEqual(false);
 });

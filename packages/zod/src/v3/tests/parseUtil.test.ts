@@ -4,7 +4,7 @@ import { expect, test } from "vitest";
 import { type SyncParseReturnType, isAborted, isDirty, isValid } from "../helpers/parseUtil.js";
 
 test("parseUtil isInvalid should use structural typing", () => {
-  // Test for issue #556: https://github.com/colinhacks/zod/issues/556
+  // Test for issue #556: https://github.com/colinhacks/schema/issues/556
   const aborted: SyncParseReturnType = { status: "aborted" };
   const dirty: SyncParseReturnType = { status: "dirty", value: "whatever" };
   const valid: SyncParseReturnType = { status: "valid", value: "whatever" };

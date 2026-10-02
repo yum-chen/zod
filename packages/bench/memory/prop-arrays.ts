@@ -4,16 +4,16 @@
  * breakdown, so this answers *whose* they are and how big.
  */
 import * as fs from "node:fs";
-import * as z from "zod";
+import * as Schema   from "schema";
 import { fmtBytes, table } from "./harness.js";
 import { loadGraph, snapshotNow } from "./retainers.js";
 
 const which = process.argv[2] ?? "string";
 const factories: Record<string, () => unknown> = {
-  string: () => z.string(),
-  "string-min": () => z.string().min(1),
-  "object-3": () => z.object({ a: z.string(), b: z.number(), c: z.boolean() }),
-  number: () => z.number(),
+  string: () => Schema.string(),
+  "string-min": () => Schema.string().min(1),
+  "object-3": () => Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean() }),
+  number: () => Schema.number(),
 };
 
 const N = 5_000;

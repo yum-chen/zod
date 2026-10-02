@@ -1,7 +1,7 @@
 /**
  * How much does an own property actually cost when it's added by assignment
  * to an object V8 couldn't slack-track (created by a generic constructor that
- * assigns nothing itself)? This is the shape every zod schema instance has,
+ * assigns nothing itself)? This is the shape every schema schema instance has,
  * so it sets the payoff for moving methods to the prototype.
  */
 import { fmtBytes, measureStable, table } from "./harness.js";

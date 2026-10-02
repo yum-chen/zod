@@ -1,6 +1,6 @@
 import { type } from "arktype";
-import * as z from "zod/v4";
-import * as zcore from "zod/v4/core";
+import * as Schema from "schema/v4";
+import * as zcore from "schema/v4/core";
 import { metabench } from "./metabench.js";
 
 const caseOrder = ["simple", "nested", "array", "array-objects", "du", "intersection", "xor"] as const;
@@ -125,9 +125,9 @@ console.log("");
 // ============================================
 
 // Simple object schema
-const zodSimple = z.object({
-  name: z.string(),
-  age: z.number(),
+const schemaSimple = Schema.object({
+  name: Schema.string(),
+  age: Schema.number(),
 });
 
 const arktypeSimple = type({
@@ -136,17 +136,17 @@ const arktypeSimple = type({
 });
 
 // Nested object schema (matches moltar benchmark)
-const zodNested = z.strictObject({
-  number: z.number(),
-  negNumber: z.number(),
-  maxNumber: z.number(),
-  string: z.string(),
-  longString: z.string(),
-  boolean: z.boolean(),
-  deeplyNested: z.strictObject({
-    foo: z.string(),
-    num: z.number(),
-    bool: z.boolean(),
+const schemaNested = Schema.strictObject({
+  number: Schema.number(),
+  negNumber: Schema.number(),
+  maxNumber: Schema.number(),
+  string: Schema.string(),
+  longString: Schema.string(),
+  boolean: Schema.boolean(),
+  deeplyNested: Schema.strictObject({
+    foo: Schema.string(),
+    num: Schema.number(),
+    bool: Schema.boolean(),
   }),
 });
 
@@ -165,18 +165,18 @@ const arktypeNested = type({
 });
 
 // Array schema
-const zodArray = z.array(z.number());
+const schemaArray = Schema.array(Schema.number());
 const arktypeArray = type("number[]");
 
 // Array of objects
-const zodArrayOfObjects = z.array(z.object({ id: z.number(), name: z.string() }));
+const schemaArrayOfObjects = Schema.array(Schema.object({ id: Schema.number(), name: Schema.string() }));
 const arktypeArrayOfObjects = type({ id: "number", name: "string" }).array();
 
 // Discriminated union
-const zodDiscriminated = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("text"), value: z.string() }),
-  z.object({ kind: z.literal("count"), value: z.number() }),
-  z.object({ kind: z.literal("flag"), value: z.boolean() }),
+const schemaDiscriminated = Schema.discriminatedUnion("kind", [
+  Schema.object({ kind: Schema.literal("text"), value: Schema.string() }),
+  Schema.object({ kind: Schema.literal("count"), value: Schema.number() }),
+  Schema.object({ kind: Schema.literal("flag"), value: Schema.boolean() }),
 ]);
 
 const arktypeDiscriminated = type({
@@ -187,40 +187,40 @@ const arktypeDiscriminated = type({
   .or({ kind: "'flag'", value: "boolean" });
 
 // Intersection / deep merge
-const zodIntersection = z.intersection(
-  z.object({ nested: z.object({ a: z.string() }) }),
-  z.object({ nested: z.object({ b: z.number() }) })
+const schemaIntersection = Schema.intersection(
+  Schema.object({ nested: Schema.object({ a: Schema.string() }) }),
+  Schema.object({ nested: Schema.object({ b: Schema.number() }) })
 );
 
-const zodXor = z.xor([z.string(), z.number(), z.boolean()]);
+const schemaXor = Schema.xor([Schema.string(), Schema.number(), Schema.boolean()]);
 
-// Compiled Zod schemas (public API) + raw fast paths (lower-level primitive)
-const zodSimpleCompiled = zcore.compile(zodSimple);
-const zodNestedCompiled = zcore.compile(zodNested);
-const zodArrayCompiled = zcore.compile(zodArray);
-const zodArrayOfObjectsCompiled = zcore.compile(zodArrayOfObjects);
-const zodDiscriminatedCompiled = zcore.compile(zodDiscriminated);
-const zodIntersectionCompiled = zcore.compile(zodIntersection);
-// z.xor forces a fallback by design, so compiling it throws. Keep the case runnable: measure the runtime path the fallback would have used.
-const zodXorCompiled = (() => {
+// Compiled Schema schemas (public API) + raw fast paths (lower-level primitive)
+const schemaSimpleCompiled = zcore.compile(schemaSimple);
+const schemaNestedCompiled = zcore.compile(schemaNested);
+const schemaArrayCompiled = zcore.compile(schemaArray);
+const schemaArrayOfObjectsCompiled = zcore.compile(schemaArrayOfObjects);
+const schemaDiscriminatedCompiled = zcore.compile(schemaDiscriminated);
+const schemaIntersectionCompiled = zcore.compile(schemaIntersection);
+// Schema.xor forces a fallback by design, so compiling it throws. Keep the case runnable: measure the runtime path the fallback would have used.
+const schemaXorCompiled = (() => {
   try {
-    return zcore.compile(zodXor);
+    return zcore.compile(schemaXor);
   } catch {
-    return zodXor;
+    return schemaXor;
   }
 })();
 
-const zodSimpleFn = zcore.compileFn(zodSimple);
-const zodNestedFn = zcore.compileFn(zodNested);
-const zodArrayFn = zcore.compileFn(zodArray);
-const zodArrayOfObjectsFn = zcore.compileFn(zodArrayOfObjects);
-const zodDiscriminatedFn = zcore.compileFn(zodDiscriminated);
-const zodIntersectionFn = zcore.compileFn(zodIntersection);
-const zodXorFn = (() => {
+const schemaSimpleFn = zcore.compileFn(schemaSimple);
+const schemaNestedFn = zcore.compileFn(schemaNested);
+const schemaArrayFn = zcore.compileFn(schemaArray);
+const schemaArrayOfObjectsFn = zcore.compileFn(schemaArrayOfObjects);
+const schemaDiscriminatedFn = zcore.compileFn(schemaDiscriminated);
+const schemaIntersectionFn = zcore.compileFn(schemaIntersection);
+const schemaXorFn = (() => {
   try {
-    return zcore.compileFn(zodXor);
+    return zcore.compileFn(schemaXor);
   } catch {
-    return (d: unknown) => zodXor.safeParse(d);
+    return (d: unknown) => schemaXor.safeParse(d);
   }
 })() as any;
 
@@ -308,17 +308,17 @@ function handwrittenArray(input: unknown): number[] | typeof INVALID {
 if (selectedCaseSet.has("simple") || selectedCaseSet.has("nested")) {
   console.log("=== Correctness Check ===");
   if (selectedCaseSet.has("simple")) {
-    console.log("Zod safeParse simple:", zodSimple.safeParse(simpleData).success);
-    console.log("z.compile() simple:", zodSimpleCompiled.safeParse(simpleData).success);
-    console.log("z.compileFn() simple:", zodSimpleFn(simpleData) !== zcore.INVALID);
+    console.log("Schema safeParse simple:", schemaSimple.safeParse(simpleData).success);
+    console.log("Schema.compile() simple:", schemaSimpleCompiled.safeParse(simpleData).success);
+    console.log("Schema.compileFn() simple:", schemaSimpleFn(simpleData) !== zcore.INVALID);
     console.log("Arktype simple:", !(arktypeSimple(simpleData) instanceof type.errors));
     console.log("Handwritten simple:", handwrittenSimple(simpleData) !== INVALID);
     console.log("");
   }
   if (selectedCaseSet.has("nested")) {
-    console.log("Zod safeParse nested:", zodNested.safeParse(nestedData).success);
-    console.log("z.compile() nested:", zodNestedCompiled.safeParse(nestedData).success);
-    console.log("z.compileFn() nested:", zodNestedFn(nestedData) !== zcore.INVALID);
+    console.log("Schema safeParse nested:", schemaNested.safeParse(nestedData).success);
+    console.log("Schema.compile() nested:", schemaNestedCompiled.safeParse(nestedData).success);
+    console.log("Schema.compileFn() nested:", schemaNestedFn(nestedData) !== zcore.INVALID);
     console.log("Arktype nested:", !(arktypeNested(nestedData) instanceof type.errors));
     console.log("Handwritten nested:", handwrittenNested(nestedData) !== INVALID);
     console.log("");
@@ -330,11 +330,11 @@ if (selectedCaseSet.has("simple") || selectedCaseSet.has("nested")) {
   console.log("=== Object Identity Check ===");
   if (selectedCaseSet.has("simple")) {
     const arktypeResult = arktypeSimple(simpleData);
-    const zodResult = zodSimple.safeParse(simpleData);
+    const schemaResult = schemaSimple.safeParse(simpleData);
     const handwrittenResult = handwrittenSimple(simpleData);
 
     console.log("Arktype returns same object:", arktypeResult === simpleData);
-    console.log("Zod returns same object:", zodResult.success && zodResult.data === simpleData);
+    console.log("Schema returns same object:", schemaResult.success && schemaResult.data === simpleData);
     console.log("Handwritten returns same object:", handwrittenResult === simpleData);
     console.log("");
   }
@@ -342,9 +342,9 @@ if (selectedCaseSet.has("simple") || selectedCaseSet.has("nested")) {
   // Check nested too
   if (selectedCaseSet.has("nested")) {
     const arktypeNestedResult = arktypeNested(nestedData);
-    const zodNestedResult = zodNested.safeParse(nestedData);
+    const schemaNestedResult = schemaNested.safeParse(nestedData);
     console.log("Arktype nested returns same object:", arktypeNestedResult === nestedData);
-    console.log("Zod nested returns same object:", zodNestedResult.success && zodNestedResult.data === nestedData);
+    console.log("Schema nested returns same object:", schemaNestedResult.success && schemaNestedResult.data === nestedData);
     console.log("");
   }
 }
@@ -362,14 +362,14 @@ const benchmarkCases: Record<BenchmarkCase, () => Promise<void>> = {
       arktype() {
         return arktypeSimple(simpleData);
       },
-      "z.compile().safeParse"() {
-        return zodSimpleCompiled.safeParse(simpleData);
+      "Schema.compile().safeParse"() {
+        return schemaSimpleCompiled.safeParse(simpleData);
       },
-      "z.compileFn()"() {
-        return zodSimpleFn(simpleData);
+      "Schema.compileFn()"() {
+        return schemaSimpleFn(simpleData);
       },
-      "zod safeParse"() {
-        return zodSimple.safeParse(simpleData);
+      "schema safeParse"() {
+        return schemaSimple.safeParse(simpleData);
       },
     }).run();
   },
@@ -381,14 +381,14 @@ const benchmarkCases: Record<BenchmarkCase, () => Promise<void>> = {
       arktype() {
         return arktypeNested(nestedData);
       },
-      "z.compile().safeParse"() {
-        return zodNestedCompiled.safeParse(nestedData);
+      "Schema.compile().safeParse"() {
+        return schemaNestedCompiled.safeParse(nestedData);
       },
-      "z.compileFn()"() {
-        return zodNestedFn(nestedData);
+      "Schema.compileFn()"() {
+        return schemaNestedFn(nestedData);
       },
-      "zod safeParse"() {
-        return zodNested.safeParse(nestedData);
+      "schema safeParse"() {
+        return schemaNested.safeParse(nestedData);
       },
     }).run();
   },
@@ -400,14 +400,14 @@ const benchmarkCases: Record<BenchmarkCase, () => Promise<void>> = {
       arktype() {
         return arktypeArray(arrayData);
       },
-      "z.compile().safeParse"() {
-        return zodArrayCompiled.safeParse(arrayData);
+      "Schema.compile().safeParse"() {
+        return schemaArrayCompiled.safeParse(arrayData);
       },
-      "z.compileFn()"() {
-        return zodArrayFn(arrayData);
+      "Schema.compileFn()"() {
+        return schemaArrayFn(arrayData);
       },
-      "zod safeParse"() {
-        return zodArray.safeParse(arrayData);
+      "schema safeParse"() {
+        return schemaArray.safeParse(arrayData);
       },
     }).run();
   },
@@ -416,14 +416,14 @@ const benchmarkCases: Record<BenchmarkCase, () => Promise<void>> = {
       arktype() {
         return arktypeArrayOfObjects(arrayOfObjectsData);
       },
-      "z.compile().safeParse"() {
-        return zodArrayOfObjectsCompiled.safeParse(arrayOfObjectsData);
+      "Schema.compile().safeParse"() {
+        return schemaArrayOfObjectsCompiled.safeParse(arrayOfObjectsData);
       },
-      "z.compileFn()"() {
-        return zodArrayOfObjectsFn(arrayOfObjectsData);
+      "Schema.compileFn()"() {
+        return schemaArrayOfObjectsFn(arrayOfObjectsData);
       },
-      "zod safeParse"() {
-        return zodArrayOfObjects.safeParse(arrayOfObjectsData);
+      "schema safeParse"() {
+        return schemaArrayOfObjects.safeParse(arrayOfObjectsData);
       },
     }).run();
   },
@@ -432,40 +432,40 @@ const benchmarkCases: Record<BenchmarkCase, () => Promise<void>> = {
       arktype() {
         return arktypeDiscriminated(discriminatedData);
       },
-      "z.compile().safeParse"() {
-        return zodDiscriminatedCompiled.safeParse(discriminatedData);
+      "Schema.compile().safeParse"() {
+        return schemaDiscriminatedCompiled.safeParse(discriminatedData);
       },
-      "z.compileFn()"() {
-        return zodDiscriminatedFn(discriminatedData);
+      "Schema.compileFn()"() {
+        return schemaDiscriminatedFn(discriminatedData);
       },
-      "zod safeParse"() {
-        return zodDiscriminated.safeParse(discriminatedData);
+      "schema safeParse"() {
+        return schemaDiscriminated.safeParse(discriminatedData);
       },
     }).run();
   },
   async intersection() {
     await metabench("intersection deep merge", {
-      "z.compile().safeParse"() {
-        return zodIntersectionCompiled.safeParse(intersectionData);
+      "Schema.compile().safeParse"() {
+        return schemaIntersectionCompiled.safeParse(intersectionData);
       },
-      "z.compileFn()"() {
-        return zodIntersectionFn(intersectionData);
+      "Schema.compileFn()"() {
+        return schemaIntersectionFn(intersectionData);
       },
-      "zod safeParse"() {
-        return zodIntersection.safeParse(intersectionData);
+      "schema safeParse"() {
+        return schemaIntersection.safeParse(intersectionData);
       },
     }).run();
   },
   async xor() {
     await metabench("xor union (3 branches, one match)", {
-      "z.compile().safeParse"() {
-        return zodXorCompiled.safeParse(xorData);
+      "Schema.compile().safeParse"() {
+        return schemaXorCompiled.safeParse(xorData);
       },
-      "z.compileFn()"() {
-        return zodXorFn(xorData);
+      "Schema.compileFn()"() {
+        return schemaXorFn(xorData);
       },
-      "zod safeParse"() {
-        return zodXor.safeParse(xorData);
+      "schema safeParse"() {
+        return schemaXor.safeParse(xorData);
       },
     }).run();
   },

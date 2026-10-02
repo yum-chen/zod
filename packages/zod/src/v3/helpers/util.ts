@@ -126,7 +126,7 @@ export namespace objectUtil {
       };
 }
 
-export const ZodParsedType: {
+export const SchemaParsedType: {
   string: "string";
   nan: "nan";
   number: "number";
@@ -170,55 +170,55 @@ export const ZodParsedType: {
   "set",
 ]);
 
-export type ZodParsedType = keyof typeof ZodParsedType;
+export type SchemaParsedType = keyof typeof SchemaParsedType;
 
-export const getParsedType = (data: any): ZodParsedType => {
+export const getParsedType = (data: any): SchemaParsedType => {
   const t = typeof data;
 
   switch (t) {
     case "undefined":
-      return ZodParsedType.undefined;
+      return SchemaParsedType.undefined;
 
     case "string":
-      return ZodParsedType.string;
+      return SchemaParsedType.string;
 
     case "number":
-      return Number.isNaN(data) ? ZodParsedType.nan : ZodParsedType.number;
+      return Number.isNaN(data) ? SchemaParsedType.nan : SchemaParsedType.number;
 
     case "boolean":
-      return ZodParsedType.boolean;
+      return SchemaParsedType.boolean;
 
     case "function":
-      return ZodParsedType.function;
+      return SchemaParsedType.function;
 
     case "bigint":
-      return ZodParsedType.bigint;
+      return SchemaParsedType.bigint;
 
     case "symbol":
-      return ZodParsedType.symbol;
+      return SchemaParsedType.symbol;
 
     case "object":
       if (Array.isArray(data)) {
-        return ZodParsedType.array;
+        return SchemaParsedType.array;
       }
       if (data === null) {
-        return ZodParsedType.null;
+        return SchemaParsedType.null;
       }
       if (data.then && typeof data.then === "function" && data.catch && typeof data.catch === "function") {
-        return ZodParsedType.promise;
+        return SchemaParsedType.promise;
       }
       if (typeof Map !== "undefined" && data instanceof Map) {
-        return ZodParsedType.map;
+        return SchemaParsedType.map;
       }
       if (typeof Set !== "undefined" && data instanceof Set) {
-        return ZodParsedType.set;
+        return SchemaParsedType.set;
       }
       if (typeof Date !== "undefined" && data instanceof Date) {
-        return ZodParsedType.date;
+        return SchemaParsedType.date;
       }
-      return ZodParsedType.object;
+      return SchemaParsedType.object;
 
     default:
-      return ZodParsedType.unknown;
+      return SchemaParsedType.unknown;
   }
 };

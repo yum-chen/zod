@@ -1,30 +1,30 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
 test("create enum", () => {
-  const MyEnum = z.enum(["Red", "Green", "Blue"]);
+  const MyEnum = Schema.enum(["Red", "Green", "Blue"]);
   expect(MyEnum.Values.Red).toEqual("Red");
   expect(MyEnum.Enum.Red).toEqual("Red");
   expect(MyEnum.enum.Red).toEqual("Red");
 });
 
 test("infer enum", () => {
-  const MyEnum = z.enum(["Red", "Green", "Blue"]);
-  type MyEnum = z.infer<typeof MyEnum>;
+  const MyEnum = Schema.enum(["Red", "Green", "Blue"]);
+  type MyEnum = Schema.infer<typeof MyEnum>;
   util.assertEqual<MyEnum, "Red" | "Green" | "Blue">(true);
 });
 
 test("get options", () => {
-  expect(z.enum(["tuna", "trout"]).options).toEqual(["tuna", "trout"]);
+  expect(Schema.enum(["tuna", "trout"]).options).toEqual(["tuna", "trout"]);
 });
 
 test("readonly enum", () => {
   const HTTP_SUCCESS = ["200", "201"] as const;
-  const arg = z.enum(HTTP_SUCCESS);
-  type arg = z.infer<typeof arg>;
+  const arg = Schema.enum(HTTP_SUCCESS);
+  type arg = Schema.infer<typeof arg>;
   util.assertEqual<arg, "200" | "201">(true);
 
   arg.parse("201");
@@ -32,7 +32,7 @@ test("readonly enum", () => {
 });
 
 test("error params", () => {
-  const result = z.enum(["test"], { required_error: "REQUIRED" }).safeParse(undefined);
+  const result = Schema.enum(["test"], { required_error: "REQUIRED" }).safeParse(undefined);
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues[0].message).toEqual("REQUIRED");
@@ -41,21 +41,21 @@ test("error params", () => {
 
 test("extract/exclude", () => {
   const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"] as const;
-  const FoodEnum = z.enum(foods);
+  const FoodEnum = Schema.enum(foods);
   const ItalianEnum = FoodEnum.extract(["Pasta", "Pizza"]);
   const UnhealthyEnum = FoodEnum.exclude(["Salad"]);
   const EmptyFoodEnum = FoodEnum.exclude(foods);
 
-  util.assertEqual<z.infer<typeof ItalianEnum>, "Pasta" | "Pizza">(true);
-  util.assertEqual<z.infer<typeof UnhealthyEnum>, "Pasta" | "Pizza" | "Tacos" | "Burgers">(true);
+  util.assertEqual<Schema.infer<typeof ItalianEnum>, "Pasta" | "Pizza">(true);
+  util.assertEqual<Schema.infer<typeof UnhealthyEnum>, "Pasta" | "Pizza" | "Tacos" | "Burgers">(true);
   // @ts-expect-error TS2344
-  util.assertEqual<typeof EmptyFoodEnum, z.ZodEnum<[]>>(true);
-  util.assertEqual<z.infer<typeof EmptyFoodEnum>, never>(true);
+  util.assertEqual<typeof EmptyFoodEnum, Schema.SchemaEnum<[]>>(true);
+  util.assertEqual<Schema.infer<typeof EmptyFoodEnum>, never>(true);
 });
 
 test("error map in extract/exclude", () => {
   const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"] as const;
-  const FoodEnum = z.enum(foods, {
+  const FoodEnum = Schema.enum(foods, {
     errorMap: () => ({ message: "This is not food!" }),
   });
   const ItalianEnum = FoodEnum.extract(["Pasta", "Pizza"]);
@@ -74,7 +74,7 @@ test("error map in extract/exclude", () => {
   }
 });
 
-test("readonly in ZodEnumDef", () => {
-  let _t!: z.ZodEnumDef<readonly ["a", "b"]>;
+test("readonly in SchemaEnumDef", () => {
+  let _t!: Schema.SchemaEnumDef<readonly ["a", "b"]>;
   _t;
 });

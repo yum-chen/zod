@@ -1,23 +1,23 @@
 import type * as errors from "./errors.js";
-import type { $ZodMemoizer, $ZodType, $ZodTypeDef, ParseContextInternal, ParsePayload } from "./schemas.js";
+import type { $SchemaMemoizer, $SchemaType, $SchemaTypeDef, ParseContextInternal, ParsePayload } from "./schemas.js";
 import * as util from "./util.js";
 
-export class $ZodCyclicError extends Error {
+export class $SchemaCyclicError extends Error {
   constructor() {
     super(`Cannot parse a reference cycle that closes through a transform`);
-    this.name = "ZodCyclicError";
+    this.name = "SchemaCyclicError";
   }
 }
 
 interface Entry {
   value: unknown;
   /** `null` until the node's children are parsed. */
-  issues: errors.$ZodRawIssue[] | null;
+  issues: errors.$SchemaRawIssue[] | null;
 }
 
 interface State {
   /** Weak throughout because `attach` caches a bucket on the schema instance, which outlives the parse. */
-  buckets: WeakMap<$ZodType, WeakMap<object, Entry>>;
+  buckets: WeakMap<$SchemaType, WeakMap<object, Entry>>;
   /** Nodes a back-edge resolved to before they finished. */
   backEdges: WeakSet<object> | undefined;
 }
@@ -26,7 +26,7 @@ interface State {
 const STATE = "~memo";
 type WithState = { [STATE]?: State };
 
-const NO_ISSUES: errors.$ZodRawIssue[] = [];
+const NO_ISSUES: errors.$SchemaRawIssue[] = [];
 
 // a value a cycle can close through
 function isRef(value: unknown): value is object {
@@ -34,7 +34,7 @@ function isRef(value: unknown): value is object {
 }
 
 // Receivers prefix paths in place, so the cache and every hand-out need their own copies.
-function cloneIssues(issues: errors.$ZodRawIssue[]): errors.$ZodRawIssue[] {
+function cloneIssues(issues: errors.$SchemaRawIssue[]): errors.$SchemaRawIssue[] {
   return issues.map((iss) => (iss.path ? { ...iss, path: iss.path.slice() } : { ...iss }));
 }
 
@@ -47,7 +47,7 @@ const PROVEN = 2;
 type Answer = typeof NONE | typeof ASSUMED | typeof PROVEN;
 
 /** Whether this schema's subtree contains a cycle, so one parse can re-enter it. */
-function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answer {
+function isRecursive(inst: $SchemaType, stack: Set<object>, resolve: boolean): Answer {
   const cached = recursive.get(inst);
   if (cached !== undefined) return cached ? PROVEN : NONE;
   // Relative to the walk in progress, so not cached.
@@ -56,7 +56,7 @@ function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answ
 
   let result: Answer = NONE;
   const check = (child: any) => {
-    if (result !== PROVEN && child?._zod) {
+    if (result !== PROVEN && child?._schema) {
       const answer = isRecursive(child, stack, resolve);
       if (answer > result) result = answer;
     }
@@ -67,10 +67,10 @@ function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answ
     let answer: Answer = NONE;
     for (const key of Reflect.ownKeys(sh)) {
       const desc = Object.getOwnPropertyDescriptor(sh, key)!;
-      // an object resolves its shape by spread, so a key it does not enumerate is never parsed; `z.properties` reads every own key and so keeps them all
+      // an object resolves its shape by spread, so a key it does not enumerate is never parsed; `Schema.properties` reads every own key and so keeps them all
       if (spread && !desc.enumerable) continue;
       // resolving runs user code, and a factory mints a fresh subtree per read, so an edge the walk can't follow counts as a cycle
-      const child = desc.get ? ASSUMED : desc.value?._zod ? isRecursive(desc.value, stack, resolve) : NONE;
+      const child = desc.get ? ASSUMED : desc.value?._schema ? isRecursive(desc.value, stack, resolve) : NONE;
       if (child > answer) answer = child;
     }
     return answer;
@@ -80,8 +80,8 @@ function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answ
     if (answer > result) result = answer;
   };
 
-  const def = inst._zod.def as any;
-  const kind = def.type as $ZodTypeDef["type"];
+  const def = inst._schema.def as any;
+  const kind = def.type as $SchemaTypeDef["type"];
   switch (kind) {
     case "object": {
       const raw = util.rawShape(def);
@@ -131,9 +131,9 @@ function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answ
       check(def.input);
       check(def.output);
       break;
-    // `$ZodLazy` caches its inner on the def, so a resolved edge is followed exactly
+    // `$SchemaLazy` caches its inner on the def, so a resolved edge is followed exactly
     case "lazy": {
-      const inner = def._cachedInner ?? (resolve ? (inst as any)._zod.innerType : undefined);
+      const inner = def._cachedInner ?? (resolve ? (inst as any)._schema.innerType : undefined);
       // walked with resolution off: one hop sees past the deferral, and a lazy that yields only another unresolved lazy is generative, so it stops there
       merge(inner ? isRecursive(inner, stack, false) : ASSUMED);
       break;
@@ -170,7 +170,7 @@ function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answ
         if (!desc || desc.get) continue;
         const value = desc.value;
         if (!value || typeof value !== "object") continue;
-        if (value._zod) check(value);
+        if (value._schema) check(value);
         else if (Array.isArray(value)) for (const el of value) check(el);
       }
     }
@@ -181,23 +181,23 @@ function isRecursive(inst: $ZodType, stack: Set<object>, resolve: boolean): Answ
 }
 
 /** An assumed answer must not outlive the resolution that settles it, so only a certain one is cached. */
-function settle(inst: $ZodType, answer: Answer): Answer {
+function settle(inst: $SchemaType, answer: Answer): Answer {
   if (answer !== ASSUMED) recursive.set(inst, answer === PROVEN);
   return answer;
 }
 
 /**
  * Whether one parse can re-enter this schema, i.e. its subtree contains a cycle.
- * Exported for `z.compile`, which refuses to compile such a schema: cycle
+ * Exported for `Schema.compile`, which refuses to compile such a schema: cycle
  * breaking is driven from here off state keyed on the parse context, and a
  * generated fast path has no context to key on.
  */
-export function isRecursiveSchema(inst: $ZodType): boolean {
-  // z.compile never parses, so nothing would ever resolve a lazy for it; it runs once and already treats a throw here as recursive
+export function isRecursiveSchema(inst: $SchemaType): boolean {
+  // Schema.compile never parses, so nothing would ever resolve a lazy for it; it runs once and already treats a throw here as recursive
   return isRecursive(inst, new Set(), true) !== NONE;
 }
 
-function bucketFor(state: State, inst: $ZodType): WeakMap<object, Entry> {
+function bucketFor(state: State, inst: $SchemaType): WeakMap<object, Entry> {
   let bucket = state.buckets.get(inst);
   if (!bucket) {
     bucket = new WeakMap();
@@ -209,10 +209,10 @@ function bucketFor(state: State, inst: $ZodType): WeakMap<object, Entry> {
 // Set immediately before delegating to core and cleared immediately after, so `alloc` registers only for a visit this module is driving.
 let handoff: WeakMap<object, Entry> | undefined;
 
-// Allocated but unfinished entries. `alloc` and the matching pop both happen in the synchronous part of a parse, so they nest even when children are async, and one stack serves every schema.
+// Allocated but unfinished entries. `alloc` and the matching pop both happen in the synchronous part of a parse, so they nest even when children are async, and one stack serves every Schema.
 const open: Entry[] = [];
 
-const memo: $ZodMemoizer = {
+const memo: $SchemaMemoizer = {
   alloc(_inst, payload, empty) {
     const bucket = handoff;
     if (!bucket) return empty;
@@ -224,16 +224,16 @@ const memo: $ZodMemoizer = {
   },
 
   guard(inst) {
-    inst._zod.deferred ??= [];
-    inst._zod.deferred.push(() => {
-      const base = inst._zod.parse;
+    inst._schema.deferred ??= [];
+    inst._schema.deferred.push(() => {
+      const base = inst._schema.parse;
       const wrapped = (payload: ParsePayload, ctx: ParseContextInternal): util.MaybeAsync<ParsePayload> => {
         // The value is a placeholder a back-edge is still waiting on, so the cycle closes through this transform. Its output can't exist in time to bind.
-        if (ctx.direction !== "backward" && isBackEdge(ctx, payload.value)) throw new $ZodCyclicError();
+        if (ctx.direction !== "backward" && isBackEdge(ctx, payload.value)) throw new $SchemaCyclicError();
         return base(payload, ctx);
       };
-      inst._zod.parse = wrapped;
-      if (inst._zod.run === base) inst._zod.run = wrapped;
+      inst._schema.parse = wrapped;
+      if (inst._schema.run === base) inst._schema.run = wrapped;
     });
   },
 
@@ -245,17 +245,17 @@ const memo: $ZodMemoizer = {
     let lastBucket: WeakMap<object, Entry> | undefined;
 
     // Wraps `parse` in a deferred so it sees the container's final parse. Core's own deferred copies `parse` into `run` when there are no checks, and it ran first, so `run` is patched to match; with checks, `run` reads `parse` dynamically.
-    inst._zod.deferred ??= [];
-    inst._zod.deferred.push(() => {
-      const base = inst._zod.parse;
+    inst._schema.deferred ??= [];
+    inst._schema.deferred.push(() => {
+      const base = inst._schema.parse;
 
       const wrapped = (payload: ParsePayload, ctx: ParseContextInternal): util.MaybeAsync<ParsePayload> => {
         if (isRecursiveInst === undefined) {
           const walked = isRecursive(inst, new Set(), false);
           if (walked === NONE) {
             // Nothing here can ever fire, so take it back out.
-            inst._zod.parse = base;
-            if (inst._zod.run === wrapped) inst._zod.run = base;
+            inst._schema.parse = base;
+            if (inst._schema.run === wrapped) inst._schema.run = base;
             return base(payload, ctx);
           }
           // this parse resolves the deferred edges on its own path, so ask once more before latching
@@ -313,14 +313,14 @@ const memo: $ZodMemoizer = {
         return result;
       };
 
-      inst._zod.parse = wrapped;
-      if (inst._zod.run === base) inst._zod.run = wrapped;
+      inst._schema.parse = wrapped;
+      if (inst._schema.run === base) inst._schema.run = wrapped;
     });
   },
 };
 
-/** The memoizer that gives containers cycle support. `zod` installs it by default; `zod/mini` opts in with `config({ memoizer: memoizer() })`. */
-export function memoizer(): $ZodMemoizer {
+/** The memoizer that gives containers cycle support. `schema` installs it by default; `schema/mini` opts in with `config({ memoizer: memoizer() })`. */
+export function memoizer(): $SchemaMemoizer {
   return memo;
 }
 

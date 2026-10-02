@@ -12,7 +12,7 @@ export const Silver = () => {
       name: "Subtotal",
       logoSrc: "https://avatars.githubusercontent.com/u/176449348?s=200&v=4",
       url: "subtotal.com",
-      href: "https://www.subtotal.com/?utm_source=zod",
+      href: "https://www.subtotal.com/?utm_source=schema",
     },
     {
       name: "PropelAuth",
@@ -30,7 +30,7 @@ export const Silver = () => {
       name: "Transloadit",
       logoSrc: "https://avatars.githubusercontent.com/u/125754?s=200&v=4",
       url: "transloadit.com",
-      href: "https://transloadit.com/?utm_source=zod&utm_medium=referral&utm_campaign=sponsorship&utm_content=github",
+      href: "https://transloadit.com/?utm_source=schema&utm_medium=referral&utm_campaign=sponsorship&utm_content=github",
     },
     {
       name: "Whop",
@@ -53,8 +53,8 @@ export const Silver = () => {
     {
       name: "Mux",
       logoSrc: "https://avatars.githubusercontent.com/u/16199997?s=200&v=4",
-      url: "mux.link/zod",
-      href: "https://mux.link/zod",
+      url: "mux.link/schema",
+      href: "https://mux.link/schema",
     },
     {
       name: "Cybozu",
@@ -68,13 +68,13 @@ export const Silver = () => {
       // white-on-transparent mark, invisible on the light theme without this
       logoClassName: "brightness-0 dark:brightness-100",
       url: "9thco.com",
-      href: "https://www.9thco.com/?utm_source=zod",
+      href: "https://www.9thco.com/?utm_source=schema",
     },
     {
       name: "StackBlitz",
       logoSrc: "https://avatars.githubusercontent.com/u/28635252?s=200&v=4",
       url: "stackblitz.com",
-      href: "https://stackblitz.com/?utm_source=zod",
+      href: "https://stackblitz.com/?utm_source=schema",
     },
   ];
 

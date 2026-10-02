@@ -1,42 +1,42 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-const crazySchema = z.object({
-  tuple: z.tuple([
-    z.string().nullable().optional(),
-    z.number().nullable().optional(),
-    z.boolean().nullable().optional(),
-    z.null().nullable().optional(),
-    z.undefined().nullable().optional(),
-    z.literal("1234").nullable().optional(),
+const crazySchema = Schema.object({
+  tuple: Schema.tuple([
+    Schema.string().nullable().optional(),
+    Schema.number().nullable().optional(),
+    Schema.boolean().nullable().optional(),
+    Schema.null().nullable().optional(),
+    Schema.undefined().nullable().optional(),
+    Schema.literal("1234").nullable().optional(),
   ]),
   merged: z
     .object({
-      k1: z.string().optional(),
+      k1: Schema.string().optional(),
     })
-    .merge(z.object({ k1: z.string().nullable(), k2: z.number() })),
-  union: z.array(z.union([z.literal("asdf"), z.literal(12)])).nonempty(),
-  array: z.array(z.number()),
-  // sumTransformer: z.transformer(z.array(z.number()), z.number(), (arg) => {
+    .merge(Schema.object({ k1: Schema.string().nullable(), k2: Schema.number() })),
+  union: Schema.array(Schema.union([Schema.literal("asdf"), Schema.literal(12)])).nonempty(),
+  array: Schema.array(Schema.number()),
+  // sumTransformer: Schema.transformer(Schema.array(Schema.number()), Schema.number(), (arg) => {
   //   return arg.reduce((a, b) => a + b, 0);
   // }),
-  sumMinLength: z.array(z.number()).refine((arg) => arg.length > 5),
-  intersection: z.intersection(z.object({ p1: z.string().optional() }), z.object({ p1: z.number().optional() })),
-  enum: z.intersection(z.enum(["zero", "one"]), z.enum(["one", "two"])),
-  nonstrict: z.object({ points: z.number() }).nonstrict(),
-  numProm: z.promise(z.number()),
-  lenfun: z.function(z.tuple([z.string()]), z.boolean()),
+  sumMinLength: Schema.array(Schema.number()).refine((arg) => arg.length > 5),
+  intersection: Schema.intersection(Schema.object({ p1: Schema.string().optional() }), Schema.object({ p1: Schema.number().optional() })),
+  enum: Schema.intersection(Schema.enum(["zero", "one"]), Schema.enum(["one", "two"])),
+  nonstrict: Schema.object({ points: Schema.number() }).nonstrict(),
+  numProm: Schema.promise(Schema.number()),
+  lenfun: Schema.function(Schema.tuple([Schema.string()]), Schema.boolean()),
 });
 
 // const asyncCrazySchema = crazySchema.extend({
-//   // async_transform: z.transformer(
-//   //   z.array(z.number()),
-//   //   z.number(),
+//   // async_transform: Schema.transformer(
+//   //   Schema.array(Schema.number()),
+//   //   Schema.number(),
 //   //   async (arg) => {
 //   //     return arg.reduce((a, b) => a + b, 0);
 //   //   }
 //   // ),
-//   async_refine: z.array(z.number()).refine(async (arg) => arg.length > 5),
+//   async_refine: Schema.array(Schema.number()).refine(async (arg) => arg.length > 5),
 // });
 
 test("parse", () => {

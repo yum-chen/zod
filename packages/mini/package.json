@@ -1,11 +1,11 @@
 {
-  "name": "@zod/mini",
+  "name": "@schema/mini",
   "version": "4.6.5",
   "type": "module",
   "license": "MIT",
-  "author": "Colin McDonnell <zod@colinhacks.com>",
-  "description": "Zod Mini as a standalone package: the tree-shakable, functional variant of Zod",
-  "homepage": "https://zod.dev/packages/mini",
+  "author": "Colin McDonnell <schema@colinhacks.com>",
+  "description": "Schema Mini as a standalone package: the tree-shakable, functional variant of Schema",
+  "homepage": "https://Schema.dev/packages/mini",
   "funding": "https://github.com/sponsors/colinhacks",
   "sideEffects": false,
   "files": [
@@ -21,7 +21,7 @@
     "validation",
     "type",
     "inference",
-    "zod",
+    "schema",
     "tree-shaking"
   ],
   "main": "./index.cjs",
@@ -33,14 +33,14 @@
       ".": "./src/index.ts"
     },
     "conditions": {
-      "@zod/source": "src"
+      "@schema/source": "src"
     },
     "sealCjsExports": true
   },
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "@zod/source": "./src/index.ts",
+      "@schema/source": "./src/index.ts",
       "types": "./index.d.cts",
       "import": "./index.js",
       "require": "./index.cjs"
@@ -48,11 +48,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/colinhacks/zod.git",
+    "url": "git+https://github.com/colinhacks/Schema.git",
     "directory": "packages/mini"
   },
   "bugs": {
-    "url": "https://github.com/colinhacks/zod/issues"
+    "url": "https://github.com/colinhacks/schema/issues"
   },
   "support": {
     "backing": {
@@ -60,10 +60,10 @@
     }
   },
   "peerDependencies": {
-    "zod": "^4.6.0"
+    "schema": "^4.6.0"
   },
   "devDependencies": {
-    "zod": "workspace:*"
+    "schema": "workspace:*"
   },
   "scripts": {
     "clean": "git clean -xdf . -e node_modules",

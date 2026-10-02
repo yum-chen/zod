@@ -1,15 +1,15 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
 test("object intersection", () => {
-  const BaseTeacher = z.object({
-    subjects: z.array(z.string()),
+  const BaseTeacher = Schema.object({
+    subjects: Schema.array(Schema.string()),
   });
-  const HasID = z.object({ id: z.string() });
+  const HasID = Schema.object({ id: Schema.string() });
 
-  const Teacher = z.intersection(BaseTeacher.passthrough(), HasID); // BaseTeacher.merge(HasID);
+  const Teacher = Schema.intersection(BaseTeacher.passthrough(), HasID); // BaseTeacher.merge(HasID);
   const data = {
     subjects: ["math"],
     id: "asdfasdf",
@@ -18,21 +18,21 @@ test("object intersection", () => {
   expect(() => Teacher.parse({ subject: data.subjects })).toThrow();
   expect(Teacher.parse({ ...data, extra: 12 })).toEqual({ ...data, extra: 12 });
 
-  expect(() => z.intersection(BaseTeacher.strict(), HasID).parse({ ...data, extra: 12 })).toThrow();
+  expect(() => Schema.intersection(BaseTeacher.strict(), HasID).parse({ ...data, extra: 12 })).toThrow();
 });
 
 test("object intersection strips __proto__ from pass-through operands", () => {
   const cases = [
     [
-      z.intersection(z.object({ name: z.string() }), z.unknown()),
+      Schema.intersection(Schema.object({ name: Schema.string() }), Schema.unknown()),
       JSON.parse('{"__proto__":{"isAdmin":true},"name":"alice"}'),
       { name: "alice" },
     ],
-    [z.intersection(z.record(z.string(), z.unknown()), z.any()), JSON.parse('{"__proto__":{},"a":1}'), { a: 1 }],
+    [Schema.intersection(Schema.record(Schema.string(), Schema.unknown()), Schema.any()), JSON.parse('{"__proto__":{},"a":1}'), { a: 1 }],
   ] as const;
 
   for (const [schema, input, expected] of cases) {
-    const parsed = schema.parse(input);
+    const parsed = Schema.parse(input);
     expect(parsed).toEqual(expected);
     expect(Object.getPrototypeOf(parsed)).toBe(Object.prototype);
     expect(Object.prototype.hasOwnProperty.call(parsed, "__proto__")).toBe(false);
@@ -40,38 +40,38 @@ test("object intersection strips __proto__ from pass-through operands", () => {
 });
 
 test("deep intersection", () => {
-  const Animal = z.object({
-    properties: z.object({
-      is_animal: z.boolean(),
+  const Animal = Schema.object({
+    properties: Schema.object({
+      is_animal: Schema.boolean(),
     }),
   });
   const Cat = z
     .object({
-      properties: z.object({
-        jumped: z.boolean(),
+      properties: Schema.object({
+        jumped: Schema.boolean(),
       }),
     })
     .and(Animal);
 
-  type _Cat = z.infer<typeof Cat>;
+  type _Cat = Schema.infer<typeof Cat>;
   // const cat:Cat = 'asdf' as any;
   const cat = Cat.parse({ properties: { is_animal: true, jumped: true } });
   expect(cat.properties).toEqual({ is_animal: true, jumped: true });
 });
 
 test("deep intersection of arrays", async () => {
-  const Author = z.object({
-    posts: z.array(
-      z.object({
-        post_id: z.number(),
+  const Author = Schema.object({
+    posts: Schema.array(
+      Schema.object({
+        post_id: Schema.number(),
       })
     ),
   });
   const Registry = z
     .object({
-      posts: z.array(
-        z.object({
-          title: z.string(),
+      posts: Schema.array(
+        Schema.object({
+          title: Schema.string(),
         })
       ),
     })
@@ -88,27 +88,27 @@ test("deep intersection of arrays", async () => {
 });
 
 test("invalid intersection types", async () => {
-  const numberIntersection = z.intersection(
-    z.number(),
-    z.number().transform((x) => x + 1)
+  const numberIntersection = Schema.intersection(
+    Schema.number(),
+    Schema.number().transform((x) => x + 1)
   );
 
   const syncResult = numberIntersection.safeParse(1234);
   expect(syncResult.success).toEqual(false);
   if (!syncResult.success) {
-    expect(syncResult.error.issues[0].code).toEqual(z.ZodIssueCode.invalid_intersection_types);
+    expect(syncResult.error.issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_intersection_types);
   }
 
   const asyncResult = await numberIntersection.spa(1234);
   expect(asyncResult.success).toEqual(false);
   if (!asyncResult.success) {
-    expect(asyncResult.error.issues[0].code).toEqual(z.ZodIssueCode.invalid_intersection_types);
+    expect(asyncResult.error.issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_intersection_types);
   }
 });
 
 test("invalid array merge", async () => {
-  const stringArrInt = z.intersection(
-    z.string().array(),
+  const stringArrInt = Schema.intersection(
+    Schema.string().array(),
     z
       .string()
       .array()
@@ -117,12 +117,12 @@ test("invalid array merge", async () => {
   const syncResult = stringArrInt.safeParse(["asdf", "qwer"]);
   expect(syncResult.success).toEqual(false);
   if (!syncResult.success) {
-    expect(syncResult.error.issues[0].code).toEqual(z.ZodIssueCode.invalid_intersection_types);
+    expect(syncResult.error.issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_intersection_types);
   }
 
   const asyncResult = await stringArrInt.spa(["asdf", "qwer"]);
   expect(asyncResult.success).toEqual(false);
   if (!asyncResult.success) {
-    expect(asyncResult.error.issues[0].code).toEqual(z.ZodIssueCode.invalid_intersection_types);
+    expect(asyncResult.error.issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_intersection_types);
   }
 });

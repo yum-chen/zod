@@ -1,11 +1,11 @@
 import { type } from "arktype";
 import { metabench } from "./metabench.js";
 
-// Simulated pre-instantiated $ZodError
-class $ZodError extends Error {
+// Simulated pre-instantiated $SchemaError
+class $SchemaError extends Error {
   issues: unknown[] = [];
 }
-const INVALID = new $ZodError();
+const INVALID = new $SchemaError();
 
 const DATA = Array.from({ length: 1000 }, () =>
   Object.freeze({
@@ -23,7 +23,7 @@ const DATA = Array.from({ length: 1000 }, () =>
   })
 );
 
-// Core _run function - returns T | $ZodError
+// Core _run function - returns T | $SchemaError
 function _run(input: any) {
   if (typeof input !== "object" || input === null) return INVALID;
   if (typeof input.number !== "number") return INVALID;
@@ -80,10 +80,10 @@ metabench("valid: check method comparison", {
       else sink = r;
     }
   },
-  "instanceof $ZodError"() {
+  "instanceof $SchemaError"() {
     for (const item of DATA) {
       const r = _run(item);
-      if (r instanceof $ZodError) sink = null;
+      if (r instanceof $SchemaError) sink = null;
       else sink = r;
     }
   },
@@ -124,10 +124,10 @@ metabench("invalid: check method comparison", {
       else sink = r;
     }
   },
-  "instanceof $ZodError"() {
+  "instanceof $SchemaError"() {
     for (const item of INVALID_DATA) {
       const r = _run(item);
-      if (r instanceof $ZodError) sink = null;
+      if (r instanceof $SchemaError) sink = null;
       else sink = r;
     }
   },

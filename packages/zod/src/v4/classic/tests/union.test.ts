@@ -1,33 +1,33 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("function parsing", () => {
-  const schema = z.union([z.string().refine(() => false), z.number().refine(() => false)]);
-  const result = schema.safeParse("asdf");
+  const schema = Schema.union([Schema.string().refine(() => false), Schema.number().refine(() => false)]);
+  const result = Schema.safeParse("asdf");
   expect(result.success).toEqual(false);
 });
 
 test("union 2", () => {
-  const result = z.union([z.number(), z.string().refine(() => false)]).safeParse("a");
+  const result = Schema.union([Schema.number(), Schema.string().refine(() => false)]).safeParse("a");
   expect(result.success).toEqual(false);
 });
 
 test("return valid over invalid", () => {
-  const schema = z.union([
-    z.object({
-      email: z.string().email(),
+  const schema = Schema.union([
+    Schema.object({
+      email: Schema.string().email(),
     }),
-    z.string(),
+    Schema.string(),
   ]);
-  expect(schema.parse("asdf")).toEqual("asdf");
-  expect(schema.parse({ email: "asdlkjf@lkajsdf.com" })).toEqual({
+  expect(Schema.parse("asdf")).toEqual("asdf");
+  expect(Schema.parse({ email: "asdlkjf@lkajsdf.com" })).toEqual({
     email: "asdlkjf@lkajsdf.com",
   });
 });
 
 test("return errors from both union arms", () => {
-  const result = z.union([z.number(), z.boolean()]).safeParse("a");
+  const result = Schema.union([Schema.number(), Schema.boolean()]).safeParse("a");
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues).toMatchInlineSnapshot(`
@@ -61,7 +61,7 @@ test("return errors from both union arms", () => {
 });
 
 test("options getter", async () => {
-  const union = z.union([z.string(), z.number()]);
+  const union = Schema.union([Schema.string(), Schema.number()]);
   union.options[0].parse("asdf");
   union.options[1].parse(1234);
   await union.options[0].parseAsync("asdf");
@@ -69,23 +69,23 @@ test("options getter", async () => {
 });
 
 test("readonly union", async () => {
-  const options = [z.string(), z.number()] as const;
-  const union = z.union(options);
+  const options = [Schema.string(), Schema.number()] as const;
+  const union = Schema.union(options);
   union.parse("asdf");
   union.parse(12);
 });
 
 test("union inferred types", () => {
-  const test = z.object({}).or(z.array(z.object({})));
+  const test = Schema.object({}).or(Schema.array(Schema.object({})));
 
-  type Test = z.output<typeof test>; // <— any
+  type Test = Schema.output<typeof test>; // <— any
   expectTypeOf<Test>().toEqualTypeOf<Record<string, never> | Array<Record<string, never>>>();
 });
 
 test("union values", () => {
-  const schema = z.union([z.literal("a"), z.literal("b"), z.literal("c")]);
+  const schema = Schema.union([Schema.literal("a"), Schema.literal("b"), Schema.literal("c")]);
 
-  expect(schema._zod.values).toMatchInlineSnapshot(`
+  expect(Schema._schema.values).toMatchInlineSnapshot(`
     Set {
       "a",
       "b",
@@ -95,17 +95,17 @@ test("union values", () => {
 });
 
 test("non-aborted errors", () => {
-  const zItemTest = z.union([
-    z.object({
-      date: z.number(),
-      startDate: z.optional(z.null()),
-      endDate: z.optional(z.null()),
+  const zItemTest = Schema.union([
+    Schema.object({
+      date: Schema.number(),
+      startDate: Schema.optional(Schema.null()),
+      endDate: Schema.optional(Schema.null()),
     }),
     z
       .object({
-        date: z.optional(z.null()),
-        startDate: z.number(),
-        endDate: z.number(),
+        date: Schema.optional(Schema.null()),
+        startDate: Schema.number(),
+        endDate: Schema.number(),
       })
       .refine((data) => data.startDate !== data.endDate, {
         error: "startDate and endDate must be different",
@@ -121,7 +121,7 @@ test("non-aborted errors", () => {
 
   expect(res).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "path": [
@@ -136,11 +136,11 @@ test("non-aborted errors", () => {
 });
 
 test("surface continuable errors only if they exist", () => {
-  const schema = z.union([z.boolean(), z.uuid(), z.jwt()]);
+  const schema = Schema.union([Schema.boolean(), Schema.uuid(), Schema.jwt()]);
 
-  expect(schema.safeParse("asdf")).toMatchInlineSnapshot(`
+  expect(Schema.safeParse("asdf")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_union",
         "errors": [
@@ -180,22 +180,22 @@ test("surface continuable errors only if they exist", () => {
   `);
 });
 
-// z.xor() tests
-test("z.xor() - exactly one match succeeds", () => {
-  const schema = z.xor([z.string(), z.number()]);
-  expect(schema.parse("hello")).toBe("hello");
-  expect(schema.parse(42)).toBe(42);
+// Schema.xor() tests
+test("Schema.xor() - exactly one match succeeds", () => {
+  const schema = Schema.xor([Schema.string(), Schema.number()]);
+  expect(Schema.parse("hello")).toBe("hello");
+  expect(Schema.parse(42)).toBe(42);
 });
 
-test("z.xor() - zero matches fails", () => {
-  const schema = z.xor([z.string(), z.number()]);
-  const result = schema.safeParse(true);
+test("Schema.xor() - zero matches fails", () => {
+  const schema = Schema.xor([Schema.string(), Schema.number()]);
+  const result = Schema.safeParse(true);
   expect(result.success).toBe(false);
 });
 
-test("z.xor() - multiple matches fails", () => {
-  const schema = z.xor([z.string(), z.any()]);
-  const result = schema.safeParse("hello");
+test("Schema.xor() - multiple matches fails", () => {
+  const schema = Schema.xor([Schema.string(), Schema.any()]);
+  const result = Schema.safeParse("hello");
   expect(result.success).toBe(false);
   if (!result.success) {
     expect(result.error.issues).toMatchInlineSnapshot(`
@@ -216,49 +216,49 @@ test("z.xor() - multiple matches fails", () => {
   }
 });
 
-test("z.xor() - multiple matches reports every matching option", () => {
+test("Schema.xor() - multiple matches reports every matching option", () => {
   // non-strict objects strip unknown keys, so both branches accept the extra key
-  const name = z.object({ name: z.string() });
-  const version = name.extend({ version: z.string() });
-  const result = z.xor([name, version, z.unknown()]).safeParse({ name: "windows", version: "10" });
+  const name = Schema.object({ name: Schema.string() });
+  const version = name.extend({ version: Schema.string() });
+  const result = Schema.xor([name, version, Schema.unknown()]).safeParse({ name: "windows", version: "10" });
   expect(result.success).toBe(false);
   if (!result.success) {
-    const issue = result.error.issues[0] as z.core.$ZodIssueInvalidUnion;
+    const issue = result.error.issues[0] as Schema  .core.$SchemaIssueInvalidUnion;
     expect(issue.inclusive).toBe(false);
     expect((issue as Extract<typeof issue, { inclusive: false }>).matches).toEqual([0, 1, 2]);
     expect(issue.message).toBe("Invalid input: more than one option matched");
   }
 });
 
-test("z.xor() - zero matches keeps the per-option errors", () => {
-  const result = z.xor([z.string(), z.number()]).safeParse(true);
+test("Schema.xor() - zero matches keeps the per-option errors", () => {
+  const result = Schema.xor([Schema.string(), Schema.number()]).safeParse(true);
   expect(result.success).toBe(false);
   if (!result.success) {
-    const issue = result.error.issues[0] as z.core.$ZodIssueInvalidUnion;
+    const issue = result.error.issues[0] as Schema  .core.$SchemaIssueInvalidUnion;
     expect(issue.errors).toHaveLength(2);
     expect(issue.message).toBe("Invalid input");
   }
 });
 
-test("z.xor() with custom error message", () => {
-  const schema = z.xor([z.string(), z.number()], "Expected exactly one of string or number");
-  const result = schema.safeParse(true);
+test("Schema.xor() with custom error message", () => {
+  const schema = Schema.xor([Schema.string(), Schema.number()], "Expected exactly one of string or number");
+  const result = Schema.safeParse(true);
   expect(result.success).toBe(false);
   if (!result.success) {
     expect(result.error.issues[0].message).toBe("Expected exactly one of string or number");
   }
 });
 
-test("z.xor() type inference", () => {
-  const schema = z.xor([z.string(), z.number(), z.boolean()]);
-  type Result = z.infer<typeof schema>;
+test("Schema.xor() type inference", () => {
+  const schema = Schema.xor([Schema.string(), Schema.number(), Schema.boolean()]);
+  type Result = Schema.infer<typeof schema>;
   expectTypeOf<Result>().toEqualTypeOf<string | number | boolean>();
 });
 
-test("z.union([]) constructs and rejects all input", () => {
-  const schema = z.union([]);
-  expectTypeOf<z.infer<typeof schema>>().toEqualTypeOf<never>();
-  const result = schema.safeParse("anything");
+test("Schema.union([]) constructs and rejects all input", () => {
+  const schema = Schema.union([]);
+  expectTypeOf<Schema.infer<typeof schema>>().toEqualTypeOf<never>();
+  const result = Schema.safeParse("anything");
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues).toMatchInlineSnapshot(`
@@ -274,10 +274,10 @@ test("z.union([]) constructs and rejects all input", () => {
   }
 });
 
-test("z.xor([]) constructs and rejects all input", () => {
-  const schema = z.xor([]);
-  expectTypeOf<z.infer<typeof schema>>().toEqualTypeOf<never>();
-  const result = schema.safeParse("anything");
+test("Schema.xor([]) constructs and rejects all input", () => {
+  const schema = Schema.xor([]);
+  expectTypeOf<Schema.infer<typeof schema>>().toEqualTypeOf<never>();
+  const result = Schema.safeParse("anything");
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues).toMatchInlineSnapshot(`
@@ -293,14 +293,14 @@ test("z.xor([]) constructs and rejects all input", () => {
   }
 });
 
-test("z.discriminatedUnion with empty options constructs and rejects", () => {
-  const schema = z.discriminatedUnion("type", [] as any);
-  const nonObject = schema.safeParse("nope");
+test("Schema.discriminatedUnion with empty options constructs and rejects", () => {
+  const schema = Schema.discriminatedUnion("type", [] as any);
+  const nonObject = Schema.safeParse("nope");
   expect(nonObject.success).toEqual(false);
   if (!nonObject.success) {
     expect(nonObject.error.issues[0].code).toBe("invalid_type");
   }
-  const obj = schema.safeParse({ type: "x" });
+  const obj = Schema.safeParse({ type: "x" });
   expect(obj.success).toEqual(false);
   if (!obj.success) {
     expect(obj.error.issues[0].code).toBe("invalid_union");

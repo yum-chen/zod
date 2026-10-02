@@ -85,7 +85,7 @@ export function loadGraph(file: string): Graph {
 export function snapshotNow(tag: string): string {
   if (typeof gc !== "function") throw new Error("run with --expose-gc");
   for (let i = 0; i < 6; i++) gc();
-  const file = path.join(os.tmpdir(), `zod-ret-${tag}-${process.pid}.heapsnapshot`);
+  const file = path.join(os.tmpdir(), `schema-ret-${tag}-${process.pid}.heapsnapshot`);
   v8.writeHeapSnapshot(file);
   return file;
 }

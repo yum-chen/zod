@@ -1,12 +1,12 @@
-// This file tests that drizzle-zod works with Zod v4 without
+// This file tests that drizzle-schema works with Schema v4 without
 // "Type instantiation is excessively deep and possibly infinite" errors.
-// See: https://github.com/colinhacks/zod/issues/XXXX
+// See: https://github.com/colinhacks/schema/issues/XXXX
 
 import { pgEnum, pgTable, serial } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
-import * as z from "zod";
+import { createInsertSchema } from "drizzle-schema";
+import * as Schema   from "schema";
 
-z.string();
+Schema.string();
 
 const labelEnum = pgEnum("label", ["a", "b"]);
 

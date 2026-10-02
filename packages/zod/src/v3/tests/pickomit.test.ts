@@ -1,18 +1,18 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const fish = z.object({
-  name: z.string(),
-  age: z.number(),
-  nested: z.object({}),
+const fish = Schema.object({
+  name: Schema.string(),
+  age: Schema.number(),
+  nested: Schema.object({}),
 });
 
 test("pick type inference", () => {
   const nameonlyFish = fish.pick({ name: true });
-  type nameonlyFish = z.infer<typeof nameonlyFish>;
+  type nameonlyFish = Schema.infer<typeof nameonlyFish>;
   util.assertEqual<nameonlyFish, { name: string }>(true);
 });
 
@@ -47,7 +47,7 @@ test("pick parse - fail", () => {
 
 test("omit type inference", () => {
   const nonameFish = fish.omit({ name: true });
-  type nonameFish = z.infer<typeof nonameFish>;
+  type nonameFish = Schema.infer<typeof nonameFish>;
   util.assertEqual<nonameFish, { age: number; nested: {} }>(true);
 });
 
@@ -77,8 +77,8 @@ test("omit parse - fail", () => {
 });
 
 test("nonstrict inference", () => {
-  const laxfish = fish.pick({ name: true }).catchall(z.any());
-  type laxfish = z.infer<typeof laxfish>;
+  const laxfish = fish.pick({ name: true }).catchall(Schema.any());
+  type laxfish = Schema.infer<typeof laxfish>;
   util.assertEqual<laxfish, { name: string } & { [k: string]: any }>(true);
 });
 
@@ -95,17 +95,17 @@ test("nonstrict parsing - fail", () => {
 });
 
 test("pick/omit/required/partial - do not allow unknown keys", () => {
-  const schema = z.object({
-    name: z.string(),
-    age: z.number(),
+  const schema = Schema.object({
+    name: Schema.string(),
+    age: Schema.number(),
   });
 
   // @ts-expect-error
-  schema.pick({ $unknown: true });
+  Schema.pick({ $unknown: true });
   // @ts-expect-error
-  schema.omit({ $unknown: true });
+  Schema.omit({ $unknown: true });
   // @ts-expect-error
-  schema.required({ $unknown: true });
+  Schema.required({ $unknown: true });
   // @ts-expect-error
-  schema.partial({ $unknown: true });
+  Schema.partial({ $unknown: true });
 });

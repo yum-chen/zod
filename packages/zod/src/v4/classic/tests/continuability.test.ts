@@ -1,31 +1,31 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("continuability", () => {
   /** 
-   *  | $ZodGUID
-  | $ZodUUID
-  | $ZodEmail
-  | $ZodURL
-  | $ZodEmoji
-  | $ZodNanoID
-  | $ZodCUID
-  | $ZodCUID2
-  | $ZodULID
-  | $ZodXID
-  | $ZodKSUID
-  | $ZodISODateTime
-  | $ZodISODate
-  | $ZodISOTime
-  | $ZodISODuration
-  | $ZodIPv4
-  | $ZodIPv6
-  | $ZodCIDRv4
-  | $ZodCIDRv6
-  | $ZodBase64
-  | $ZodBase64URL
-  | $ZodE164
-  | $ZodJWT;
+   *  | $SchemaGUID
+  | $SchemaUUID
+  | $SchemaEmail
+  | $SchemaURL
+  | $SchemaEmoji
+  | $SchemaNanoID
+  | $SchemaCUID
+  | $SchemaCUID2
+  | $SchemaULID
+  | $SchemaXID
+  | $SchemaKSUID
+  | $SchemaISODateTime
+  | $SchemaISODate
+  | $SchemaISOTime
+  | $SchemaISODuration
+  | $SchemaIPv4
+  | $SchemaIPv6
+  | $SchemaCIDRv4
+  | $SchemaCIDRv6
+  | $SchemaBase64
+  | $SchemaBase64URL
+  | $SchemaE164
+  | $SchemaJWT;
    */
   expect(
     z

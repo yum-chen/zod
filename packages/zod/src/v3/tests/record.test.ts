@@ -1,17 +1,17 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const booleanRecord = z.record(z.boolean());
-type booleanRecord = z.infer<typeof booleanRecord>;
+const booleanRecord = Schema.record(Schema.boolean());
+type booleanRecord = Schema.infer<typeof booleanRecord>;
 
-const recordWithEnumKeys = z.record(z.enum(["Tuna", "Salmon"]), z.string());
-type recordWithEnumKeys = z.infer<typeof recordWithEnumKeys>;
+const recordWithEnumKeys = Schema.record(Schema.enum(["Tuna", "Salmon"]), Schema.string());
+type recordWithEnumKeys = Schema.infer<typeof recordWithEnumKeys>;
 
-const recordWithLiteralKeys = z.record(z.union([z.literal("Tuna"), z.literal("Salmon")]), z.string());
-type recordWithLiteralKeys = z.infer<typeof recordWithLiteralKeys>;
+const recordWithLiteralKeys = Schema.record(Schema.union([Schema.literal("Tuna"), Schema.literal("Salmon")]), Schema.string());
+type recordWithLiteralKeys = Schema.infer<typeof recordWithLiteralKeys>;
 
 test("type inference", () => {
   util.assertEqual<booleanRecord, Record<string, boolean>>(true);
@@ -114,11 +114,11 @@ test("key schema", () => {
 });
 
 // test("record element", () => {
-//   expect(booleanRecord.element).toBeInstanceOf(z.ZodBoolean);
+//   expect(booleanRecord.element).toBeInstanceOf(Schema.SchemaBoolean);
 // });
 
 test("key and value getters", () => {
-  const rec = z.record(z.string(), z.number());
+  const rec = Schema.record(Schema.string(), Schema.number());
 
   rec.keySchema.parse("asdf");
   rec.valueSchema.parse(1234);
@@ -126,9 +126,9 @@ test("key and value getters", () => {
 });
 
 test("is not vulnerable to prototype pollution", async () => {
-  const rec = z.record(
-    z.object({
-      a: z.string(),
+  const rec = Schema.record(
+    Schema.object({
+      a: Schema.string(),
     })
   );
 
@@ -163,7 +163,7 @@ test("is not vulnerable to prototype pollution", async () => {
 });
 
 test("dont parse undefined values", () => {
-  const result1 = z.record(z.any()).parse({ foo: undefined });
+  const result1 = Schema.record(Schema.any()).parse({ foo: undefined });
 
   expect(result1).toEqual({
     foo: undefined,

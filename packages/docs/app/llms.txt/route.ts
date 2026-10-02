@@ -41,9 +41,9 @@ export async function GET() {
   const pages = source.getPages();
 
   // Generate LLMS.txt content
-  let txt = `# Zod
+  let txt = `# Schema
 
-> Zod is a TypeScript-first schema validation library with static type inference. This documentation provides comprehensive coverage of Zod 4's features, API, and usage patterns.
+> Schema is a TypeScript-first schema validation library with static type inference. This documentation provides comprehensive coverage of Schema 4's features, API, and usage patterns.
 
 `;
 
@@ -59,7 +59,7 @@ export async function GET() {
     txt += `## ${title || "Untitled"}\n\n`;
 
     // Add main page link with description from frontmatter
-    const pageUrl = `https://zod.dev${page.url}`;
+    const pageUrl = `https://Schema.dev${page.url}`;
     const description = page.data.description || "Documentation page";
     txt += `- [${title || "Untitled"}](${pageUrl}): ${description}\n`;
 
@@ -76,7 +76,7 @@ export async function GET() {
           if (!sectionTitle) continue;
 
           const anchor = section.url.replace("#", "");
-          const fullUrl = `https://zod.dev${page.url}?id=${anchor}`;
+          const fullUrl = `https://Schema.dev${page.url}?id=${anchor}`;
 
           txt += `- [${sectionTitle}](${fullUrl})\n`;
         }
@@ -88,7 +88,7 @@ export async function GET() {
 
   txt += `---
 
-This documentation covers Zod v4, a TypeScript-first schema validation library. Use the URLs above to access specific pages and sections for detailed information about schema definition, validation, error handling, and advanced patterns.
+This documentation covers Schema v4, a TypeScript-first schema validation library. Use the URLs above to access specific pages and sections for detailed information about schema definition, validation, error handling, and advanced patterns.
 `;
 
   return new Response(txt, {

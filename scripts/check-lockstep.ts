@@ -1,6 +1,6 @@
 import semver from "semver";
 
-// every zod release from 4.5.0 on must have an @zod/mini twin on npm and on JSR, and every @zod/mini 4.x must have a zod twin; latest must agree. `--wait` retries for up to ~6 minutes, since the npm packument endpoint is CDN-cached for five
+// every schema release from 4.5.0 on must have an @schema/mini twin on npm and on JSR, and every @schema/mini 4.x must have a schema twin; latest must agree. `--wait` retries for up to ~6 minutes, since the npm packument endpoint is CDN-cached for five
 const FLOOR = "4.5.0";
 const attempts = process.argv.includes("--wait") ? 13 : 1;
 
@@ -39,18 +39,18 @@ function twins(a: Releases, b: Releases): string[] {
 }
 
 async function problems(): Promise<string[]> {
-  const [zod, mini, jsrZod, jsrMini] = await Promise.all([
-    npmReleases("zod"),
-    npmReleases("@zod/mini"),
-    jsrReleases("@zod/zod"),
-    jsrReleases("@zod/mini"),
+  const [schema, mini, jsrSchema, jsrMini] = await Promise.all([
+    npmReleases("schema"),
+    npmReleases("@schema/mini"),
+    jsrReleases("@schema/schema"),
+    jsrReleases("@schema/mini"),
   ]);
-  const out = [...twins(zod, mini), ...twins(jsrZod, jsrMini)];
+  const out = [...twins(schema, mini), ...twins(jsrSchema, jsrMini)];
   // npm is the source of truth and JSR follows it; a gap here is reported, not fatal, because that publish is recovered by hand and must not hold a release red
-  for (const gap of twins(zod, jsrZod)) console.warn(`⚠️  ${gap}`);
+  for (const gap of twins(schema, jsrSchema)) console.warn(`⚠️  ${gap}`);
   if (!out.length) {
     console.log(
-      `✅ zod and @zod/mini are in lockstep on npm and JSR (${zod.versions.length} versions since ${FLOOR}, latest ${zod.latest})`
+      `✅ schema and @schema/mini are in lockstep on npm and JSR (${Schema.versions.length} versions since ${FLOOR}, latest ${Schema.latest})`
     );
   }
   return out;
@@ -63,7 +63,7 @@ for (let i = 1; i < attempts && found.length; i++) {
   found = await problems();
 }
 if (found.length) {
-  console.error(`❌ zod and @zod/mini are out of lockstep:`);
+  console.error(`❌ schema and @schema/mini are out of lockstep:`);
   for (const p of found) console.error(`   ${p}`);
   process.exit(1);
 }

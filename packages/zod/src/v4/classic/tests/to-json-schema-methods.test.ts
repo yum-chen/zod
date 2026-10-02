@@ -1,133 +1,133 @@
 import { describe, expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 // Utility functions
-function expectMethodMatch(schema: z.ZodType, params?: z.core.ToJSONSchemaParams): void {
-  const staticResult = z.toJSONSchema(schema, params);
-  const methodResult = schema.toJSONSchema(params);
+function expectMethodMatch(schema: Schema.SchemaType, params?: Schema.core.ToJSONSchemaParams): void {
+  const staticResult = Schema.toJSONSchema(schema, params);
+  const methodResult = Schema.toJSONSchema(params);
   expect(methodResult).toEqual(staticResult);
 }
 
 describe("toJSONSchema method", () => {
   describe("primitive types", () => {
     test("string", () => {
-      expectMethodMatch(z.string());
+      expectMethodMatch(Schema.string());
     });
 
     test("number", () => {
-      expectMethodMatch(z.number());
+      expectMethodMatch(Schema.number());
     });
 
     test("boolean", () => {
-      expectMethodMatch(z.boolean());
+      expectMethodMatch(Schema.boolean());
     });
 
     test("bigint", () => {
-      expectMethodMatch(z.bigint(), { unrepresentable: "any" });
+      expectMethodMatch(Schema.bigint(), { unrepresentable: "any" });
     });
 
     test("symbol", () => {
-      expectMethodMatch(z.symbol(), { unrepresentable: "any" });
+      expectMethodMatch(Schema.symbol(), { unrepresentable: "any" });
     });
 
     test("null", () => {
-      expectMethodMatch(z.null());
+      expectMethodMatch(Schema.null());
     });
 
     test("undefined", () => {
-      expectMethodMatch(z.undefined(), { unrepresentable: "any" });
+      expectMethodMatch(Schema.undefined(), { unrepresentable: "any" });
     });
 
     test("void", () => {
-      expectMethodMatch(z.void(), { unrepresentable: "any" });
+      expectMethodMatch(Schema.void(), { unrepresentable: "any" });
     });
 
     test("never", () => {
-      expectMethodMatch(z.never());
+      expectMethodMatch(Schema.never());
     });
 
     test("any", () => {
-      expectMethodMatch(z.any());
+      expectMethodMatch(Schema.any());
     });
 
     test("unknown", () => {
-      expectMethodMatch(z.unknown());
+      expectMethodMatch(Schema.unknown());
     });
 
     test("date", () => {
-      expectMethodMatch(z.date(), { unrepresentable: "any" });
+      expectMethodMatch(Schema.date(), { unrepresentable: "any" });
     });
 
     test("nan", () => {
-      expectMethodMatch(z.nan(), { unrepresentable: "any" });
+      expectMethodMatch(Schema.nan(), { unrepresentable: "any" });
     });
   });
 
   describe("string formats", () => {
     test("email", () => {
-      expectMethodMatch(z.email());
+      expectMethodMatch(Schema.email());
     });
 
     test("url", () => {
-      expectMethodMatch(z.url());
+      expectMethodMatch(Schema.url());
     });
 
     test("uuid", () => {
-      expectMethodMatch(z.uuid());
+      expectMethodMatch(Schema.uuid());
     });
 
     test("datetime", () => {
-      expectMethodMatch(z.iso.datetime());
+      expectMethodMatch(Schema.iso.datetime());
     });
 
     test("date", () => {
-      expectMethodMatch(z.iso.date());
+      expectMethodMatch(Schema.iso.date());
     });
 
     test("guid", () => {
-      expectMethodMatch(z.guid());
+      expectMethodMatch(Schema.guid());
     });
 
     test("cuid", () => {
-      expectMethodMatch(z.cuid());
+      expectMethodMatch(Schema.cuid());
     });
 
     test("cuid2", () => {
-      expectMethodMatch(z.cuid2());
+      expectMethodMatch(Schema.cuid2());
     });
 
     test("ulid", () => {
-      expectMethodMatch(z.ulid());
+      expectMethodMatch(Schema.ulid());
     });
 
     test("base64", () => {
-      expectMethodMatch(z.base64());
+      expectMethodMatch(Schema.base64());
     });
 
     test("ipv4", () => {
-      expectMethodMatch(z.ipv4());
+      expectMethodMatch(Schema.ipv4());
     });
 
     test("ipv6", () => {
-      expectMethodMatch(z.ipv6());
+      expectMethodMatch(Schema.ipv6());
     });
   });
 
   describe("string validations", () => {
     test("min length", () => {
-      expectMethodMatch(z.string().min(5));
+      expectMethodMatch(Schema.string().min(5));
     });
 
     test("max length", () => {
-      expectMethodMatch(z.string().max(10));
+      expectMethodMatch(Schema.string().max(10));
     });
 
     test("length", () => {
-      expectMethodMatch(z.string().length(5));
+      expectMethodMatch(Schema.string().length(5));
     });
 
     test("regex", () => {
-      expectMethodMatch(z.string().regex(/^[A-Z]+$/));
+      expectMethodMatch(Schema.string().regex(/^[A-Z]+$/));
     });
 
     test("multiple patterns", () => {
@@ -140,83 +140,83 @@ describe("toJSONSchema method", () => {
     });
 
     test("startsWith", () => {
-      expectMethodMatch(z.string().startsWith("hello"));
+      expectMethodMatch(Schema.string().startsWith("hello"));
     });
 
     test("endsWith", () => {
-      expectMethodMatch(z.string().endsWith("world"));
+      expectMethodMatch(Schema.string().endsWith("world"));
     });
 
     test("includes", () => {
-      expectMethodMatch(z.string().includes("test"));
+      expectMethodMatch(Schema.string().includes("test"));
     });
   });
 
   describe("number validations", () => {
     test("min", () => {
-      expectMethodMatch(z.number().min(5));
+      expectMethodMatch(Schema.number().min(5));
     });
 
     test("max", () => {
-      expectMethodMatch(z.number().max(10));
+      expectMethodMatch(Schema.number().max(10));
     });
 
     test("int", () => {
-      expectMethodMatch(z.int());
+      expectMethodMatch(Schema.int());
     });
 
     test("positive", () => {
-      expectMethodMatch(z.number().positive());
+      expectMethodMatch(Schema.number().positive());
     });
 
     test("negative", () => {
-      expectMethodMatch(z.number().negative());
+      expectMethodMatch(Schema.number().negative());
     });
 
     test("multipleOf", () => {
-      expectMethodMatch(z.number().multipleOf(2));
+      expectMethodMatch(Schema.number().multipleOf(2));
     });
 
     test("gte", () => {
-      expectMethodMatch(z.number().gte(5));
+      expectMethodMatch(Schema.number().gte(5));
     });
 
     test("lte", () => {
-      expectMethodMatch(z.number().lte(10));
+      expectMethodMatch(Schema.number().lte(10));
     });
 
     test("gt", () => {
-      expectMethodMatch(z.number().gt(5));
+      expectMethodMatch(Schema.number().gt(5));
     });
 
     test("lt", () => {
-      expectMethodMatch(z.number().lt(10));
+      expectMethodMatch(Schema.number().lt(10));
     });
   });
 
   describe("literals and enums", () => {
     test("literal string", () => {
-      expectMethodMatch(z.literal("hello"));
+      expectMethodMatch(Schema.literal("hello"));
     });
 
     test("literal number", () => {
-      expectMethodMatch(z.literal(42));
+      expectMethodMatch(Schema.literal(42));
     });
 
     test("literal boolean", () => {
-      expectMethodMatch(z.literal(true));
+      expectMethodMatch(Schema.literal(true));
     });
 
     test("literal null", () => {
-      expectMethodMatch(z.literal(null));
+      expectMethodMatch(Schema.literal(null));
     });
 
     test("multiple literals", () => {
-      expectMethodMatch(z.literal(["a", "b", "c"]));
+      expectMethodMatch(Schema.literal(["a", "b", "c"]));
     });
 
     test("enum", () => {
-      expectMethodMatch(z.enum(["red", "green", "blue"]));
+      expectMethodMatch(Schema.enum(["red", "green", "blue"]));
     });
 
     test("nativeEnum", () => {
@@ -225,112 +225,112 @@ describe("toJSONSchema method", () => {
         Green = "green",
         Blue = "blue",
       }
-      expectMethodMatch(z.nativeEnum(Colors));
+      expectMethodMatch(Schema.nativeEnum(Colors));
     });
   });
 
   describe("composite types", () => {
     test("array", () => {
-      expectMethodMatch(z.array(z.string()));
+      expectMethodMatch(Schema.array(Schema.string()));
     });
 
     test("array with min", () => {
-      expectMethodMatch(z.array(z.string()).min(2));
+      expectMethodMatch(Schema.array(Schema.string()).min(2));
     });
 
     test("array with max", () => {
-      expectMethodMatch(z.array(z.string()).max(10));
+      expectMethodMatch(Schema.array(Schema.string()).max(10));
     });
 
     test("object", () => {
-      expectMethodMatch(z.object({ name: z.string(), age: z.number() }));
+      expectMethodMatch(Schema.object({ name: Schema.string(), age: Schema.number() }));
     });
 
     test("object with optional", () => {
-      expectMethodMatch(z.object({ name: z.string(), age: z.number().optional() }));
+      expectMethodMatch(Schema.object({ name: Schema.string(), age: Schema.number().optional() }));
     });
 
     test("strict object", () => {
-      expectMethodMatch(z.strictObject({ name: z.string() }));
+      expectMethodMatch(Schema.strictObject({ name: Schema.string() }));
     });
 
     test("loose object", () => {
-      expectMethodMatch(z.looseObject({ name: z.string() }));
+      expectMethodMatch(Schema.looseObject({ name: Schema.string() }));
     });
 
     test("object with catchall", () => {
-      expectMethodMatch(z.object({ name: z.string() }).catchall(z.string()));
+      expectMethodMatch(Schema.object({ name: Schema.string() }).catchall(Schema.string()));
     });
 
     test("tuple", () => {
-      expectMethodMatch(z.tuple([z.string(), z.number()]));
+      expectMethodMatch(Schema.tuple([Schema.string(), Schema.number()]));
     });
 
     test("tuple with rest", () => {
-      expectMethodMatch(z.tuple([z.string()], z.number()));
+      expectMethodMatch(Schema.tuple([Schema.string()], Schema.number()));
     });
 
     test("record", () => {
-      expectMethodMatch(z.record(z.string(), z.number()));
+      expectMethodMatch(Schema.record(Schema.string(), Schema.number()));
     });
 
     test("union", () => {
-      expectMethodMatch(z.union([z.string(), z.number()]));
+      expectMethodMatch(Schema.union([Schema.string(), Schema.number()]));
     });
 
     test("discriminated union", () => {
       expectMethodMatch(
-        z.discriminatedUnion("type", [
-          z.object({ type: z.literal("a"), value: z.string() }),
-          z.object({ type: z.literal("b"), value: z.number() }),
+        Schema.discriminatedUnion("type", [
+          Schema.object({ type: Schema.literal("a"), value: Schema.string() }),
+          Schema.object({ type: Schema.literal("b"), value: Schema.number() }),
         ])
       );
     });
 
     test("intersection", () => {
-      expectMethodMatch(z.intersection(z.object({ a: z.string() }), z.object({ b: z.number() })));
+      expectMethodMatch(Schema.intersection(Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() })));
     });
   });
 
   describe("wrapper types", () => {
     test("optional", () => {
-      expectMethodMatch(z.string().optional());
+      expectMethodMatch(Schema.string().optional());
     });
 
     test("nullable", () => {
-      expectMethodMatch(z.string().nullable());
+      expectMethodMatch(Schema.string().nullable());
     });
 
     test("nullish", () => {
-      expectMethodMatch(z.string().nullish());
+      expectMethodMatch(Schema.string().nullish());
     });
 
     test("default", () => {
-      expectMethodMatch(z.string().default("hello"));
+      expectMethodMatch(Schema.string().default("hello"));
     });
 
     test("default function", () => {
-      expectMethodMatch(z.string().default(() => "hello"));
+      expectMethodMatch(Schema.string().default(() => "hello"));
     });
 
     test("prefault", () => {
-      expectMethodMatch(z.string().prefault("hello"));
+      expectMethodMatch(Schema.string().prefault("hello"));
     });
 
     test("prefault function", () => {
-      expectMethodMatch(z.string().prefault(() => "hello"));
+      expectMethodMatch(Schema.string().prefault(() => "hello"));
     });
 
     test("catch", () => {
-      expectMethodMatch(z.string().catch("hello"));
+      expectMethodMatch(Schema.string().catch("hello"));
     });
 
     test("readonly", () => {
-      expectMethodMatch(z.string().readonly());
+      expectMethodMatch(Schema.string().readonly());
     });
 
     test("nonoptional", () => {
-      expectMethodMatch(z.string().optional().nonoptional());
+      expectMethodMatch(Schema.string().optional().nonoptional());
     });
   });
 
@@ -340,17 +340,17 @@ describe("toJSONSchema method", () => {
         value: string;
         children?: Node[] | undefined;
       };
-      const Node: z.ZodType<Node> = z.lazy(() =>
-        z.object({
-          value: z.string(),
-          children: z.array(Node).optional(),
+      const Node: Schema.SchemaType<Node> = Schema.lazy(() =>
+        Schema.object({
+          value: Schema.string(),
+          children: Schema.array(Node).optional(),
         })
-      ) as z.ZodType<Node>;
+      ) as Schema  .SchemaType<Node>;
       expectMethodMatch(Node);
     });
 
     test("promise", () => {
-      expectMethodMatch(z.promise(z.string()));
+      expectMethodMatch(Schema.promise(Schema.string()));
     });
 
     test("pipe", () => {
@@ -358,58 +358,58 @@ describe("toJSONSchema method", () => {
         z
           .string()
           .transform((val) => val.length)
-          .pipe(z.number())
+          .pipe(Schema.number())
       );
     });
 
     test("transform", () => {
       expectMethodMatch(
-        z.string().transform((val) => val.length),
+        Schema.string().transform((val) => val.length),
         { unrepresentable: "any" }
       );
     });
 
     test("file", () => {
-      expectMethodMatch(z.file());
+      expectMethodMatch(Schema.file());
     });
 
     test("file with mime", () => {
-      expectMethodMatch(z.file().mime("image/png"));
+      expectMethodMatch(Schema.file().mime("image/png"));
     });
   });
 
   describe("parameters", () => {
     test("target draft-7", () => {
-      expectMethodMatch(z.string(), { target: "draft-7" });
+      expectMethodMatch(Schema.string(), { target: "draft-7" });
     });
 
     test("target draft-4", () => {
-      expectMethodMatch(z.string(), { target: "draft-4" });
+      expectMethodMatch(Schema.string(), { target: "draft-4" });
     });
 
     test("target openapi-3.0", () => {
-      expectMethodMatch(z.string(), { target: "openapi-3.0" });
+      expectMethodMatch(Schema.string(), { target: "openapi-3.0" });
     });
 
     test("io input", () => {
-      expectMethodMatch(z.string().default("hello"), { io: "input" });
+      expectMethodMatch(Schema.string().default("hello"), { io: "input" });
     });
 
     test("cycles throw", () => {
-      const schema = z.object({
-        name: z.string(),
+      const schema = Schema.object({
+        name: Schema.string(),
         get subcategories() {
-          return z.array(schema);
+          return Schema.array(schema);
         },
       });
       // Both should throw the same error
-      expect(() => z.toJSONSchema(schema, { cycles: "throw" })).toThrow();
-      expect(() => schema.toJSONSchema({ cycles: "throw" })).toThrow();
+      expect(() => Schema.toJSONSchema(schema, { cycles: "throw" })).toThrow();
+      expect(() => Schema.toJSONSchema({ cycles: "throw" })).toThrow();
     });
 
     test("reused ref", () => {
-      const shared = z.string();
-      const schema = z.object({
+      const shared = Schema.string();
+      const schema = Schema.object({
         a: shared,
         b: shared,
       });
@@ -419,19 +419,19 @@ describe("toJSONSchema method", () => {
 
   describe("edge cases with metadata", () => {
     test("schema with id metadata", () => {
-      const a = z.string().meta({ id: "hi" });
+      const a = Schema.string().meta({ id: "hi" });
       expectMethodMatch(a);
     });
 
     test("schema with id then additional metadata", () => {
-      const a = z.string().meta({ id: "hi2" });
+      const a = Schema.string().meta({ id: "hi2" });
       const b = a.meta({ name: "asdf" });
       expectMethodMatch(b);
     });
 
     test("nested schema with id", () => {
-      const inner = z.string().meta({ id: "inner" });
-      const outer = z.object({ value: inner });
+      const inner = Schema.string().meta({ id: "inner" });
+      const outer = Schema.object({ value: inner });
       expectMethodMatch(outer);
     });
   });

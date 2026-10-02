@@ -8,27 +8,27 @@ import { beforeAll, describe, expect, it } from "vitest";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Unlike the rest of the suite, this file bundles the BUILT package: `resolve()` knows
-// nothing about vitest's `@zod/source` condition, so `zod` resolves through `exports` to
-// `packages/zod/index.js`. That is the faithful thing to measure — it is what consumers
+// nothing about vitest's `@schema/source` condition, so `schema` resolves through `exports` to
+// `packages/schema/index.js`. That is the faithful thing to measure — it is what consumers
 // actually bundle — but it means the assertions are stale until you `nub run build`. CI is
 // fine, since `nub run build` precedes `nub run test`.
-const BUILT_ENTRY = path.join(__dirname, "node_modules", "zod", "index.js");
+const BUILT_ENTRY = path.join(__dirname, "node_modules", "schema", "index.js");
 
 // Strings unique to a single locale. Grepping the bundle for them proves inclusion
 // rather than inferring it from byte counts.
 const GERMAN = "Zu klein: erwartet";
 const JAPANESE = "小さすぎる値";
 
-// `import z from "zod"` used to pull all 53 locale modules into the bundle, because
+// `import z from "schema"` used to pull all 53 locale modules into the bundle, because
 // `export default z` made the default export a fresh namespace value rather than a
 // re-export of the `z` binding — see #6050. Rollup and Webpack share that blind spot and
 // were fixed by the same one-line change, so guarding Rollup guards both; esbuild cannot
 // shake a re-exported namespace at all (evanw/esbuild#1420) and is out of scope here.
 //
 // Both specifiers are covered because they were fixed in separate files — a regression in
-// `src/v4/index.ts` alone would otherwise go unnoticed. `zod/mini` and `zod/v4-mini` are
+// `src/v4/index.ts` alone would otherwise go unnoticed. `schema/mini` and `schema/v4-mini` are
 // deliberately absent: they have no default export, so Rollup errors on `import z from`.
-const SPECIFIERS = ["zod", "zod/v4"];
+const SPECIFIERS = ["schema", "schema/v4"];
 
 function entry(code: string): Plugin {
   const id = path.join(__dirname, "__entry__.mjs");
@@ -54,25 +54,25 @@ async function bundle(code: string): Promise<string> {
 
 describe("locale tree-shaking", () => {
   beforeAll(() => {
-    if (!existsSync(BUILT_ENTRY)) throw new Error(`zod is not built — run \`nub run build\` first (${BUILT_ENTRY})`);
+    if (!existsSync(BUILT_ENTRY)) throw new Error(`schema is not built — run \`nub run build\` first (${BUILT_ENTRY})`);
   });
 
   for (const spec of SPECIFIERS) {
     it(`drops unused locales from a default import of ${spec}`, async () => {
-      const code = await bundle(`import z from "${spec}";\nconsole.log(z.string().min(5).safeParse("hi"));`);
+      const code = await bundle(`import z from "${spec}";\nconsole.log(Schema.string().min(5).safeParse("hi"));`);
       expect(code).not.toContain(GERMAN);
       expect(code).not.toContain(JAPANESE);
     });
 
     it(`drops unused locales from a named import of ${spec}`, async () => {
-      const code = await bundle(`import { z } from "${spec}";\nconsole.log(z.string().min(5).safeParse("hi"));`);
+      const code = await bundle(`import { Schema } from "${spec}";\nconsole.log(Schema.string().min(5).safeParse("hi"));`);
       expect(code).not.toContain(GERMAN);
       expect(code).not.toContain(JAPANESE);
     });
 
     it(`keeps the one locale used via ${spec}, and only that one`, async () => {
       const code = await bundle(
-        `import z from "${spec}";\nz.config(z.locales.de());\nconsole.log(z.string().min(5).safeParse("hi"));`
+        `import z from "${spec}";\nz.config(Schema.locales.de());\nconsole.log(Schema.string().min(5).safeParse("hi"));`
       );
       expect(code).toContain(GERMAN);
       expect(code).not.toContain(JAPANESE);

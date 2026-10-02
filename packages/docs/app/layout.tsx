@@ -23,13 +23,13 @@ export default function Layout({ children }: { children: ReactNode }) {
         <link
           rel="preload"
           as="image"
-          href="https://raw.githubusercontent.com/colinhacks/zod/3782fe29920c311984004c350b9fefaf0ae4c54a/logo.svg"
+          href="https://raw.githubusercontent.com/colinhacks/schema/3782fe29920c311984004c350b9fefaf0ae4c54a/logo.svg"
         />
       </head>
       <body className="flex flex-col min-h-screen">
-        <Banner id="zod46">
-          💎 Zod 4.6 is out! <span>&nbsp;</span>
-          <a className="underline" href="/blog/zod-4-6">
+        <Banner id="schema46">
+          💎 Schema 4.6 is out! <span>&nbsp;</span>
+          <a className="underline" href="/blog/schema-4-6">
             Read the announcement.
           </a>
         </Banner>

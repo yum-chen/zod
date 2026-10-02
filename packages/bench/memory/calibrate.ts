@@ -1,6 +1,6 @@
 /**
  * Sanity-checks the measurement harness against allocations of known size.
- * If these controls don't land near their theoretical sizes, no zod number
+ * If these controls don't land near their theoretical sizes, no schema number
  * produced by the same harness is trustworthy.
  */
 import { fmtBytes, measureStable, table } from "./harness.js";

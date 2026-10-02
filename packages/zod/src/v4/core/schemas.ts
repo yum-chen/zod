@@ -1,22 +1,22 @@
 import * as checks from "./checks.js";
-import type { $ZodNumberFormats } from "./checks.js";
-import type { $ZodBigIntFormats } from "./checks.js";
+import type { $SchemaNumberFormats } from "./checks.js";
+import type { $SchemaBigIntFormats } from "./checks.js";
 import * as core from "./core.js";
 import { Doc } from "./doc.js";
 import type * as errors from "./errors.js";
-import type * as JSONSchema from "./json-schema.js";
+import type * as JSONSchema from "./json-Schema.js";
 import { parse, parseAsync } from "./parse.js";
 import * as regexes from "./regexes.js";
-import type { StandardSchemaV1 } from "./standard-schema.js";
-import type { ProcessParams, ToJSONSchemaContext } from "./to-json-schema.js";
+import type { StandardSchemaV1 } from "./standard-Schema.js";
+import type { ProcessParams, ToJSONSchemaContext } from "./to-json-Schema.js";
 import * as util from "./util.js";
 import { version } from "./versions.js";
 
 /////////////////////////////   PARSE   //////////////////////////////
 
-export interface ParseContext<T extends errors.$ZodIssueBase = never> {
+export interface ParseContext<T extends errors.$SchemaIssueBase = never> {
   /** Customize error messages. */
-  readonly error?: errors.$ZodErrorMap<T>;
+  readonly error?: errors.$SchemaErrorMap<T>;
   /** Include the `input` field in issue objects. Default `false`. */
   readonly reportInput?: boolean;
   /** Skip eval-based fast path. Default `false`. */
@@ -26,7 +26,7 @@ export interface ParseContext<T extends errors.$ZodIssueBase = never> {
 }
 
 /** @internal */
-export interface ParseContextInternal<T extends errors.$ZodIssueBase = never> extends ParseContext<T> {
+export interface ParseContextInternal<T extends errors.$SchemaIssueBase = never> extends ParseContext<T> {
   readonly async?: boolean | undefined;
   readonly direction?: "forward" | "backward";
   readonly skipChecks?: boolean;
@@ -35,15 +35,15 @@ export interface ParseContextInternal<T extends errors.$ZodIssueBase = never> ex
 }
 
 /** Gives a container cycle support: `attach` wraps its parse, and `alloc` registers the object it builds into before any child is parsed so a reference back to the same input resolves to it. */
-export interface $ZodMemoizer {
-  attach(inst: $ZodType): void;
-  guard(inst: $ZodType): void;
-  alloc<T extends object>(inst: $ZodType, payload: ParsePayload, empty: T, ctx: ParseContextInternal): T;
+export interface $SchemaMemoizer {
+  attach(inst: $SchemaType): void;
+  guard(inst: $SchemaType): void;
+  alloc<T extends object>(inst: $SchemaType, payload: ParsePayload, empty: T, ctx: ParseContextInternal): T;
 }
 
 export interface ParsePayload<T = unknown> {
   value: T;
-  issues: errors.$ZodRawIssue[];
+  issues: errors.$SchemaRawIssue[];
   /** A way to mark a whole payload as aborted. Used in codecs/pipes. */
   aborted?: boolean;
   /** @internal Set when the value came from a repeat visit to a node still being
@@ -55,7 +55,7 @@ export type CheckFn<T> = (input: ParsePayload<T>) => util.MaybeAsync<void>;
 
 /////////////////////////////   SCHEMAS   //////////////////////////////
 
-export interface $ZodTypeDef {
+export interface $SchemaTypeDef {
   type:
     | "string"
     | "number"
@@ -97,19 +97,19 @@ export interface $ZodTypeDef {
     | "lazy"
     | "function"
     | "custom";
-  error?: errors.$ZodErrorMap<never> | undefined;
-  checks?: checks.$ZodCheck<never>[];
+  error?: errors.$SchemaErrorMap<never> | undefined;
+  checks?: checks.$SchemaCheck<never>[];
 }
 
-export interface _$ZodTypeInternals {
-  /** The `@zod/core` version of this schema */
+export interface _$SchemaTypeInternals {
+  /** The `@schema/core` version of this schema */
   version: typeof version;
 
   /** Schema definition. */
-  def: $ZodTypeDef;
+  def: $SchemaTypeDef;
   // types: Types;
 
-  /** @internal Randomly generated ID for this schema. */
+  /** @internal Randomly generated ID for this Schema. */
   // id: string;
 
   /** @internal List of deferred initializers. */
@@ -121,7 +121,7 @@ export interface _$ZodTypeInternals {
   /** @internal Parses input, doesn't run checks. */
   parse(payload: ParsePayload<any>, ctx: ParseContextInternal): util.MaybeAsync<ParsePayload>;
 
-  /** @internal  Stores identifiers for the set of traits implemented by this schema. */
+  /** @internal  Stores identifiers for the set of traits implemented by this Schema. */
   traits: Set<string>;
 
   /** @internal Indicates that a schema output type should be considered optional inside objects.
@@ -133,12 +133,12 @@ export interface _$ZodTypeInternals {
    *   "optional"   — the container may omit it; nothing is supplied in its place
    *   "defaulted"  — the container may omit it AND this schema substitutes a value
    * Consumers asking "may the slot be absent?" test `!== undefined`.
-   * $ZodOptional asks the stronger question and tests `=== "defaulted"`. */
+   * $SchemaOptional asks the stronger question and tests `=== "defaulted"`. */
   optin?: "optional" | "defaulted" | undefined;
   /** @internal */
   optout?: "optional" | undefined;
 
-  /** @internal The set of literal values that will pass validation. Must be an exhaustive set. Used to determine optionality in z.record().
+  /** @internal The set of literal values that will pass validation. Must be an exhaustive set. Used to determine optionality in Schema.record().
    *
    * Defined on: enum, const, literal, null, undefined
    * Passthrough: optional, nullable, branded, default, catch, pipe
@@ -152,19 +152,19 @@ export interface _$ZodTypeInternals {
   /** @internal A set of literal discriminators used for the fast path in discriminated unions. */
   propValues?: util.PropValues | undefined;
 
-  /** @internal This flag indicates that a schema validation can be represented with a regular expression. Used to determine allowable schemas in z.templateLiteral(). */
+  /** @internal This flag indicates that a schema validation can be represented with a regular expression. Used to determine allowable schemas in Schema.templateLiteral(). */
   pattern: RegExp | undefined;
 
-  /** @internal The constructor function of this schema. */
+  /** @internal The constructor function of this Schema. */
   constr: new (
     def: any
-  ) => $ZodType;
+  ) => $SchemaType;
 
-  /** @internal A catchall object for bag metadata related to this schema. Commonly modified by checks using `onattach`. */
+  /** @internal A catchall object for bag metadata related to this Schema. Commonly modified by checks using `onattach`. */
   bag: Record<string, unknown>;
 
   /** @internal The set of issues this schema might throw during type checking. */
-  isst: errors.$ZodIssueBase;
+  isst: errors.$SchemaIssueBase;
 
   /** @internal Subject to change, not a public API. */
   processJSONSchema?:
@@ -174,65 +174,65 @@ export interface _$ZodTypeInternals {
   /** An optional method used to override `toJSONSchema` logic. */
   toJSONSchema?: () => unknown;
 
-  /** @internal The parent of this schema. Only set during certain clone operations. */
-  parent?: $ZodType | undefined;
+  /** @internal The parent of this Schema. Only set during certain clone operations. */
+  parent?: $SchemaType | undefined;
 }
 /** @internal */
-export interface $ZodTypeInternals<out O = unknown, out I = unknown> extends _$ZodTypeInternals {
+export interface $SchemaTypeInternals<out O = unknown, out I = unknown> extends _$SchemaTypeInternals {
   /** @internal The inferred output type */
   output: O; //extends { $out: infer O } ? O : Out;
   /** @internal The inferred input type */
   input: I; //extends { $in: infer I } ? I : In;
 }
 
-export type $ZodStandardSchema<T> = StandardSchemaV1.Props<core.input<T>, core.output<T>>;
+export type $SchemaStandardSchema<T> = StandardSchemaV1.Props<core.input<T>, core.output<T>>;
 
-export type SomeType = { _zod: _$ZodTypeInternals };
+export type SomeType = { _schema: _$SchemaTypeInternals };
 
-export interface $ZodType<
+export interface $SchemaType<
   O = unknown,
   I = unknown,
-  Internals extends $ZodTypeInternals<O, I> = $ZodTypeInternals<O, I>,
+  Internals extends $SchemaTypeInternals<O, I> = $SchemaTypeInternals<O, I>,
 > {
-  _zod: Internals;
-  "~standard": $ZodStandardSchema<this>;
+  _schema: Internals;
+  "~standard": $SchemaStandardSchema<this>;
 }
-export interface _$ZodType<T extends $ZodTypeInternals = $ZodTypeInternals>
-  extends $ZodType<T["output"], T["input"], T> {}
+export interface _$SchemaType<T extends $SchemaTypeInternals = $SchemaTypeInternals>
+  extends $SchemaType<T["output"], T["input"], T> {}
 
-export const $ZodType: core.$constructor<$ZodType> = /*@__PURE__*/ core.$constructor<$ZodType>(
-  "$ZodType",
+export const $SchemaType: core.$constructor<$SchemaType> = /*@__PURE__*/ core.$constructor<$SchemaType>(
+  "$SchemaType",
   (inst, def) => {
     inst ??= {} as any;
 
-    inst._zod.def = def; // set _def property
-    inst._zod.bag = inst._zod.bag || {}; // initialize _bag object
-    inst._zod.version = version;
+    inst._schema.def = def; // set _def property
+    inst._schema.bag = inst._schema.bag || {}; // initialize _bag object
+    inst._schema.version = version;
 
-    const defChecks = inst._zod.def.checks;
-    // if inst is itself a checks.$ZodCheck, run it as a check
-    const checks: checks.$ZodCheck<never>[] = inst._zod.traits.has("$ZodCheck")
+    const defChecks = inst._schema.def.checks;
+    // if inst is itself a checks.$SchemaCheck, run it as a check
+    const checks: checks.$SchemaCheck<never>[] = inst._schema.traits.has("$SchemaCheck")
       ? [inst as any, ...(defChecks ?? [])]
       : defChecks?.length
         ? [...defChecks]
         : [];
 
     for (const ch of checks) {
-      for (const fn of ch._zod.onattach) {
+      for (const fn of ch._schema.onattach) {
         fn(inst);
       }
     }
 
     if (checks.length === 0) {
-      // deferred initializer inst._zod.parse is not yet defined
-      inst._zod.deferred ??= [];
-      inst._zod.deferred?.push(() => {
-        inst._zod.run = inst._zod.parse;
+      // deferred initializer inst._schema.parse is not yet defined
+      inst._schema.deferred ??= [];
+      inst._schema.deferred?.push(() => {
+        inst._schema.run = inst._schema.parse;
       });
     } else {
       const runChecks = (
         payload: ParsePayload,
-        checks: checks.$ZodCheck<never>[],
+        checks: checks.$SchemaCheck<never>[],
         ctx?: ParseContextInternal | undefined
       ): util.MaybeAsync<ParsePayload> => {
         if (payload.memo) return payload;
@@ -241,18 +241,18 @@ export const $ZodType: core.$constructor<$ZodType> = /*@__PURE__*/ core.$constru
 
         let asyncResult!: Promise<unknown> | undefined;
         for (const ch of checks) {
-          if (ch._zod.def.when) {
+          if (ch._schema.def.when) {
             if (util.explicitlyAborted(payload)) continue;
-            const shouldRun = ch._zod.def.when(payload);
+            const shouldRun = ch._schema.def.when(payload);
             if (!shouldRun) continue;
           } else if (isAborted) {
             continue;
           }
           const currLen = payload.issues.length;
-          const _ = ch._zod.check(payload as any) as any as ParsePayload;
+          const _ = ch._schema.check(payload as any) as any as ParsePayload;
 
           if (_ instanceof Promise && ctx?.async === false) {
-            throw new core.$ZodAsyncError();
+            throw new core.$SchemaAsyncError();
           }
           if (asyncResult || _ instanceof Promise) {
             asyncResult = (asyncResult ?? Promise.resolve()).then(async () => {
@@ -288,19 +288,19 @@ export const $ZodType: core.$constructor<$ZodType> = /*@__PURE__*/ core.$constru
         // run checks first, then
         const checkResult = runChecks(payload, checks, ctx);
         if (checkResult instanceof Promise) {
-          if (ctx.async === false) throw new core.$ZodAsyncError();
-          return checkResult.then((checkResult) => inst._zod.parse(checkResult, ctx));
+          if (ctx.async === false) throw new core.$SchemaAsyncError();
+          return checkResult.then((checkResult) => inst._schema.parse(checkResult, ctx));
         }
-        return inst._zod.parse(checkResult, ctx);
+        return inst._schema.parse(checkResult, ctx);
       };
 
-      inst._zod.run = (payload, ctx) => {
+      inst._schema.run = (payload, ctx) => {
         if (ctx.skipChecks) {
-          return inst._zod.parse(payload, ctx);
+          return inst._schema.parse(payload, ctx);
         }
         if (ctx.direction === "backward") {
           // run canary initial pass (no checks)
-          const canary = inst._zod.parse({ value: payload.value, issues: [] }, { ...ctx, skipChecks: true });
+          const canary = inst._schema.parse({ value: payload.value, issues: [] }, { ...ctx, skipChecks: true });
 
           if (canary instanceof Promise) {
             return canary.then((canary) => {
@@ -312,9 +312,9 @@ export const $ZodType: core.$constructor<$ZodType> = /*@__PURE__*/ core.$constru
         }
 
         // forward
-        const result = inst._zod.parse(payload, ctx);
+        const result = inst._schema.parse(payload, ctx);
         if (result instanceof Promise) {
-          if (ctx.async === false) throw new core.$ZodAsyncError();
+          if (ctx.async === false) throw new core.$SchemaAsyncError();
           return result.then((result) => runChecks(result, checks, ctx));
         }
 
@@ -334,27 +334,27 @@ export const $ZodType: core.$constructor<$ZodType> = /*@__PURE__*/ core.$constru
 );
 
 /** The Standard Schema surface for `inst`. Shared so wrappers can extend it without forcing it. */
-// a Standard Schema result only reports issues, so a failure finalizes them straight off the raw payload: no ZodError, and no lazy result to read through
+// a Standard Schema result only reports issues, so a failure finalizes them straight off the raw payload: no SchemaError, and no lazy result to read through
 const toStandardResult = (r: ParsePayload, ctx: ParseContextInternal) =>
   r.issues.length ? { issues: r.issues.map((iss) => util.finalizeIssue(iss, ctx, core.config())) } : { value: r.value };
 
-async function validateAsync(inst: $ZodType, value: unknown) {
+async function validateAsync(inst: $SchemaType, value: unknown) {
   const ctx: ParseContextInternal = { async: true };
-  return toStandardResult((await inst._zod.run({ value, issues: [] }, ctx)) as ParsePayload, ctx);
+  return toStandardResult((await inst._schema.run({ value, issues: [] }, ctx)) as ParsePayload, ctx);
 }
 
-export function standardProps(inst: $ZodType): StandardSchemaV1.Props<any, any> {
+export function standardProps(inst: $SchemaType): StandardSchemaV1.Props<any, any> {
   return {
     validate: (value: unknown) => {
       const ctx: ParseContextInternal = { async: false };
       try {
-        const r = inst._zod.run({ value, issues: [] }, ctx);
+        const r = inst._schema.run({ value, issues: [] }, ctx);
         if (!(r instanceof Promise)) return toStandardResult(r, ctx);
       } catch (_) {}
       // async function so a synchronously throwing check rejects instead of escaping validate
       return validateAsync(inst, value);
     },
-    vendor: "zod",
+    vendor: "schema",
     version: 1 as const,
   };
 }
@@ -364,23 +364,23 @@ export { clone } from "./util.js";
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodString      //////////
+//////////      $SchemaString      //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
-export interface $ZodStringDef extends $ZodTypeDef {
+export interface $SchemaStringDef extends $SchemaTypeDef {
   type: "string";
   coerce?: boolean;
-  checks?: checks.$ZodCheck<string>[];
+  checks?: checks.$SchemaCheck<string>[];
 }
 
-export interface $ZodStringInternals<Input> extends $ZodTypeInternals<string, Input> {
-  def: $ZodStringDef;
+export interface $SchemaStringInternals<Input> extends $SchemaTypeInternals<string, Input> {
+  def: $SchemaStringDef;
   /** @deprecated Internal API, use with caution (not deprecated) */
   pattern: RegExp;
 
   /** @deprecated Internal API, use with caution (not deprecated) */
-  isst: errors.$ZodIssueInvalidType;
+  isst: errors.$SchemaIssueInvalidType;
   bag: util.LoosePartial<{
     minimum: number;
     maximum: number;
@@ -392,15 +392,15 @@ export interface $ZodStringInternals<Input> extends $ZodTypeInternals<string, In
   }>;
 }
 
-export interface $ZodString<Input = unknown> extends _$ZodType<$ZodStringInternals<Input>> {
-  // _zod: $ZodStringInternals<Input>;
+export interface $SchemaString<Input = unknown> extends _$SchemaType<$SchemaStringInternals<Input>> {
+  // _schema: $SchemaStringInternals<Input>;
 }
 
-export const $ZodString: core.$constructor<$ZodString> = /*@__PURE__*/ core.$constructor("$ZodString", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaString: core.$constructor<$SchemaString> = /*@__PURE__*/ core.$constructor("$SchemaString", (inst, def) => {
+  $SchemaType.init(inst, def);
   // a format's own pattern, else unbounded; a template literal derives the check-aware form itself
-  inst._zod.pattern = (def as $ZodStringFormatDef).pattern ?? regexes.anyString;
-  inst._zod.parse = (payload, _) => {
+  inst._schema.pattern = (def as $SchemaStringFormatDef).pattern ?? regexes.anyString;
+  inst._schema.parse = (payload, _) => {
     if (def.coerce)
       try {
         payload.value = String(payload.value);
@@ -419,58 +419,58 @@ export const $ZodString: core.$constructor<$ZodString> = /*@__PURE__*/ core.$con
   };
 });
 
-//////////////////////////////   ZodStringFormat   //////////////////////////////
+//////////////////////////////   SchemaStringFormat   //////////////////////////////
 
-export interface $ZodStringFormatDef<Format extends string = string>
-  extends $ZodStringDef,
-    checks.$ZodCheckStringFormatDef<Format> {}
+export interface $SchemaStringFormatDef<Format extends string = string>
+  extends $SchemaStringDef,
+    checks.$SchemaCheckStringFormatDef<Format> {}
 
-export interface $ZodStringFormatInternals<Format extends string = string>
-  extends $ZodStringInternals<string>,
-    checks.$ZodCheckStringFormatInternals {
-  def: $ZodStringFormatDef<Format>;
+export interface $SchemaStringFormatInternals<Format extends string = string>
+  extends $SchemaStringInternals<string>,
+    checks.$SchemaCheckStringFormatInternals {
+  def: $SchemaStringFormatDef<Format>;
 }
-export interface $ZodStringFormat<Format extends string = string> extends $ZodType {
-  _zod: $ZodStringFormatInternals<Format>;
+export interface $SchemaStringFormat<Format extends string = string> extends $SchemaType {
+  _schema: $SchemaStringFormatInternals<Format>;
 }
 
-export const $ZodStringFormat: core.$constructor<$ZodStringFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodStringFormat",
+export const $SchemaStringFormat: core.$constructor<$SchemaStringFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaStringFormat",
   (inst, def): void => {
     // check initialization must come first
-    checks.$ZodCheckStringFormat.init(inst, def);
-    $ZodString.init(inst, def);
+    checks.$SchemaCheckStringFormat.init(inst, def);
+    $SchemaString.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodGUID   //////////////////////////////
-export interface $ZodGUIDDef extends $ZodStringFormatDef<"guid"> {}
-export interface $ZodGUIDInternals extends $ZodStringFormatInternals<"guid"> {}
+//////////////////////////////   SchemaGUID   //////////////////////////////
+export interface $SchemaGUIDDef extends $SchemaStringFormatDef<"guid"> {}
+export interface $SchemaGUIDInternals extends $SchemaStringFormatInternals<"guid"> {}
 
-export interface $ZodGUID extends $ZodType {
-  _zod: $ZodGUIDInternals;
+export interface $SchemaGUID extends $SchemaType {
+  _schema: $SchemaGUIDInternals;
 }
 
-export const $ZodGUID: core.$constructor<$ZodGUID> = /*@__PURE__*/ core.$constructor("$ZodGUID", (inst, def): void => {
+export const $SchemaGUID: core.$constructor<$SchemaGUID> = /*@__PURE__*/ core.$constructor("$SchemaGUID", (inst, def): void => {
   def.pattern ??= regexes.guid;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodUUID   //////////////////////////////
+//////////////////////////////   SchemaUUID   //////////////////////////////
 
-export interface $ZodUUIDDef extends $ZodStringFormatDef<"uuid"> {
+export interface $SchemaUUIDDef extends $SchemaStringFormatDef<"uuid"> {
   version?: "v1" | "v2" | "v3" | "v4" | "v5" | "v6" | "v7" | "v8";
 }
 
-export interface $ZodUUIDInternals extends $ZodStringFormatInternals<"uuid"> {
-  def: $ZodUUIDDef;
+export interface $SchemaUUIDInternals extends $SchemaStringFormatInternals<"uuid"> {
+  def: $SchemaUUIDDef;
 }
 
-export interface $ZodUUID extends $ZodType {
-  _zod: $ZodUUIDInternals;
+export interface $SchemaUUID extends $SchemaType {
+  _schema: $SchemaUUIDInternals;
 }
 
-export const $ZodUUID: core.$constructor<$ZodUUID> = /*@__PURE__*/ core.$constructor("$ZodUUID", (inst, def): void => {
+export const $SchemaUUID: core.$constructor<$SchemaUUID> = /*@__PURE__*/ core.$constructor("$SchemaUUID", (inst, def): void => {
   if (def.version) {
     const versionMap: Record<string, number> = {
       v1: 1,
@@ -486,38 +486,38 @@ export const $ZodUUID: core.$constructor<$ZodUUID> = /*@__PURE__*/ core.$constru
     if (v === undefined) throw new Error(`Invalid UUID version: "${def.version}"`);
     def.pattern ??= regexes.uuid(v);
   } else def.pattern ??= regexes.uuid();
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodEmail   //////////////////////////////
+//////////////////////////////   SchemaEmail   //////////////////////////////
 
-export interface $ZodEmailDef extends $ZodStringFormatDef<"email"> {}
-export interface $ZodEmailInternals extends $ZodStringFormatInternals<"email"> {}
-export interface $ZodEmail extends $ZodType {
-  _zod: $ZodEmailInternals;
+export interface $SchemaEmailDef extends $SchemaStringFormatDef<"email"> {}
+export interface $SchemaEmailInternals extends $SchemaStringFormatInternals<"email"> {}
+export interface $SchemaEmail extends $SchemaType {
+  _schema: $SchemaEmailInternals;
 }
 
-export const $ZodEmail: core.$constructor<$ZodEmail> = /*@__PURE__*/ core.$constructor(
-  "$ZodEmail",
+export const $SchemaEmail: core.$constructor<$SchemaEmail> = /*@__PURE__*/ core.$constructor(
+  "$SchemaEmail",
   (inst, def): void => {
     def.pattern ??= regexes.email;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodURL   //////////////////////////////
+//////////////////////////////   SchemaURL   //////////////////////////////
 
-export interface $ZodURLDef extends $ZodStringFormatDef<"url"> {
+export interface $SchemaURLDef extends $SchemaStringFormatDef<"url"> {
   hostname?: RegExp | undefined;
   protocol?: RegExp | undefined;
   normalize?: boolean | undefined;
 }
-export interface $ZodURLInternals extends $ZodStringFormatInternals<"url"> {
-  def: $ZodURLDef;
+export interface $SchemaURLInternals extends $SchemaStringFormatInternals<"url"> {
+  def: $SchemaURLDef;
 }
 
-export interface $ZodURL extends $ZodType {
-  _zod: $ZodURLInternals;
+export interface $SchemaURL extends $SchemaType {
+  _schema: $SchemaURLInternals;
 }
 
 /** The `://` guard rejected the input before the URL constructor saw it. */
@@ -537,7 +537,7 @@ export function canParseURL(input: string): boolean {
 
 export function validateURL(
   trimmed: string,
-  def: Pick<$ZodURLDef, "protocol" | "hostname" | "normalize">
+  def: Pick<$SchemaURLDef, "protocol" | "hostname" | "normalize">
 ): URL | true | typeof URL_BAD_FORMAT | typeof URL_UNPARSEABLE {
   if (!("normalize" in def) && !("hostname" in def) && !("protocol" in def)) {
     return canParseURL(trimmed) || URL_UNPARSEABLE;
@@ -548,7 +548,7 @@ export function validateURL(
 /** Parses a URL while preserving the non-normalizing HTTP guard. */
 export function parseURLObject(
   trimmed: string,
-  def: Pick<$ZodURLDef, "protocol" | "normalize">
+  def: Pick<$SchemaURLDef, "protocol" | "normalize">
 ): URL | typeof URL_BAD_FORMAT | typeof URL_UNPARSEABLE {
   // When normalize is off, require :// for http/https URLs. This prevents strings like "http:example.com" or "https:/path" from being silently accepted
   if (!def.normalize && def.protocol?.source === regexes.httpProtocol.source && !/^https?:\/\//i.test(trimmed)) {
@@ -584,9 +584,9 @@ export function urlProtocolOk(url: URL, protocol: RegExp): boolean {
   return protocol.test(url.protocol.endsWith(":") ? url.protocol.slice(0, -1) : url.protocol);
 }
 
-export const $ZodURL: core.$constructor<$ZodURL> = /*@__PURE__*/ core.$constructor("$ZodURL", (inst, def) => {
-  $ZodStringFormat.init(inst, def);
-  inst._zod.check = (payload) => {
+export const $SchemaURL: core.$constructor<$SchemaURL> = /*@__PURE__*/ core.$constructor("$SchemaURL", (inst, def) => {
+  $SchemaStringFormat.init(inst, def);
+  inst._schema.check = (payload) => {
     try {
       // Trim whitespace from input
       const trimmed = payload.value.trim();
@@ -660,253 +660,253 @@ export const $ZodURL: core.$constructor<$ZodURL> = /*@__PURE__*/ core.$construct
   };
 });
 
-//////////////////////////////   ZodEmoji   //////////////////////////////
+//////////////////////////////   SchemaEmoji   //////////////////////////////
 
-export interface $ZodEmojiDef extends $ZodStringFormatDef<"emoji"> {}
-export interface $ZodEmojiInternals extends $ZodStringFormatInternals<"emoji"> {}
+export interface $SchemaEmojiDef extends $SchemaStringFormatDef<"emoji"> {}
+export interface $SchemaEmojiInternals extends $SchemaStringFormatInternals<"emoji"> {}
 
-export interface $ZodEmoji extends $ZodType {
-  _zod: $ZodEmojiInternals;
+export interface $SchemaEmoji extends $SchemaType {
+  _schema: $SchemaEmojiInternals;
 }
 
-export const $ZodEmoji: core.$constructor<$ZodEmoji> = /*@__PURE__*/ core.$constructor(
-  "$ZodEmoji",
+export const $SchemaEmoji: core.$constructor<$SchemaEmoji> = /*@__PURE__*/ core.$constructor(
+  "$SchemaEmoji",
   (inst, def): void => {
     def.pattern ??= regexes.emoji();
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodNanoID   //////////////////////////////
+//////////////////////////////   SchemaNanoID   //////////////////////////////
 
-export interface $ZodNanoIDDef extends $ZodStringFormatDef<"nanoid"> {
+export interface $SchemaNanoIDDef extends $SchemaStringFormatDef<"nanoid"> {
   length?: number | undefined;
 }
-export interface $ZodNanoIDInternals extends $ZodStringFormatInternals<"nanoid"> {
-  def: $ZodNanoIDDef;
+export interface $SchemaNanoIDInternals extends $SchemaStringFormatInternals<"nanoid"> {
+  def: $SchemaNanoIDDef;
 }
 
-export interface $ZodNanoID extends $ZodType {
-  _zod: $ZodNanoIDInternals;
+export interface $SchemaNanoID extends $SchemaType {
+  _schema: $SchemaNanoIDInternals;
 }
 
-export const $ZodNanoID: core.$constructor<$ZodNanoID> = /*@__PURE__*/ core.$constructor(
-  "$ZodNanoID",
+export const $SchemaNanoID: core.$constructor<$SchemaNanoID> = /*@__PURE__*/ core.$constructor(
+  "$SchemaNanoID",
   (inst, def): void => {
     if (def.length !== undefined && (!Number.isInteger(def.length) || def.length < 1))
       throw new Error(`Invalid nanoid length: ${def.length}`);
     def.pattern ??= def.length === undefined ? regexes.nanoid : regexes.nanoidOfLength(def.length);
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodCUID   //////////////////////////////
+//////////////////////////////   SchemaCUID   //////////////////////////////
 
 /**
  * @deprecated CUID v1 is deprecated by its authors due to information leakage
- * (timestamps embedded in the id). Use {@link $ZodCUID2} instead.
+ * (timestamps embedded in the id). Use {@link $SchemaCUID2} instead.
  * See https://github.com/paralleldrive/cuid.
  */
-export interface $ZodCUIDDef extends $ZodStringFormatDef<"cuid"> {}
+export interface $SchemaCUIDDef extends $SchemaStringFormatDef<"cuid"> {}
 /**
  * @deprecated CUID v1 is deprecated by its authors due to information leakage
- * (timestamps embedded in the id). Use {@link $ZodCUID2} instead.
+ * (timestamps embedded in the id). Use {@link $SchemaCUID2} instead.
  * See https://github.com/paralleldrive/cuid.
  */
-export interface $ZodCUIDInternals extends $ZodStringFormatInternals<"cuid"> {}
+export interface $SchemaCUIDInternals extends $SchemaStringFormatInternals<"cuid"> {}
 
 /**
  * @deprecated CUID v1 is deprecated by its authors due to information leakage
- * (timestamps embedded in the id). Use {@link $ZodCUID2} instead.
+ * (timestamps embedded in the id). Use {@link $SchemaCUID2} instead.
  * See https://github.com/paralleldrive/cuid.
  */
-export interface $ZodCUID extends $ZodType {
-  _zod: $ZodCUIDInternals;
+export interface $SchemaCUID extends $SchemaType {
+  _schema: $SchemaCUIDInternals;
 }
 
 /**
  * @deprecated CUID v1 is deprecated by its authors due to information leakage
- * (timestamps embedded in the id). Use {@link $ZodCUID2} instead.
+ * (timestamps embedded in the id). Use {@link $SchemaCUID2} instead.
  * See https://github.com/paralleldrive/cuid.
  */
-export const $ZodCUID: core.$constructor<$ZodCUID> = /*@__PURE__*/ core.$constructor("$ZodCUID", (inst, def): void => {
+export const $SchemaCUID: core.$constructor<$SchemaCUID> = /*@__PURE__*/ core.$constructor("$SchemaCUID", (inst, def): void => {
   def.pattern ??= regexes.cuid;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodCUID2   //////////////////////////////
+//////////////////////////////   SchemaCUID2   //////////////////////////////
 
-export interface $ZodCUID2Def extends $ZodStringFormatDef<"cuid2"> {}
-export interface $ZodCUID2Internals extends $ZodStringFormatInternals<"cuid2"> {}
+export interface $SchemaCUID2Def extends $SchemaStringFormatDef<"cuid2"> {}
+export interface $SchemaCUID2Internals extends $SchemaStringFormatInternals<"cuid2"> {}
 
-export interface $ZodCUID2 extends $ZodType {
-  _zod: $ZodCUID2Internals;
+export interface $SchemaCUID2 extends $SchemaType {
+  _schema: $SchemaCUID2Internals;
 }
 
-export const $ZodCUID2: core.$constructor<$ZodCUID2> = /*@__PURE__*/ core.$constructor(
-  "$ZodCUID2",
+export const $SchemaCUID2: core.$constructor<$SchemaCUID2> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCUID2",
   (inst, def): void => {
     def.pattern ??= regexes.cuid2;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodULID   //////////////////////////////
+//////////////////////////////   SchemaULID   //////////////////////////////
 
-export interface $ZodULIDDef extends $ZodStringFormatDef<"ulid"> {}
-export interface $ZodULIDInternals extends $ZodStringFormatInternals<"ulid"> {}
+export interface $SchemaULIDDef extends $SchemaStringFormatDef<"ulid"> {}
+export interface $SchemaULIDInternals extends $SchemaStringFormatInternals<"ulid"> {}
 
-export interface $ZodULID extends $ZodType {
-  _zod: $ZodULIDInternals;
+export interface $SchemaULID extends $SchemaType {
+  _schema: $SchemaULIDInternals;
 }
 
-export const $ZodULID: core.$constructor<$ZodULID> = /*@__PURE__*/ core.$constructor("$ZodULID", (inst, def): void => {
+export const $SchemaULID: core.$constructor<$SchemaULID> = /*@__PURE__*/ core.$constructor("$SchemaULID", (inst, def): void => {
   def.pattern ??= regexes.ulid;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodXID   //////////////////////////////
+//////////////////////////////   SchemaXID   //////////////////////////////
 
-export interface $ZodXIDDef extends $ZodStringFormatDef<"xid"> {}
-export interface $ZodXIDInternals extends $ZodStringFormatInternals<"xid"> {}
+export interface $SchemaXIDDef extends $SchemaStringFormatDef<"xid"> {}
+export interface $SchemaXIDInternals extends $SchemaStringFormatInternals<"xid"> {}
 
-export interface $ZodXID extends $ZodType {
-  _zod: $ZodXIDInternals;
+export interface $SchemaXID extends $SchemaType {
+  _schema: $SchemaXIDInternals;
 }
 
-export const $ZodXID: core.$constructor<$ZodXID> = /*@__PURE__*/ core.$constructor("$ZodXID", (inst, def): void => {
+export const $SchemaXID: core.$constructor<$SchemaXID> = /*@__PURE__*/ core.$constructor("$SchemaXID", (inst, def): void => {
   def.pattern ??= regexes.xid;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodKSUID   //////////////////////////////
+//////////////////////////////   SchemaKSUID   //////////////////////////////
 
-export interface $ZodKSUIDDef extends $ZodStringFormatDef<"ksuid"> {}
-export interface $ZodKSUIDInternals extends $ZodStringFormatInternals<"ksuid"> {}
+export interface $SchemaKSUIDDef extends $SchemaStringFormatDef<"ksuid"> {}
+export interface $SchemaKSUIDInternals extends $SchemaStringFormatInternals<"ksuid"> {}
 
-export interface $ZodKSUID extends $ZodType {
-  _zod: $ZodKSUIDInternals;
+export interface $SchemaKSUID extends $SchemaType {
+  _schema: $SchemaKSUIDInternals;
 }
 
-export const $ZodKSUID: core.$constructor<$ZodKSUID> = /*@__PURE__*/ core.$constructor(
-  "$ZodKSUID",
+export const $SchemaKSUID: core.$constructor<$SchemaKSUID> = /*@__PURE__*/ core.$constructor(
+  "$SchemaKSUID",
   (inst, def): void => {
     def.pattern ??= regexes.ksuid;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodISODateTime   //////////////////////////////
+//////////////////////////////   SchemaISODateTime   //////////////////////////////
 
-export interface $ZodISODateTimeDef extends $ZodStringFormatDef<"datetime"> {
+export interface $SchemaISODateTimeDef extends $SchemaStringFormatDef<"datetime"> {
   precision: number | null;
   offset: boolean;
   local: boolean;
 }
 
-export interface $ZodISODateTimeInternals extends $ZodStringFormatInternals {
-  def: $ZodISODateTimeDef;
+export interface $SchemaISODateTimeInternals extends $SchemaStringFormatInternals {
+  def: $SchemaISODateTimeDef;
 }
 
-export interface $ZodISODateTime extends $ZodType {
-  _zod: $ZodISODateTimeInternals;
+export interface $SchemaISODateTime extends $SchemaType {
+  _schema: $SchemaISODateTimeInternals;
 }
 
-export const $ZodISODateTime: core.$constructor<$ZodISODateTime> = /*@__PURE__*/ core.$constructor(
-  "$ZodISODateTime",
+export const $SchemaISODateTime: core.$constructor<$SchemaISODateTime> = /*@__PURE__*/ core.$constructor(
+  "$SchemaISODateTime",
   (inst, def): void => {
     def.pattern ??= regexes.datetime(def);
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodISODate   //////////////////////////////
+//////////////////////////////   SchemaISODate   //////////////////////////////
 
-export interface $ZodISODateDef extends $ZodStringFormatDef<"date"> {}
-export interface $ZodISODateInternals extends $ZodStringFormatInternals<"date"> {}
+export interface $SchemaISODateDef extends $SchemaStringFormatDef<"date"> {}
+export interface $SchemaISODateInternals extends $SchemaStringFormatInternals<"date"> {}
 
-export interface $ZodISODate extends $ZodType {
-  _zod: $ZodISODateInternals;
+export interface $SchemaISODate extends $SchemaType {
+  _schema: $SchemaISODateInternals;
 }
 
-export const $ZodISODate: core.$constructor<$ZodISODate> = /*@__PURE__*/ core.$constructor(
-  "$ZodISODate",
+export const $SchemaISODate: core.$constructor<$SchemaISODate> = /*@__PURE__*/ core.$constructor(
+  "$SchemaISODate",
   (inst, def): void => {
     def.pattern ??= regexes.date;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodISOTime   //////////////////////////////
+//////////////////////////////   SchemaISOTime   //////////////////////////////
 
-export interface $ZodISOTimeDef extends $ZodStringFormatDef<"time"> {
+export interface $SchemaISOTimeDef extends $SchemaStringFormatDef<"time"> {
   precision?: number | null;
 }
 
-export interface $ZodISOTimeInternals extends $ZodStringFormatInternals<"time"> {
-  def: $ZodISOTimeDef;
+export interface $SchemaISOTimeInternals extends $SchemaStringFormatInternals<"time"> {
+  def: $SchemaISOTimeDef;
 }
 
-export interface $ZodISOTime extends $ZodType {
-  _zod: $ZodISOTimeInternals;
+export interface $SchemaISOTime extends $SchemaType {
+  _schema: $SchemaISOTimeInternals;
 }
 
-export const $ZodISOTime: core.$constructor<$ZodISOTime> = /*@__PURE__*/ core.$constructor(
-  "$ZodISOTime",
+export const $SchemaISOTime: core.$constructor<$SchemaISOTime> = /*@__PURE__*/ core.$constructor(
+  "$SchemaISOTime",
   (inst, def): void => {
     def.pattern ??= regexes.time(def);
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodISODuration   //////////////////////////////
+//////////////////////////////   SchemaISODuration   //////////////////////////////
 
-export interface $ZodISODurationDef extends $ZodStringFormatDef<"duration"> {}
-export interface $ZodISODurationInternals extends $ZodStringFormatInternals<"duration"> {}
+export interface $SchemaISODurationDef extends $SchemaStringFormatDef<"duration"> {}
+export interface $SchemaISODurationInternals extends $SchemaStringFormatInternals<"duration"> {}
 
-export interface $ZodISODuration extends $ZodType {
-  _zod: $ZodISODurationInternals;
+export interface $SchemaISODuration extends $SchemaType {
+  _schema: $SchemaISODurationInternals;
 }
 
-export const $ZodISODuration: core.$constructor<$ZodISODuration> = /*@__PURE__*/ core.$constructor(
-  "$ZodISODuration",
+export const $SchemaISODuration: core.$constructor<$SchemaISODuration> = /*@__PURE__*/ core.$constructor(
+  "$SchemaISODuration",
   (inst, def): void => {
     def.pattern ??= regexes.duration;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodIPv4   //////////////////////////////
+//////////////////////////////   SchemaIPv4   //////////////////////////////
 
-export interface $ZodIPv4Def extends $ZodStringFormatDef<"ipv4"> {
+export interface $SchemaIPv4Def extends $SchemaStringFormatDef<"ipv4"> {
   version?: "v4";
 }
 
-export interface $ZodIPv4Internals extends $ZodStringFormatInternals<"ipv4"> {
-  def: $ZodIPv4Def;
+export interface $SchemaIPv4Internals extends $SchemaStringFormatInternals<"ipv4"> {
+  def: $SchemaIPv4Def;
 }
 
-export interface $ZodIPv4 extends $ZodType {
-  _zod: $ZodIPv4Internals;
+export interface $SchemaIPv4 extends $SchemaType {
+  _schema: $SchemaIPv4Internals;
 }
 
-export const $ZodIPv4: core.$constructor<$ZodIPv4> = /*@__PURE__*/ core.$constructor("$ZodIPv4", (inst, def): void => {
+export const $SchemaIPv4: core.$constructor<$SchemaIPv4> = /*@__PURE__*/ core.$constructor("$SchemaIPv4", (inst, def): void => {
   def.pattern ??= regexes.ipv4;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodIPv6   //////////////////////////////
+//////////////////////////////   SchemaIPv6   //////////////////////////////
 
-export interface $ZodIPv6Def extends $ZodStringFormatDef<"ipv6"> {
+export interface $SchemaIPv6Def extends $SchemaStringFormatDef<"ipv6"> {
   version?: "v6";
 }
 
-export interface $ZodIPv6Internals extends $ZodStringFormatInternals<"ipv6"> {
-  def: $ZodIPv6Def;
+export interface $SchemaIPv6Internals extends $SchemaStringFormatInternals<"ipv6"> {
+  def: $SchemaIPv6Def;
 }
 
-export interface $ZodIPv6 extends $ZodType {
-  _zod: $ZodIPv6Internals;
+export interface $SchemaIPv6 extends $SchemaType {
+  _schema: $SchemaIPv6Internals;
 }
 
 /** An IPv6 address is written with hex digits, colons and dots, and nothing else. The guard is what makes the check below an IPv6 check: `new URL("http://[...]")` parses an authority, not an address, so `@` and `\` re-delimit it and `"::@1\\"` validates against the host `0.0.0.1`. The URL parser also deletes ASCII tab, LF and CR rather than failing, which is how `"::1\n"` validated as `::1`. */
@@ -917,11 +917,11 @@ export function isValidIPv6(value: string): boolean {
   return canParseURL(`http://[${value}]`);
 }
 
-export const $ZodIPv6: core.$constructor<$ZodIPv6> = /*@__PURE__*/ core.$constructor("$ZodIPv6", (inst, def): void => {
+export const $SchemaIPv6: core.$constructor<$SchemaIPv6> = /*@__PURE__*/ core.$constructor("$SchemaIPv6", (inst, def): void => {
   def.pattern ??= regexes.ipv6;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 
-  inst._zod.check = (payload) => {
+  inst._schema.check = (payload) => {
     if (!isValidIPv6(payload.value)) {
       payload.issues.push({
         code: "invalid_format",
@@ -934,58 +934,58 @@ export const $ZodIPv6: core.$constructor<$ZodIPv6> = /*@__PURE__*/ core.$constru
   };
 });
 
-//////////////////////////////   ZodMAC   //////////////////////////////
-export interface $ZodMACDef extends $ZodStringFormatDef<"mac"> {
+//////////////////////////////   SchemaMAC   //////////////////////////////
+export interface $SchemaMACDef extends $SchemaStringFormatDef<"mac"> {
   delimiter?: string;
 }
 
-export interface $ZodMACInternals extends $ZodStringFormatInternals<"mac"> {
-  def: $ZodMACDef;
+export interface $SchemaMACInternals extends $SchemaStringFormatInternals<"mac"> {
+  def: $SchemaMACDef;
 }
 
-export interface $ZodMAC extends $ZodType {
-  _zod: $ZodMACInternals;
+export interface $SchemaMAC extends $SchemaType {
+  _schema: $SchemaMACInternals;
 }
 
-export const $ZodMAC: core.$constructor<$ZodMAC> = /*@__PURE__*/ core.$constructor("$ZodMAC", (inst, def): void => {
+export const $SchemaMAC: core.$constructor<$SchemaMAC> = /*@__PURE__*/ core.$constructor("$SchemaMAC", (inst, def): void => {
   def.pattern ??= regexes.mac(def.delimiter);
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodCIDRv4   //////////////////////////////
+//////////////////////////////   SchemaCIDRv4   //////////////////////////////
 
-export interface $ZodCIDRv4Def extends $ZodStringFormatDef<"cidrv4"> {
+export interface $SchemaCIDRv4Def extends $SchemaStringFormatDef<"cidrv4"> {
   version?: "v4";
 }
 
-export interface $ZodCIDRv4Internals extends $ZodStringFormatInternals<"cidrv4"> {
-  def: $ZodCIDRv4Def;
+export interface $SchemaCIDRv4Internals extends $SchemaStringFormatInternals<"cidrv4"> {
+  def: $SchemaCIDRv4Def;
 }
 
-export interface $ZodCIDRv4 extends $ZodType {
-  _zod: $ZodCIDRv4Internals;
+export interface $SchemaCIDRv4 extends $SchemaType {
+  _schema: $SchemaCIDRv4Internals;
 }
 
-export const $ZodCIDRv4: core.$constructor<$ZodCIDRv4> = /*@__PURE__*/ core.$constructor(
-  "$ZodCIDRv4",
+export const $SchemaCIDRv4: core.$constructor<$SchemaCIDRv4> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCIDRv4",
   (inst, def): void => {
     def.pattern ??= regexes.cidrv4;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
   }
 );
 
-//////////////////////////////   ZodCIDRv6   //////////////////////////////
+//////////////////////////////   SchemaCIDRv6   //////////////////////////////
 
-export interface $ZodCIDRv6Def extends $ZodStringFormatDef<"cidrv6"> {
+export interface $SchemaCIDRv6Def extends $SchemaStringFormatDef<"cidrv6"> {
   version?: "v6";
 }
 
-export interface $ZodCIDRv6Internals extends $ZodStringFormatInternals<"cidrv6"> {
-  def: $ZodCIDRv6Def;
+export interface $SchemaCIDRv6Internals extends $SchemaStringFormatInternals<"cidrv6"> {
+  def: $SchemaCIDRv6Def;
 }
 
-export interface $ZodCIDRv6 extends $ZodType {
-  _zod: $ZodCIDRv6Internals;
+export interface $SchemaCIDRv6 extends $SchemaType {
+  _schema: $SchemaCIDRv6Internals;
 }
 
 export function isValidCIDRv6(value: string): boolean {
@@ -999,13 +999,13 @@ export function isValidCIDRv6(value: string): boolean {
   return isValidIPv6(address);
 }
 
-export const $ZodCIDRv6: core.$constructor<$ZodCIDRv6> = /*@__PURE__*/ core.$constructor(
-  "$ZodCIDRv6",
+export const $SchemaCIDRv6: core.$constructor<$SchemaCIDRv6> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCIDRv6",
   (inst, def): void => {
     def.pattern ??= regexes.cidrv6; // not used for validation
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (!isValidCIDRv6(payload.value)) {
         payload.issues.push({
           code: "invalid_format",
@@ -1019,7 +1019,7 @@ export const $ZodCIDRv6: core.$constructor<$ZodCIDRv6> = /*@__PURE__*/ core.$con
   }
 );
 
-//////////////////////////////   ZodBase64   //////////////////////////////
+//////////////////////////////   SchemaBase64   //////////////////////////////
 export function isValidBase64(data: string): boolean {
   if (data === "") return true;
   // atob ignores whitespace, so reject it up front.
@@ -1034,23 +1034,23 @@ export function isValidBase64(data: string): boolean {
   }
 }
 
-export interface $ZodBase64Def extends $ZodStringFormatDef<"base64"> {}
-export interface $ZodBase64Internals extends $ZodStringFormatInternals<"base64"> {}
+export interface $SchemaBase64Def extends $SchemaStringFormatDef<"base64"> {}
+export interface $SchemaBase64Internals extends $SchemaStringFormatInternals<"base64"> {}
 
-export interface $ZodBase64 extends $ZodType {
-  _zod: $ZodBase64Internals;
+export interface $SchemaBase64 extends $SchemaType {
+  _schema: $SchemaBase64Internals;
 }
 
 // lax on purpose: the quantified regexes.base64 overflows the regex stack on multi-MB input and its leading ^$| alternation leaks through template-literal composition; isValidBase64 enforces length and padding
 export const base64Charset: RegExp = /^[0-9a-zA-Z+/]*={0,2}$/;
 
-export const $ZodBase64: core.$constructor<$ZodBase64> = /*@__PURE__*/ core.$constructor(
-  "$ZodBase64",
+export const $SchemaBase64: core.$constructor<$SchemaBase64> = /*@__PURE__*/ core.$constructor(
+  "$SchemaBase64",
   (inst, def): void => {
     def.pattern ??= base64Charset;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (isValidBase64(payload.value)) return;
 
       payload.issues.push({
@@ -1064,7 +1064,7 @@ export const $ZodBase64: core.$constructor<$ZodBase64> = /*@__PURE__*/ core.$con
   }
 );
 
-//////////////////////////////   ZodBase64URL   //////////////////////////////
+//////////////////////////////   SchemaBase64URL   //////////////////////////////
 // lax on purpose: the quantified regexes.base64url overflows the regex stack on multi-MB input; isValidBase64 enforces length on the padded string
 export const base64urlCharset: RegExp = /^[A-Za-z0-9_-]*$/;
 
@@ -1075,20 +1075,20 @@ export function isValidBase64URL(data: string): boolean {
   return isValidBase64(padded);
 }
 
-export interface $ZodBase64URLDef extends $ZodStringFormatDef<"base64url"> {}
-export interface $ZodBase64URLInternals extends $ZodStringFormatInternals<"base64url"> {}
+export interface $SchemaBase64URLDef extends $SchemaStringFormatDef<"base64url"> {}
+export interface $SchemaBase64URLInternals extends $SchemaStringFormatInternals<"base64url"> {}
 
-export interface $ZodBase64URL extends $ZodType {
-  _zod: $ZodBase64URLInternals;
+export interface $SchemaBase64URL extends $SchemaType {
+  _schema: $SchemaBase64URLInternals;
 }
 
-export const $ZodBase64URL: core.$constructor<$ZodBase64URL> = /*@__PURE__*/ core.$constructor(
-  "$ZodBase64URL",
+export const $SchemaBase64URL: core.$constructor<$SchemaBase64URL> = /*@__PURE__*/ core.$constructor(
+  "$SchemaBase64URL",
   (inst, def): void => {
     def.pattern ??= base64urlCharset;
-    $ZodStringFormat.init(inst, def);
+    $SchemaStringFormat.init(inst, def);
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (isValidBase64URL(payload.value)) return;
 
       payload.issues.push({
@@ -1102,21 +1102,21 @@ export const $ZodBase64URL: core.$constructor<$ZodBase64URL> = /*@__PURE__*/ cor
   }
 );
 
-//////////////////////////////   ZodE164   //////////////////////////////
+//////////////////////////////   SchemaE164   //////////////////////////////
 
-export interface $ZodE164Def extends $ZodStringFormatDef<"e164"> {}
-export interface $ZodE164Internals extends $ZodStringFormatInternals<"e164"> {}
+export interface $SchemaE164Def extends $SchemaStringFormatDef<"e164"> {}
+export interface $SchemaE164Internals extends $SchemaStringFormatInternals<"e164"> {}
 
-export interface $ZodE164 extends $ZodType {
-  _zod: $ZodE164Internals;
+export interface $SchemaE164 extends $SchemaType {
+  _schema: $SchemaE164Internals;
 }
 
-export const $ZodE164: core.$constructor<$ZodE164> = /*@__PURE__*/ core.$constructor("$ZodE164", (inst, def): void => {
+export const $SchemaE164: core.$constructor<$SchemaE164> = /*@__PURE__*/ core.$constructor("$SchemaE164", (inst, def): void => {
   def.pattern ??= regexes.e164;
-  $ZodStringFormat.init(inst, def);
+  $SchemaStringFormat.init(inst, def);
 });
 
-//////////////////////////////   ZodCreditCard   //////////////////////////////
+//////////////////////////////   SchemaCreditCard   //////////////////////////////
 
 const CC_SANITIZE = /[- ]/g;
 
@@ -1138,22 +1138,22 @@ export function isValidCreditCard(input: string): boolean {
   return isLuhnAlgo(input.replace(CC_SANITIZE, ""));
 }
 
-export interface $ZodCreditCardDef extends $ZodStringFormatDef<"credit_card"> {}
-export interface $ZodCreditCardInternals extends $ZodStringFormatInternals<"credit_card"> {
-  def: $ZodCreditCardDef;
+export interface $SchemaCreditCardDef extends $SchemaStringFormatDef<"credit_card"> {}
+export interface $SchemaCreditCardInternals extends $SchemaStringFormatInternals<"credit_card"> {
+  def: $SchemaCreditCardDef;
 }
 
-export interface $ZodCreditCard extends $ZodType {
-  _zod: $ZodCreditCardInternals;
+export interface $SchemaCreditCard extends $SchemaType {
+  _schema: $SchemaCreditCardInternals;
 }
 
-export const $ZodCreditCard: core.$constructor<$ZodCreditCard> = /*@__PURE__*/ core.$constructor(
-  "$ZodCreditCard",
+export const $SchemaCreditCard: core.$constructor<$SchemaCreditCard> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCreditCard",
   (inst, def): void => {
     // Shape only — the Luhn check below is not expressible as a pattern, so consumers of `pattern` (JSON Schema, template literals) get the length and separator rules alone.
     def.pattern ??= regexes.creditCard;
-    $ZodStringFormat.init(inst, def);
-    inst._zod.check = (payload) => {
+    $SchemaStringFormat.init(inst, def);
+    inst._schema.check = (payload) => {
       if (isValidCreditCard(payload.value)) return;
       payload.issues.push({
         code: "invalid_format",
@@ -1166,7 +1166,7 @@ export const $ZodCreditCard: core.$constructor<$ZodCreditCard> = /*@__PURE__*/ c
   }
 );
 
-//////////////////////////////   ZodIBAN   //////////////////////////////
+//////////////////////////////   SchemaIBAN   //////////////////////////////
 
 // iso 7064 mod 97-10 checksum without BigInt
 function isIso7064Mod97(iban: string): boolean {
@@ -1188,20 +1188,20 @@ export function isValidIBAN(input: string): boolean {
   return isIso7064Mod97(input);
 }
 
-export interface $ZodIBANDef extends $ZodStringFormatDef<"iban"> {}
-export interface $ZodIBANInternals extends $ZodStringFormatInternals<"iban"> {
-  def: $ZodIBANDef;
+export interface $SchemaIBANDef extends $SchemaStringFormatDef<"iban"> {}
+export interface $SchemaIBANInternals extends $SchemaStringFormatInternals<"iban"> {
+  def: $SchemaIBANDef;
 }
 
-export interface $ZodIBAN extends $ZodType {
-  _zod: $ZodIBANInternals;
+export interface $SchemaIBAN extends $SchemaType {
+  _schema: $SchemaIBANInternals;
 }
 
-export const $ZodIBAN: core.$constructor<$ZodIBAN> = /*@__PURE__*/ core.$constructor("$ZodIBAN", (inst, def): void => {
+export const $SchemaIBAN: core.$constructor<$SchemaIBAN> = /*@__PURE__*/ core.$constructor("$SchemaIBAN", (inst, def): void => {
   // shape only — checksum is not expressible as a pattern
   def.pattern ??= regexes.iban;
-  $ZodStringFormat.init(inst, def);
-  inst._zod.check = (payload) => {
+  $SchemaStringFormat.init(inst, def);
+  inst._schema.check = (payload) => {
     if (isValidIBAN(payload.value)) return;
     payload.issues.push({
       code: "invalid_format",
@@ -1213,7 +1213,7 @@ export const $ZodIBAN: core.$constructor<$ZodIBAN> = /*@__PURE__*/ core.$constru
   };
 });
 
-//////////////////////////////   ZodJWT   //////////////////////////////
+//////////////////////////////   SchemaJWT   //////////////////////////////
 
 export function isValidJWT(token: string, algorithm: util.JWTAlgorithm | null = null): boolean {
   try {
@@ -1232,21 +1232,21 @@ export function isValidJWT(token: string, algorithm: util.JWTAlgorithm | null = 
   }
 }
 
-export interface $ZodJWTDef extends $ZodStringFormatDef<"jwt"> {
+export interface $SchemaJWTDef extends $SchemaStringFormatDef<"jwt"> {
   alg?: util.JWTAlgorithm | undefined;
 }
 
-export interface $ZodJWTInternals extends $ZodStringFormatInternals<"jwt"> {
-  def: $ZodJWTDef;
+export interface $SchemaJWTInternals extends $SchemaStringFormatInternals<"jwt"> {
+  def: $SchemaJWTDef;
 }
 
-export interface $ZodJWT extends $ZodType {
-  _zod: $ZodJWTInternals;
+export interface $SchemaJWT extends $SchemaType {
+  _schema: $SchemaJWTInternals;
 }
 
-export const $ZodJWT: core.$constructor<$ZodJWT> = /*@__PURE__*/ core.$constructor("$ZodJWT", (inst, def): void => {
-  $ZodStringFormat.init(inst, def);
-  inst._zod.check = (payload) => {
+export const $SchemaJWT: core.$constructor<$SchemaJWT> = /*@__PURE__*/ core.$constructor("$SchemaJWT", (inst, def): void => {
+  $SchemaStringFormat.init(inst, def);
+  inst._schema.check = (payload) => {
     if (isValidJWT(payload.value, def.alg)) return;
 
     payload.issues.push({
@@ -1259,26 +1259,26 @@ export const $ZodJWT: core.$constructor<$ZodJWT> = /*@__PURE__*/ core.$construct
   };
 });
 
-//////////////////////////////   ZodCustomStringFormat   //////////////////////////////
+//////////////////////////////   SchemaCustomStringFormat   //////////////////////////////
 
-export interface $ZodCustomStringFormatDef<Format extends string = string> extends $ZodStringFormatDef<Format> {
+export interface $SchemaCustomStringFormatDef<Format extends string = string> extends $SchemaStringFormatDef<Format> {
   fn: (val: string) => unknown;
 }
 
-export interface $ZodCustomStringFormatInternals<Format extends string = string>
-  extends $ZodStringFormatInternals<Format> {
-  def: $ZodCustomStringFormatDef<Format>;
+export interface $SchemaCustomStringFormatInternals<Format extends string = string>
+  extends $SchemaStringFormatInternals<Format> {
+  def: $SchemaCustomStringFormatDef<Format>;
 }
 
-export interface $ZodCustomStringFormat<Format extends string = string> extends $ZodStringFormat<Format> {
-  _zod: $ZodCustomStringFormatInternals<Format>;
+export interface $SchemaCustomStringFormat<Format extends string = string> extends $SchemaStringFormat<Format> {
+  _schema: $SchemaCustomStringFormatInternals<Format>;
 }
 
-export const $ZodCustomStringFormat: core.$constructor<$ZodCustomStringFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodCustomStringFormat",
+export const $SchemaCustomStringFormat: core.$constructor<$SchemaCustomStringFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCustomStringFormat",
   (inst, def): void => {
-    $ZodStringFormat.init(inst, def);
-    inst._zod.check = (payload) => {
+    $SchemaStringFormat.init(inst, def);
+    inst._schema.check = (payload) => {
       if (def.fn(payload.value)) return;
 
       payload.issues.push({
@@ -1295,23 +1295,23 @@ export const $ZodCustomStringFormat: core.$constructor<$ZodCustomStringFormat> =
 /////////////////////////////////////////
 /////////////////////////////////////////
 //////////                     //////////
-//////////      ZodNumber      //////////
+//////////      SchemaNumber      //////////
 //////////                     //////////
 /////////////////////////////////////////
 /////////////////////////////////////////
 
-export interface $ZodNumberDef extends $ZodTypeDef {
+export interface $SchemaNumberDef extends $SchemaTypeDef {
   type: "number";
   coerce?: boolean;
-  // checks: checks.$ZodCheck<number>[];
+  // checks: checks.$SchemaCheck<number>[];
 }
 
-export interface $ZodNumberInternals<Input = unknown> extends $ZodTypeInternals<number, Input> {
-  def: $ZodNumberDef;
+export interface $SchemaNumberInternals<Input = unknown> extends $SchemaTypeInternals<number, Input> {
+  def: $SchemaNumberDef;
   /** @deprecated Internal API, use with caution (not deprecated) */
   pattern: RegExp;
   /** @deprecated Internal API, use with caution (not deprecated) */
-  isst: errors.$ZodIssueInvalidType;
+  isst: errors.$SchemaIssueInvalidType;
   bag: util.LoosePartial<{
     minimum: number;
     maximum: number;
@@ -1322,15 +1322,15 @@ export interface $ZodNumberInternals<Input = unknown> extends $ZodTypeInternals<
   }>;
 }
 
-export interface $ZodNumber<Input = unknown> extends $ZodType {
-  _zod: $ZodNumberInternals<Input>;
+export interface $SchemaNumber<Input = unknown> extends $SchemaType {
+  _schema: $SchemaNumberInternals<Input>;
 }
 
-export const $ZodNumber: core.$constructor<$ZodNumber> = /*@__PURE__*/ core.$constructor("$ZodNumber", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaNumber: core.$constructor<$SchemaNumber> = /*@__PURE__*/ core.$constructor("$SchemaNumber", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.pattern = regexes.number;
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.pattern = regexes.number;
+  inst._schema.parse = (payload, _ctx) => {
     if (def.coerce)
       try {
         payload.value = Number(payload.value);
@@ -1362,62 +1362,62 @@ export const $ZodNumber: core.$constructor<$ZodNumber> = /*@__PURE__*/ core.$con
 });
 
 ///////////////////////////////////////////////
-//////////      ZodNumberFormat      //////////
+//////////      SchemaNumberFormat      //////////
 ///////////////////////////////////////////////
-export interface $ZodNumberFormatDef<Format extends $ZodNumberFormats = $ZodNumberFormats>
-  extends $ZodNumberDef,
-    checks.$ZodCheckNumberFormatDef<Format> {}
+export interface $SchemaNumberFormatDef<Format extends $SchemaNumberFormats = $SchemaNumberFormats>
+  extends $SchemaNumberDef,
+    checks.$SchemaCheckNumberFormatDef<Format> {}
 
-export interface $ZodNumberFormatInternals<Format extends $ZodNumberFormats = $ZodNumberFormats>
-  extends $ZodNumberInternals<number>,
-    checks.$ZodCheckNumberFormatInternals<Format> {
-  def: $ZodNumberFormatDef<Format>;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaNumberFormatInternals<Format extends $SchemaNumberFormats = $SchemaNumberFormats>
+  extends $SchemaNumberInternals<number>,
+    checks.$SchemaCheckNumberFormatInternals<Format> {
+  def: $SchemaNumberFormatDef<Format>;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodNumberFormat<Format extends $ZodNumberFormats = $ZodNumberFormats> extends $ZodType {
-  _zod: $ZodNumberFormatInternals<Format>;
+export interface $SchemaNumberFormat<Format extends $SchemaNumberFormats = $SchemaNumberFormats> extends $SchemaType {
+  _schema: $SchemaNumberFormatInternals<Format>;
 }
 
-export const $ZodNumberFormat: core.$constructor<$ZodNumberFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodNumberFormat",
+export const $SchemaNumberFormat: core.$constructor<$SchemaNumberFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaNumberFormat",
   (inst, def) => {
-    checks.$ZodCheckNumberFormat.init(inst, def);
-    $ZodNumber.init(inst, def); // no format checks
+    checks.$SchemaCheckNumberFormat.init(inst, def);
+    $SchemaNumber.init(inst, def); // no format checks
   }
 );
 
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 //////////                      ///////////
-//////////      $ZodBoolean      //////////
+//////////      $SchemaBoolean      //////////
 //////////                      ///////////
 ///////////////////////////////////////////
 ///////////////////////////////////////////
 
-export interface $ZodBooleanDef extends $ZodTypeDef {
+export interface $SchemaBooleanDef extends $SchemaTypeDef {
   type: "boolean";
   coerce?: boolean;
-  checks?: checks.$ZodCheck<boolean>[];
+  checks?: checks.$SchemaCheck<boolean>[];
 }
 
-export interface $ZodBooleanInternals<T = unknown> extends $ZodTypeInternals<boolean, T> {
+export interface $SchemaBooleanInternals<T = unknown> extends $SchemaTypeInternals<boolean, T> {
   pattern: RegExp;
-  def: $ZodBooleanDef;
-  isst: errors.$ZodIssueInvalidType;
+  def: $SchemaBooleanDef;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodBoolean<T = unknown> extends $ZodType {
-  _zod: $ZodBooleanInternals<T>;
+export interface $SchemaBoolean<T = unknown> extends $SchemaType {
+  _schema: $SchemaBooleanInternals<T>;
 }
 
-export const $ZodBoolean: core.$constructor<$ZodBoolean> = /*@__PURE__*/ core.$constructor(
-  "$ZodBoolean",
+export const $SchemaBoolean: core.$constructor<$SchemaBoolean> = /*@__PURE__*/ core.$constructor(
+  "$SchemaBoolean",
   (inst, def) => {
-    $ZodType.init(inst, def);
-    inst._zod.pattern = regexes.boolean;
+    $SchemaType.init(inst, def);
+    inst._schema.pattern = regexes.boolean;
 
-    inst._zod.parse = (payload, _ctx) => {
+    inst._schema.parse = (payload, _ctx) => {
       if (def.coerce)
         try {
           payload.value = Boolean(payload.value);
@@ -1439,22 +1439,22 @@ export const $ZodBoolean: core.$constructor<$ZodBoolean> = /*@__PURE__*/ core.$c
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodBigInt      //////////
+//////////      $SchemaBigInt      //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
 
-export interface $ZodBigIntDef extends $ZodTypeDef {
+export interface $SchemaBigIntDef extends $SchemaTypeDef {
   type: "bigint";
   coerce?: boolean;
-  // checks: checks.$ZodCheck<bigint>[];
+  // checks: checks.$SchemaCheck<bigint>[];
 }
 
-export interface $ZodBigIntInternals<T = unknown> extends $ZodTypeInternals<bigint, T> {
+export interface $SchemaBigIntInternals<T = unknown> extends $SchemaTypeInternals<bigint, T> {
   pattern: RegExp;
   /** @internal Internal API, use with caution */
-  def: $ZodBigIntDef;
-  isst: errors.$ZodIssueInvalidType;
+  def: $SchemaBigIntDef;
+  isst: errors.$SchemaIssueInvalidType;
   bag: util.LoosePartial<{
     minimum: bigint;
     maximum: bigint;
@@ -1462,15 +1462,15 @@ export interface $ZodBigIntInternals<T = unknown> extends $ZodTypeInternals<bigi
   }>;
 }
 
-export interface $ZodBigInt<T = unknown> extends $ZodType {
-  _zod: $ZodBigIntInternals<T>;
+export interface $SchemaBigInt<T = unknown> extends $SchemaType {
+  _schema: $SchemaBigIntInternals<T>;
 }
 
-export const $ZodBigInt: core.$constructor<$ZodBigInt> = /*@__PURE__*/ core.$constructor("$ZodBigInt", (inst, def) => {
-  $ZodType.init(inst, def);
-  inst._zod.pattern = regexes.bigint;
+export const $SchemaBigInt: core.$constructor<$SchemaBigInt> = /*@__PURE__*/ core.$constructor("$SchemaBigInt", (inst, def) => {
+  $SchemaType.init(inst, def);
+  inst._schema.pattern = regexes.bigint;
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     if (def.coerce)
       try {
         payload.value = BigInt(payload.value);
@@ -1489,56 +1489,56 @@ export const $ZodBigInt: core.$constructor<$ZodBigInt> = /*@__PURE__*/ core.$con
 });
 
 ///////////////////////////////////////////////
-//////////      ZodBigIntFormat      //////////
+//////////      SchemaBigIntFormat      //////////
 ///////////////////////////////////////////////
-export interface $ZodBigIntFormatDef<Format extends $ZodBigIntFormats = $ZodBigIntFormats>
-  extends $ZodBigIntDef,
-    checks.$ZodCheckBigIntFormatDef<Format> {
+export interface $SchemaBigIntFormatDef<Format extends $SchemaBigIntFormats = $SchemaBigIntFormats>
+  extends $SchemaBigIntDef,
+    checks.$SchemaCheckBigIntFormatDef<Format> {
   check: "bigint_format";
 }
 
-export interface $ZodBigIntFormatInternals<Format extends $ZodBigIntFormats = $ZodBigIntFormats>
-  extends $ZodBigIntInternals<bigint>,
-    checks.$ZodCheckBigIntFormatInternals<Format> {
-  def: $ZodBigIntFormatDef<Format>;
+export interface $SchemaBigIntFormatInternals<Format extends $SchemaBigIntFormats = $SchemaBigIntFormats>
+  extends $SchemaBigIntInternals<bigint>,
+    checks.$SchemaCheckBigIntFormatInternals<Format> {
+  def: $SchemaBigIntFormatDef<Format>;
 }
 
-export interface $ZodBigIntFormat<Format extends $ZodBigIntFormats = $ZodBigIntFormats> extends $ZodType {
-  _zod: $ZodBigIntFormatInternals<Format>;
+export interface $SchemaBigIntFormat<Format extends $SchemaBigIntFormats = $SchemaBigIntFormats> extends $SchemaType {
+  _schema: $SchemaBigIntFormatInternals<Format>;
 }
 
-export const $ZodBigIntFormat: core.$constructor<$ZodBigIntFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodBigIntFormat",
+export const $SchemaBigIntFormat: core.$constructor<$SchemaBigIntFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaBigIntFormat",
   (inst, def) => {
-    checks.$ZodCheckBigIntFormat.init(inst, def);
-    $ZodBigInt.init(inst, def); // no format checks
+    checks.$SchemaCheckBigIntFormat.init(inst, def);
+    $SchemaBigInt.init(inst, def); // no format checks
   }
 );
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////       $ZodSymbol       //////////
+//////////       $SchemaSymbol       //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodSymbolDef extends $ZodTypeDef {
+export interface $SchemaSymbolDef extends $SchemaTypeDef {
   type: "symbol";
 }
 
-export interface $ZodSymbolInternals extends $ZodTypeInternals<symbol, symbol> {
-  def: $ZodSymbolDef;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaSymbolInternals extends $SchemaTypeInternals<symbol, symbol> {
+  def: $SchemaSymbolDef;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodSymbol extends $ZodType {
-  _zod: $ZodSymbolInternals;
+export interface $SchemaSymbol extends $SchemaType {
+  _schema: $SchemaSymbolInternals;
 }
 
-export const $ZodSymbol: core.$constructor<$ZodSymbol> = /*@__PURE__*/ core.$constructor("$ZodSymbol", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaSymbol: core.$constructor<$SchemaSymbol> = /*@__PURE__*/ core.$constructor("$SchemaSymbol", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     const input = payload.value;
     if (typeof input === "symbol") return payload;
     payload.issues.push({
@@ -1555,33 +1555,33 @@ export const $ZodSymbol: core.$constructor<$ZodSymbol> = /*@__PURE__*/ core.$con
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodUndefined     //////////
+//////////      $SchemaUndefined     //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodUndefinedDef extends $ZodTypeDef {
+export interface $SchemaUndefinedDef extends $SchemaTypeDef {
   type: "undefined";
 }
 
-export interface $ZodUndefinedInternals extends $ZodTypeInternals<undefined, undefined> {
+export interface $SchemaUndefinedInternals extends $SchemaTypeInternals<undefined, undefined> {
   pattern: RegExp;
-  def: $ZodUndefinedDef;
+  def: $SchemaUndefinedDef;
   values: util.PrimitiveSet;
-  isst: errors.$ZodIssueInvalidType;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodUndefined extends $ZodType {
-  _zod: $ZodUndefinedInternals;
+export interface $SchemaUndefined extends $SchemaType {
+  _schema: $SchemaUndefinedInternals;
 }
 
-export const $ZodUndefined: core.$constructor<$ZodUndefined> = /*@__PURE__*/ core.$constructor(
-  "$ZodUndefined",
+export const $SchemaUndefined: core.$constructor<$SchemaUndefined> = /*@__PURE__*/ core.$constructor(
+  "$SchemaUndefined",
   (inst, def) => {
-    $ZodType.init(inst, def);
-    inst._zod.pattern = regexes.undefined;
-    inst._zod.values = new Set([undefined]);
+    $SchemaType.init(inst, def);
+    inst._schema.pattern = regexes.undefined;
+    inst._schema.values = new Set([undefined]);
 
-    inst._zod.parse = (payload, _ctx) => {
+    inst._schema.parse = (payload, _ctx) => {
       const input = payload.value;
       if (typeof input === "undefined") return payload;
       payload.issues.push({
@@ -1599,32 +1599,32 @@ export const $ZodUndefined: core.$constructor<$ZodUndefined> = /*@__PURE__*/ cor
 ///////////////////////////////////////
 ///////////////////////////////////////
 //////////                   //////////
-//////////      $ZodNull      /////////
+//////////      $SchemaNull      /////////
 //////////                   //////////
 ///////////////////////////////////////
 ///////////////////////////////////////
 
-export interface $ZodNullDef extends $ZodTypeDef {
+export interface $SchemaNullDef extends $SchemaTypeDef {
   type: "null";
 }
 
-export interface $ZodNullInternals extends $ZodTypeInternals<null, null> {
+export interface $SchemaNullInternals extends $SchemaTypeInternals<null, null> {
   pattern: RegExp;
-  def: $ZodNullDef;
+  def: $SchemaNullDef;
   values: util.PrimitiveSet;
-  isst: errors.$ZodIssueInvalidType;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodNull extends $ZodType {
-  _zod: $ZodNullInternals;
+export interface $SchemaNull extends $SchemaType {
+  _schema: $SchemaNullInternals;
 }
 
-export const $ZodNull: core.$constructor<$ZodNull> = /*@__PURE__*/ core.$constructor("$ZodNull", (inst, def) => {
-  $ZodType.init(inst, def);
-  inst._zod.pattern = regexes.null;
-  inst._zod.values = new Set([null]);
+export const $SchemaNull: core.$constructor<$SchemaNull> = /*@__PURE__*/ core.$constructor("$SchemaNull", (inst, def) => {
+  $SchemaType.init(inst, def);
+  inst._schema.pattern = regexes.null;
+  inst._schema.values = new Set([null]);
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     const input = payload.value;
     if (input === null) return payload;
     payload.issues.push({
@@ -1641,84 +1641,84 @@ export const $ZodNull: core.$constructor<$ZodNull> = /*@__PURE__*/ core.$constru
 //////////////////////////////////////
 //////////////////////////////////////
 //////////                  //////////
-//////////      $ZodAny     //////////
+//////////      $SchemaAny     //////////
 //////////                  //////////
 //////////////////////////////////////
 //////////////////////////////////////
 
-export interface $ZodAnyDef extends $ZodTypeDef {
+export interface $SchemaAnyDef extends $SchemaTypeDef {
   type: "any";
 }
 
-export interface $ZodAnyInternals extends $ZodTypeInternals<any, any> {
-  def: $ZodAnyDef;
+export interface $SchemaAnyInternals extends $SchemaTypeInternals<any, any> {
+  def: $SchemaAnyDef;
   isst: never;
 }
 
-export interface $ZodAny extends $ZodType {
-  _zod: $ZodAnyInternals;
+export interface $SchemaAny extends $SchemaType {
+  _schema: $SchemaAnyInternals;
 }
 
-export const $ZodAny: core.$constructor<$ZodAny> = /*@__PURE__*/ core.$constructor("$ZodAny", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaAny: core.$constructor<$SchemaAny> = /*@__PURE__*/ core.$constructor("$SchemaAny", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload) => payload;
+  inst._schema.parse = (payload) => payload;
 });
 
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodUnknown     //////////
+//////////      $SchemaUnknown     //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
 
-export interface $ZodUnknownDef extends $ZodTypeDef {
+export interface $SchemaUnknownDef extends $SchemaTypeDef {
   type: "unknown";
 }
 
-export interface $ZodUnknownInternals extends $ZodTypeInternals<unknown, unknown> {
-  def: $ZodUnknownDef;
+export interface $SchemaUnknownInternals extends $SchemaTypeInternals<unknown, unknown> {
+  def: $SchemaUnknownDef;
   isst: never;
 }
 
-export interface $ZodUnknown extends $ZodType {
-  _zod: $ZodUnknownInternals;
+export interface $SchemaUnknown extends $SchemaType {
+  _schema: $SchemaUnknownInternals;
 }
 
-export const $ZodUnknown: core.$constructor<$ZodUnknown> = /*@__PURE__*/ core.$constructor(
-  "$ZodUnknown",
+export const $SchemaUnknown: core.$constructor<$SchemaUnknown> = /*@__PURE__*/ core.$constructor(
+  "$SchemaUnknown",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    inst._zod.parse = (payload) => payload;
+    inst._schema.parse = (payload) => payload;
   }
 );
 
 /////////////////////////////////////////
 /////////////////////////////////////////
 //////////                     //////////
-//////////      $ZodNever      //////////
+//////////      $SchemaNever      //////////
 //////////                     //////////
 /////////////////////////////////////////
 /////////////////////////////////////////
 
-export interface $ZodNeverDef extends $ZodTypeDef {
+export interface $SchemaNeverDef extends $SchemaTypeDef {
   type: "never";
 }
 
-export interface $ZodNeverInternals extends $ZodTypeInternals<never, never> {
-  def: $ZodNeverDef;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaNeverInternals extends $SchemaTypeInternals<never, never> {
+  def: $SchemaNeverDef;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodNever extends $ZodType {
-  _zod: $ZodNeverInternals;
+export interface $SchemaNever extends $SchemaType {
+  _schema: $SchemaNeverInternals;
 }
 
-export const $ZodNever: core.$constructor<$ZodNever> = /*@__PURE__*/ core.$constructor("$ZodNever", (inst, def) => {
-  $ZodType.init(inst, def);
-  inst._zod.parse = (payload, _ctx) => {
+export const $SchemaNever: core.$constructor<$SchemaNever> = /*@__PURE__*/ core.$constructor("$SchemaNever", (inst, def) => {
+  $SchemaType.init(inst, def);
+  inst._schema.parse = (payload, _ctx) => {
     payload.issues.push({
       expected: "never",
       code: "invalid_type",
@@ -1733,28 +1733,28 @@ export const $ZodNever: core.$constructor<$ZodNever> = /*@__PURE__*/ core.$const
 ////////////////////////////////////////
 ////////////////////////////////////////
 //////////                    //////////
-//////////      $ZodVoid      //////////
+//////////      $SchemaVoid      //////////
 //////////                    //////////
 ////////////////////////////////////////
 ////////////////////////////////////////
 
-export interface $ZodVoidDef extends $ZodTypeDef {
+export interface $SchemaVoidDef extends $SchemaTypeDef {
   type: "void";
 }
 
-export interface $ZodVoidInternals extends $ZodTypeInternals<void, void> {
-  def: $ZodVoidDef;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaVoidInternals extends $SchemaTypeInternals<void, void> {
+  def: $SchemaVoidDef;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodVoid extends $ZodType {
-  _zod: $ZodVoidInternals;
+export interface $SchemaVoid extends $SchemaType {
+  _schema: $SchemaVoidInternals;
 }
 
-export const $ZodVoid: core.$constructor<$ZodVoid> = /*@__PURE__*/ core.$constructor("$ZodVoid", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaVoid: core.$constructor<$SchemaVoid> = /*@__PURE__*/ core.$constructor("$SchemaVoid", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     const input = payload.value;
     if (typeof input === "undefined") return payload;
     payload.issues.push({
@@ -1771,18 +1771,18 @@ export const $ZodVoid: core.$constructor<$ZodVoid> = /*@__PURE__*/ core.$constru
 ///////////////////////////////////////
 ///////////////////////////////////////
 //////////                     ////////
-//////////      $ZodDate        ////////
+//////////      $SchemaDate        ////////
 //////////                     ////////
 ///////////////////////////////////////
 ///////////////////////////////////////
-export interface $ZodDateDef extends $ZodTypeDef {
+export interface $SchemaDateDef extends $SchemaTypeDef {
   type: "date";
   coerce?: boolean;
 }
 
-export interface $ZodDateInternals<T = unknown> extends $ZodTypeInternals<Date, T> {
-  def: $ZodDateDef;
-  isst: errors.$ZodIssueInvalidType; // | errors.$ZodIssueInvalidDate;
+export interface $SchemaDateInternals<T = unknown> extends $SchemaTypeInternals<Date, T> {
+  def: $SchemaDateDef;
+  isst: errors.$SchemaIssueInvalidType; // | errors.$SchemaIssueInvalidDate;
   bag: util.LoosePartial<{
     minimum: Date;
     maximum: Date;
@@ -1790,14 +1790,14 @@ export interface $ZodDateInternals<T = unknown> extends $ZodTypeInternals<Date, 
   }>;
 }
 
-export interface $ZodDate<T = unknown> extends $ZodType {
-  _zod: $ZodDateInternals<T>;
+export interface $SchemaDate<T = unknown> extends $SchemaType {
+  _schema: $SchemaDateInternals<T>;
 }
 
-export const $ZodDate: core.$constructor<$ZodDate> = /*@__PURE__*/ core.$constructor("$ZodDate", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaDate: core.$constructor<$SchemaDate> = /*@__PURE__*/ core.$constructor("$SchemaDate", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     if (def.coerce) {
       try {
         payload.value = new Date(payload.value as string | number | Date);
@@ -1824,25 +1824,25 @@ export const $ZodDate: core.$constructor<$ZodDate> = /*@__PURE__*/ core.$constru
 /////////////////////////////////////////
 /////////////////////////////////////////
 //////////                     //////////
-//////////      $ZodArray      //////////
+//////////      $SchemaArray      //////////
 //////////                     //////////
 /////////////////////////////////////////
 /////////////////////////////////////////
 
-export interface $ZodArrayDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaArrayDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "array";
   element: T;
 }
 
-export interface $ZodArrayInternals<T extends SomeType = $ZodType> extends _$ZodTypeInternals {
-  //$ZodTypeInternals<core.output<T>[], core.input<T>[]> {
-  def: $ZodArrayDef<T>;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaArrayInternals<T extends SomeType = $SchemaType> extends _$SchemaTypeInternals {
+  //$SchemaTypeInternals<core.output<T>[], core.input<T>[]> {
+  def: $SchemaArrayDef<T>;
+  isst: errors.$SchemaIssueInvalidType;
   output: core.output<T>[];
   input: core.input<T>[];
 }
 
-export interface $ZodArray<T extends SomeType = $ZodType> extends $ZodType<any, any, $ZodArrayInternals<T>> {}
+export interface $SchemaArray<T extends SomeType = $SchemaType> extends $SchemaType<any, any, $SchemaArrayInternals<T>> {}
 
 function handleArrayResult(result: ParsePayload<any>, final: ParsePayload<any[]>, index: number) {
   if (result.issues.length) {
@@ -1851,13 +1851,13 @@ function handleArrayResult(result: ParsePayload<any>, final: ParsePayload<any[]>
   final.value[index] = result.value;
 }
 
-export const $ZodArray: core.$constructor<$ZodArray> = /*@__PURE__*/ core.$constructor("$ZodArray", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaArray: core.$constructor<$SchemaArray> = /*@__PURE__*/ core.$constructor("$SchemaArray", (inst, def) => {
+  $SchemaType.init(inst, def);
 
   const memo = core.globalConfig.memoizer;
   memo?.attach(inst);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     const input = payload.value;
 
     if (!Array.isArray(input)) {
@@ -1876,7 +1876,7 @@ export const $ZodArray: core.$constructor<$ZodArray> = /*@__PURE__*/ core.$const
     const abortEarly = ctx?.abortEarly;
     for (let i = 0; i < input.length; i++) {
       const item = input[i];
-      const result = def.element._zod.run(
+      const result = def.element._schema.run(
         {
           value: item,
           issues: [],
@@ -1904,15 +1904,15 @@ export const $ZodArray: core.$constructor<$ZodArray> = /*@__PURE__*/ core.$const
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodObject      //////////
+//////////      $SchemaObject      //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
 
-type OptionalOutSchema = { _zod: { optout: "optional" } };
-type OptionalInSchema = { _zod: { optin: "optional" | "defaulted" } };
+type OptionalOutSchema = { _schema: { optout: "optional" } };
+type OptionalInSchema = { _schema: { optin: "optional" | "defaulted" } };
 
-export type $InferObjectOutput<T extends $ZodLooseShape, Extra extends Record<string, unknown>> = string extends keyof T
+export type $InferObjectOutput<T extends $SchemaLooseShape, Extra extends Record<string, unknown>> = string extends keyof T
   ? util.IsAny<T[keyof T]> extends true
     ? Record<string, unknown>
     : { [k in string]: core.output<T[keyof T]> }
@@ -1920,32 +1920,32 @@ export type $InferObjectOutput<T extends $ZodLooseShape, Extra extends Record<st
     ? Record<string, never>
     : util.Prettify<
         {
-          -readonly [k in keyof T as T[k] extends OptionalOutSchema ? never : k]: T[k]["_zod"]["output"];
+          -readonly [k in keyof T as T[k] extends OptionalOutSchema ? never : k]: T[k]["_schema"]["output"];
         } & {
-          -readonly [k in keyof T as T[k] extends OptionalOutSchema ? k : never]?: T[k]["_zod"]["output"];
+          -readonly [k in keyof T as T[k] extends OptionalOutSchema ? k : never]?: T[k]["_schema"]["output"];
         } & Extra
       >;
 
 // experimental
-// export type $InferObjectOutput<T extends $ZodLooseShape, Extra extends Record<string, unknown>> = keyof (T &
+// export type $InferObjectOutput<T extends $SchemaLooseShape, Extra extends Record<string, unknown>> = keyof (T &
 //   Extra) extends never
 //   ? Record<string, never>
 //   : string extends keyof T
 //     ? util.Prettify<
 //         {
-//           [k: string]: util.IsAny<T[string]["_zod"]["output"]> extends true ? unknown : T[string]["_zod"]["output"];
+//           [k: string]: util.IsAny<T[string]["_schema"]["output"]> extends true ? unknown : T[string]["_schema"]["output"];
 //         } & $InferObjectOutputNoIndex<util.OmitIndexSignature<T>, Extra>
 //       >
 //     : util.Prettify<$InferObjectOutputNoIndex<T, Extra>>;
 
-// export type $InferObjectOutputNoIndex<T extends $ZodLooseShape, Extra extends Record<string, unknown>> = {
+// export type $InferObjectOutputNoIndex<T extends $SchemaLooseShape, Extra extends Record<string, unknown>> = {
 //   [k in keyof T as string extends k
 //     ? never
 //     : k extends string
 //       ? T[k] extends OptionalOutSchema
 //         ? never
 //         : k
-//       : never]: T[k]["_zod"]["output"];
+//       : never]: T[k]["_schema"]["output"];
 // } & {
 //   [k in keyof T as string extends k
 //     ? never
@@ -1953,10 +1953,10 @@ export type $InferObjectOutput<T extends $ZodLooseShape, Extra extends Record<st
 //       ? T[k] extends OptionalOutSchema
 //         ? k
 //         : never
-//       : never]?: T[k]["_zod"]["output"];
+//       : never]?: T[k]["_schema"]["output"];
 // } & Extra;
 
-export type $InferObjectInput<T extends $ZodLooseShape, Extra extends Record<string, unknown>> = string extends keyof T
+export type $InferObjectInput<T extends $SchemaLooseShape, Extra extends Record<string, unknown>> = string extends keyof T
   ? util.IsAny<T[keyof T]> extends true
     ? Record<string, unknown>
     : { [k in string]: core.input<T[keyof T]> }
@@ -1964,9 +1964,9 @@ export type $InferObjectInput<T extends $ZodLooseShape, Extra extends Record<str
     ? Record<string, never>
     : util.Prettify<
         {
-          -readonly [k in keyof T as T[k] extends OptionalInSchema ? never : k]: T[k]["_zod"]["input"];
+          -readonly [k in keyof T as T[k] extends OptionalInSchema ? never : k]: T[k]["_schema"]["input"];
         } & {
-          -readonly [k in keyof T as T[k] extends OptionalInSchema ? k : never]?: T[k]["_zod"]["input"];
+          -readonly [k in keyof T as T[k] extends OptionalInSchema ? k : never]?: T[k]["_schema"]["input"];
         } & Extra
       >;
 
@@ -2013,7 +2013,7 @@ function handlePropertyResult(
   }
 }
 
-export type $ZodObjectConfig = { out: Record<string, unknown>; in: Record<string, unknown> };
+export type $SchemaObjectConfig = { out: Record<string, unknown>; in: Record<string, unknown> };
 
 export type $loose = {
   out: Record<string, unknown>;
@@ -2033,48 +2033,48 @@ export type $catchall<T extends SomeType> = {
   in: { [k: string]: core.input<T> };
 };
 
-export type $ZodShape = Readonly<{ [k: string]: $ZodType }>;
+export type $SchemaShape = Readonly<{ [k: string]: $SchemaType }>;
 
-export interface $ZodObjectDef<Shape extends $ZodShape = $ZodShape> extends $ZodTypeDef {
+export interface $SchemaObjectDef<Shape extends $SchemaShape = $SchemaShape> extends $SchemaTypeDef {
   type: "object";
   shape: Shape;
-  catchall?: $ZodType | undefined;
+  catchall?: $SchemaType | undefined;
 }
 
-export interface $ZodObjectInternals<
+export interface $SchemaObjectInternals<
   /** @ts-ignore Cast variance */
-  out Shape extends $ZodShape = $ZodShape,
-  out Config extends $ZodObjectConfig = $ZodObjectConfig,
-> extends _$ZodTypeInternals {
-  def: $ZodObjectDef<Shape>;
+  out Shape extends $SchemaShape = $SchemaShape,
+  out Config extends $SchemaObjectConfig = $SchemaObjectConfig,
+> extends _$SchemaTypeInternals {
+  def: $SchemaObjectDef<Shape>;
   config: Config;
-  isst: errors.$ZodIssueInvalidType | errors.$ZodIssueUnrecognizedKeys;
+  isst: errors.$SchemaIssueInvalidType | errors.$SchemaIssueUnrecognizedKeys;
   propValues: util.PropValues;
   output: $InferObjectOutput<Shape, Config["out"]>;
   input: $InferObjectInput<Shape, Config["in"]>;
   optin?: "optional" | undefined;
   optout?: "optional" | undefined;
 }
-export type $ZodLooseShape = Record<string, any>;
+export type $SchemaLooseShape = Record<string, any>;
 
-export interface $ZodObject<
+export interface $SchemaObject<
   /** @ts-ignore Cast variance */
-  out Shape extends Readonly<$ZodShape> = Readonly<$ZodShape>,
-  out Params extends $ZodObjectConfig = $ZodObjectConfig,
-> extends $ZodType<any, any, $ZodObjectInternals<Shape, Params>> {}
+  out Shape extends Readonly<$SchemaShape> = Readonly<$SchemaShape>,
+  out Params extends $SchemaObjectConfig = $SchemaObjectConfig,
+> extends $SchemaType<any, any, $SchemaObjectInternals<Shape, Params>> {}
 
 // one shared instance; a fresh [] per schema cost 56 bytes retained
 const NO_SYMBOL_KEYS: symbol[] = [];
 
-function normalizeDef(def: $ZodObjectDef) {
+function normalizeDef(def: $SchemaObjectDef) {
   const keys = Object.keys(def.shape);
   const ownSymbols = Object.getOwnPropertySymbols(def.shape);
   const symbolKeys = ownSymbols.length ? ownSymbols : NO_SYMBOL_KEYS;
   // aliases `keys` when there are no symbols, so a string-only shape keeps one array
   const allKeys: (string | symbol)[] = symbolKeys.length ? [...keys, ...symbolKeys] : keys;
   for (const k of allKeys) {
-    if (!(def.shape as any)?.[k]?._zod?.traits?.has("$ZodType")) {
-      throw new Error(`Invalid element at key "${String(k)}": expected a Zod schema`);
+    if (!(def.shape as any)?.[k]?._schema?.traits?.has("$SchemaType")) {
+      throw new Error(`Invalid element at key "${String(k)}": expected a Schema schema`);
     }
   }
   const okeys = util.optionalKeys(def.shape);
@@ -2096,12 +2096,12 @@ function handleCatchall(
   payload: ParsePayload,
   ctx: ParseContextInternal,
   def: ReturnType<typeof normalizeDef>,
-  inst: $ZodObject,
+  inst: $SchemaObject,
   abortEarly: boolean
 ) {
   const unrecognized: string[] = [];
   const keySet = def.keySet;
-  const _catchall = def.catchall!._zod;
+  const _catchall = def.catchall!._schema;
   const t = _catchall.def.type;
   const optin = _catchall.optin;
   const optout = _catchall.optout;
@@ -2149,9 +2149,9 @@ function handleCatchall(
   });
 }
 
-export const $ZodObject: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$constructor("$ZodObject", (inst, def) => {
-  // requires cast because technically $ZodObject doesn't extend
-  $ZodType.init(inst, def);
+export const $SchemaObject: core.$constructor<$SchemaObject> = /*@__PURE__*/ core.$constructor("$SchemaObject", (inst, def) => {
+  // requires cast because technically $SchemaObject doesn't extend
+  $SchemaType.init(inst, def);
   const desc = Object.getOwnPropertyDescriptor(def, "shape");
   // a cloned def carries its source's accessor, which knows the shape it answers from; adopting that keeps the clone's keys readable without running it
   const sh = desc?.get ? (desc.get as util.ShapeGetter).raw : (def.shape ?? {});
@@ -2169,11 +2169,11 @@ export const $ZodObject: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$con
 
   const _normalized = util.cached(() => normalizeDef(def));
 
-  util.defineLazyInternal(inst, "propValues", (zod) => {
-    const shape = zod.def.shape;
+  util.defineLazyInternal(inst, "propValues", (schema) => {
+    const shape = Schema.def.shape;
     const propValues: util.PropValues = {};
     for (const key in shape) {
-      const field = shape[key]!._zod;
+      const field = shape[key]!._schema;
       if (field.values) {
         if (!Object.prototype.hasOwnProperty.call(propValues, key)) {
           util.assignProp(propValues, key, new Set());
@@ -2193,7 +2193,7 @@ export const $ZodObject: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$con
   const memo = core.globalConfig.memoizer;
   memo?.attach(inst);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     value ??= _normalized.value;
     const input = payload.value;
     if (!isObject(input)) {
@@ -2220,10 +2220,10 @@ export const $ZodObject: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$con
       }
       if (key === "__proto__") continue;
       const el = (shape as any)[key]!;
-      const optin = el._zod.optin;
-      const optout = el._zod.optout;
+      const optin = el._schema.optin;
+      const optout = el._schema.optout;
 
-      const r = el._zod.run({ value: input[key], issues: [] }, ctx);
+      const r = el._schema.run({ value: input[key], issues: [] }, ctx);
       if (r instanceof Promise) {
         proms.push(r.then((r) => handlePropertyResult(r, payload, key, input, optin, optout)));
       } else {
@@ -2239,13 +2239,13 @@ export const $ZodObject: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$con
   };
 });
 
-export const $ZodObjectJIT: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$constructor(
-  "$ZodObjectJIT",
+export const $SchemaObjectJIT: core.$constructor<$SchemaObject> = /*@__PURE__*/ core.$constructor(
+  "$SchemaObjectJIT",
   (inst, def) => {
-    // requires cast because technically $ZodObject doesn't extend
-    $ZodObject.init(inst, def);
+    // requires cast because technically $SchemaObject doesn't extend
+    $SchemaObject.init(inst, def);
 
-    const superParse = inst._zod.parse;
+    const superParse = inst._schema.parse;
     const _normalized = util.cached(() => normalizeDef(def));
 
     const memo = core.globalConfig.memoizer;
@@ -2256,7 +2256,7 @@ export const $ZodObjectJIT: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$
       // a symbol has no source literal, so it is read as `syms[i]` off the closed-over scope
       const doc = new Doc(["payload", "ctx"], { shape, inst, memo, syms });
 
-      const parseStr = (k: string) => `shape[${k}]._zod.run({ value: input[${k}], issues: [] }, ctx)`;
+      const parseStr = (k: string) => `shape[${k}]._schema.run({ value: input[${k}], issues: [] }, ctx)`;
 
       // prefixes in place, like util.prefixIssues. newResult must land before the early return: a catchall runs after this and would otherwise write onto the caller's input
       const prefixStr = (id: string, k: string) => `
@@ -2288,9 +2288,9 @@ export const $ZodObjectJIT: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$
         const k = typeof key === "symbol" ? `syms[${syms.indexOf(key)}]` : util.esc(key);
         const isPresent = `${k} in input`;
         const schema = shape[key];
-        const optin = schema?._zod?.optin;
+        const optin = schema?._schema?.optin;
         const isOptionalIn = optin !== undefined;
-        const isOptionalOut = schema?._zod?.optout === "optional";
+        const isOptionalOut = schema?._schema?.optout === "optional";
 
         doc.write(`const ${id} = ${parseStr(k)};`);
 
@@ -2351,7 +2351,7 @@ export const $ZodObjectJIT: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$
 
       doc.write(`payload.value = newResult;`);
       doc.write(`return payload;`);
-      // closing `shape` in is what pays: turbofan specializes the parser against that one shape object, so every `shape[k]._zod.run` folds to a known callee. as a parameter it stays a generic load and measures 13% slower even with the forwarding frame gone
+      // closing `shape` in is what pays: turbofan specializes the parser against that one shape object, so every `shape[k]._schema.run` folds to a known callee. as a parameter it stays a generic load and measures 13% slower even with the forwarding frame gone
       return doc.compile() as (payload: any, ctx: any) => any;
     };
 
@@ -2366,7 +2366,7 @@ export const $ZodObjectJIT: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$
 
     let value!: typeof _normalized.value;
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       value ??= _normalized.value;
       const input = payload.value;
       if (!isObject(input)) {
@@ -2396,14 +2396,14 @@ export const $ZodObjectJIT: core.$constructor<$ZodObject> = /*@__PURE__*/ core.$
 /////////////////////////////////////////
 /////////////////////////////////////////
 //////////                    ///////////
-//////////      $ZodUnion      //////////
+//////////      $SchemaUnion      //////////
 //////////                    ///////////
 /////////////////////////////////////////
 /////////////////////////////////////////
 // use generic to distribute union types
 export type $InferUnionOutput<T extends SomeType> = T extends any ? core.output<T> : never;
 export type $InferUnionInput<T extends SomeType> = T extends any ? core.input<T> : never;
-export interface $ZodUnionDef<Options extends readonly SomeType[] = readonly $ZodType[]> extends $ZodTypeDef {
+export interface $SchemaUnionDef<Options extends readonly SomeType[] = readonly $SchemaType[]> extends $SchemaTypeDef {
   type: "union";
   options: Options;
   inclusive?: boolean;
@@ -2412,11 +2412,11 @@ export interface $ZodUnionDef<Options extends readonly SomeType[] = readonly $Zo
 type IsOptionalIn<T extends SomeType> = T extends OptionalInSchema ? true : false;
 type IsOptionalOut<T extends SomeType> = T extends OptionalOutSchema ? true : false;
 
-export interface $ZodUnionInternals<T extends readonly SomeType[] = readonly $ZodType[]> extends _$ZodTypeInternals {
-  def: $ZodUnionDef<T>;
-  isst: errors.$ZodIssueInvalidUnion;
-  pattern: T[number]["_zod"]["pattern"];
-  values: T[number]["_zod"]["values"]; //GetValues<T[number]>;
+export interface $SchemaUnionInternals<T extends readonly SomeType[] = readonly $SchemaType[]> extends _$SchemaTypeInternals {
+  def: $SchemaUnionDef<T>;
+  isst: errors.$SchemaIssueInvalidUnion;
+  pattern: T[number]["_schema"]["pattern"];
+  values: T[number]["_schema"]["values"]; //GetValues<T[number]>;
   output: $InferUnionOutput<T[number]>;
   input: $InferUnionInput<T[number]>;
   // if any element in the union is optional, then the union is optional
@@ -2424,12 +2424,12 @@ export interface $ZodUnionInternals<T extends readonly SomeType[] = readonly $Zo
   optout: IsOptionalOut<T[number]> extends false ? "optional" | undefined : "optional";
 }
 
-export interface $ZodUnion<T extends readonly SomeType[] = readonly $ZodType[]>
-  extends $ZodType<any, any, $ZodUnionInternals<T>> {
-  _zod: $ZodUnionInternals<T>;
+export interface $SchemaUnion<T extends readonly SomeType[] = readonly $SchemaType[]>
+  extends $SchemaType<any, any, $SchemaUnionInternals<T>> {
+  _schema: $SchemaUnionInternals<T>;
 }
 
-function handleUnionResults(results: ParsePayload[], final: ParsePayload, inst: $ZodUnion, ctx?: ParseContext) {
+function handleUnionResults(results: ParsePayload[], final: ParsePayload, inst: $SchemaUnion, ctx?: ParseContext) {
   for (const result of results) {
     if (result.issues.length === 0) {
       final.value = result.value;
@@ -2454,39 +2454,39 @@ function handleUnionResults(results: ParsePayload[], final: ParsePayload, inst: 
   return final;
 }
 
-export const $ZodUnion: core.$constructor<$ZodUnion> = /*@__PURE__*/ core.$constructor("$ZodUnion", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaUnion: core.$constructor<$SchemaUnion> = /*@__PURE__*/ core.$constructor("$SchemaUnion", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  util.defineLazyInternal(inst, "optin", (zod) =>
-    zod.def.options.some((o) => o._zod.optin === "defaulted")
+  util.defineLazyInternal(inst, "optin", (schema) =>
+    Schema.def.options.some((o) => o._schema.optin === "defaulted")
       ? "defaulted"
-      : zod.def.options.some((o) => o._zod.optin !== undefined)
+      : Schema.def.options.some((o) => o._schema.optin !== undefined)
         ? "optional"
         : undefined
   );
 
-  util.defineLazyInternal(inst, "optout", (zod) =>
-    zod.def.options.some((o) => o._zod.optout === "optional") ? "optional" : undefined
+  util.defineLazyInternal(inst, "optout", (schema) =>
+    Schema.def.options.some((o) => o._schema.optout === "optional") ? "optional" : undefined
   );
 
-  util.defineLazyInternal(inst, "values", (zod) => {
-    if (zod.def.options.every((o) => o._zod.values)) {
-      return new Set<util.Primitive>(zod.def.options.flatMap((option) => Array.from(option._zod.values!)));
+  util.defineLazyInternal(inst, "values", (schema) => {
+    if (Schema.def.options.every((o) => o._schema.values)) {
+      return new Set<util.Primitive>(Schema.def.options.flatMap((option) => Array.from(option._schema.values!)));
     }
     return undefined;
   });
 
-  util.defineLazyInternal(inst, "pattern", (zod) => {
-    if (zod.def.options.every((o) => o._zod.pattern)) {
-      const patterns = zod.def.options.map((o) => o._zod.pattern);
+  util.defineLazyInternal(inst, "pattern", (schema) => {
+    if (Schema.def.options.every((o) => o._schema.pattern)) {
+      const patterns = Schema.def.options.map((o) => o._schema.pattern);
       return new RegExp(`^(${patterns.map((p) => util.cleanRegex(p!.source)).join("|")})$`);
     }
     return undefined;
   });
 
-  const first = def.options.length === 1 ? def.options[0]._zod.run : null;
+  const first = def.options.length === 1 ? def.options[0]._schema.run : null;
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     if (first) {
       return first(payload, ctx);
     }
@@ -2494,7 +2494,7 @@ export const $ZodUnion: core.$constructor<$ZodUnion> = /*@__PURE__*/ core.$const
 
     const results: util.MaybeAsync<ParsePayload>[] = [];
     for (const option of def.options) {
-      const result = option._zod.run(
+      const result = option._schema.run(
         {
           value: payload.value,
           issues: [],
@@ -2520,7 +2520,7 @@ export const $ZodUnion: core.$constructor<$ZodUnion> = /*@__PURE__*/ core.$const
 function handleExclusiveUnionResults(
   results: ParsePayload[],
   final: ParsePayload,
-  inst: $ZodUnion,
+  inst: $SchemaUnion,
   ctx?: ParseContext
 ) {
   const matches: number[] = [];
@@ -2556,20 +2556,20 @@ function handleExclusiveUnionResults(
   return final;
 }
 
-export interface $ZodXorInternals<T extends readonly SomeType[] = readonly $ZodType[]> extends $ZodUnionInternals<T> {}
+export interface $SchemaXorInternals<T extends readonly SomeType[] = readonly $SchemaType[]> extends $SchemaUnionInternals<T> {}
 
-export interface $ZodXor<T extends readonly SomeType[] = readonly $ZodType[]>
-  extends $ZodType<any, any, $ZodXorInternals<T>> {
-  _zod: $ZodXorInternals<T>;
+export interface $SchemaXor<T extends readonly SomeType[] = readonly $SchemaType[]>
+  extends $SchemaType<any, any, $SchemaXorInternals<T>> {
+  _schema: $SchemaXorInternals<T>;
 }
 
-export const $ZodXor: core.$constructor<$ZodXor> = /*@__PURE__*/ core.$constructor("$ZodXor", (inst, def) => {
-  $ZodUnion.init(inst, def);
+export const $SchemaXor: core.$constructor<$SchemaXor> = /*@__PURE__*/ core.$constructor("$SchemaXor", (inst, def) => {
+  $SchemaUnion.init(inst, def);
   def.inclusive = false;
 
-  const first = def.options.length === 1 ? def.options[0]._zod.run : null;
+  const first = def.options.length === 1 ? def.options[0]._schema.run : null;
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     if (first) {
       return first(payload, ctx);
     }
@@ -2577,7 +2577,7 @@ export const $ZodXor: core.$constructor<$ZodXor> = /*@__PURE__*/ core.$construct
 
     const results: util.MaybeAsync<ParsePayload>[] = [];
     for (const option of def.options) {
-      const result = option._zod.run(
+      const result = option._schema.run(
         {
           value: payload.value,
           issues: [],
@@ -2602,33 +2602,33 @@ export const $ZodXor: core.$constructor<$ZodXor> = /*@__PURE__*/ core.$construct
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 //////////                                  //////////
-//////////      $ZodDiscriminatedUnion      //////////
+//////////      $SchemaDiscriminatedUnion      //////////
 //////////                                  //////////
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
-export interface $ZodDiscriminatedUnionDef<
-  Options extends readonly SomeType[] = readonly $ZodType[],
+export interface $SchemaDiscriminatedUnionDef<
+  Options extends readonly SomeType[] = readonly $SchemaType[],
   Disc extends string = string,
-> extends $ZodUnionDef<Options> {
+> extends $SchemaUnionDef<Options> {
   discriminator: Disc;
   unionFallback?: boolean;
 }
 
-export interface $ZodDiscriminatedUnionInternals<
-  Options extends readonly SomeType[] = readonly $ZodType[],
+export interface $SchemaDiscriminatedUnionInternals<
+  Options extends readonly SomeType[] = readonly $SchemaType[],
   Disc extends string = string,
-> extends $ZodUnionInternals<Options> {
-  def: $ZodDiscriminatedUnionDef<Options, Disc>;
+> extends $SchemaUnionInternals<Options> {
+  def: $SchemaDiscriminatedUnionDef<Options, Disc>;
   propValues: util.PropValues;
   bag: util.LoosePartial<{
-    optionsMap: Map<util.Primitive, $ZodType | null>;
+    optionsMap: Map<util.Primitive, $SchemaType | null>;
   }>;
 }
 
 /** The discriminator values a member of `Options` can declare. An omittable discriminator contributes `undefined`, matching what `propValues` claims for it. */
 export type $DiscriminatorValue<Options extends readonly SomeType[], Disc extends string> = {
-  [I in keyof Options]: Options[I] extends { _zod: { output: infer Out } }
+  [I in keyof Options]: Options[I] extends { _schema: { output: infer Out } }
     ? Disc extends keyof Out
       ? Out[Disc]
       : never
@@ -2637,7 +2637,7 @@ export type $DiscriminatorValue<Options extends readonly SomeType[], Disc extend
 
 /** The member of `Options` that declares `V`. */
 export type $DiscriminatedOption<Options extends readonly SomeType[], Disc extends string, V> = {
-  [I in keyof Options]: Options[I] extends { _zod: { output: infer Out } }
+  [I in keyof Options]: Options[I] extends { _schema: { output: infer Out } }
     ? Disc extends keyof Out
       ? V extends Out[Disc]
         ? Options[I]
@@ -2651,8 +2651,8 @@ export function getDiscriminatedOption<
   Options extends readonly SomeType[],
   Disc extends string,
   const V extends $DiscriminatorValue<Options, Disc>,
->(union: $ZodDiscriminatedUnion<Options, Disc>, value: V): $DiscriminatedOption<Options, Disc, V> {
-  const internals = union._zod;
+>(union: $SchemaDiscriminatedUnion<Options, Disc>, value: V): $DiscriminatedOption<Options, Disc, V> {
+  const internals = union._schema;
   let map = internals.bag.optionsMap;
   if (!map) {
     map = discriminatorMap(internals.def);
@@ -2663,10 +2663,10 @@ export function getDiscriminatedOption<
   return option as any;
 }
 
-function discriminatorMap(def: $ZodDiscriminatedUnionDef<readonly SomeType[]>): Map<util.Primitive, $ZodType | null> {
-  const map = new Map<util.Primitive, $ZodType | null>();
-  for (const option of def.options as readonly $ZodType[]) {
-    const values = option._zod.propValues?.[def.discriminator];
+function discriminatorMap(def: $SchemaDiscriminatedUnionDef<readonly SomeType[]>): Map<util.Primitive, $SchemaType | null> {
+  const map = new Map<util.Primitive, $SchemaType | null>();
+  for (const option of def.options as readonly $SchemaType[]) {
+    const values = option._schema.propValues?.[def.discriminator];
     if (!values || values.size === 0)
       throw new Error(`Invalid discriminated union option at index "${def.options.indexOf(option)}"`);
     for (const value of values) {
@@ -2682,29 +2682,29 @@ function discriminatorMap(def: $ZodDiscriminatedUnionDef<readonly SomeType[]>): 
   return map;
 }
 
-export interface $ZodDiscriminatedUnion<
-  Options extends readonly SomeType[] = readonly $ZodType[],
+export interface $SchemaDiscriminatedUnion<
+  Options extends readonly SomeType[] = readonly $SchemaType[],
   Disc extends string = string,
-> extends $ZodType {
-  _zod: $ZodDiscriminatedUnionInternals<Options, Disc>;
+> extends $SchemaType {
+  _schema: $SchemaDiscriminatedUnionInternals<Options, Disc>;
 }
 
-export const $ZodDiscriminatedUnion: core.$constructor<$ZodDiscriminatedUnion> =
+export const $SchemaDiscriminatedUnion: core.$constructor<$SchemaDiscriminatedUnion> =
   /*@__PURE__*/
-  core.$constructor("$ZodDiscriminatedUnion", (inst, def) => {
+  core.$constructor("$SchemaDiscriminatedUnion", (inst, def) => {
     def.inclusive = false;
 
-    $ZodUnion.init(inst, def);
+    $SchemaUnion.init(inst, def);
 
-    const _super = inst._zod.parse;
-    util.defineLazyInternal(inst, "propValues", (zod) => {
+    const _super = inst._schema.parse;
+    util.defineLazyInternal(inst, "propValues", (schema) => {
       const propValues: util.PropValues = {};
       let undefinedCount = 0;
-      for (const option of zod.def.options) {
-        const pv = option._zod.propValues;
+      for (const option of Schema.def.options) {
+        const pv = option._schema.propValues;
         if (!pv || Object.keys(pv).length === 0)
-          throw new Error(`Invalid discriminated union option at index "${zod.def.options.indexOf(option)}"`);
-        if (pv[zod.def.discriminator]?.has(undefined)) undefinedCount++;
+          throw new Error(`Invalid discriminated union option at index "${Schema.def.options.indexOf(option)}"`);
+        if (pv[Schema.def.discriminator]?.has(undefined)) undefinedCount++;
         for (const [k, v] of Object.entries(pv!)) {
           if (!Object.prototype.hasOwnProperty.call(propValues, k)) {
             util.assignProp(propValues, k, new Set());
@@ -2714,13 +2714,13 @@ export const $ZodDiscriminatedUnion: core.$constructor<$ZodDiscriminatedUnion> =
           }
         }
       }
-      if (!zod.def.unionFallback && undefinedCount > 1) propValues[zod.def.discriminator]?.delete(undefined);
+      if (!Schema.def.unionFallback && undefinedCount > 1) propValues[Schema.def.discriminator]?.delete(undefined);
       return propValues;
     });
 
     // Checked now rather than in the lookup map below, so an option that lacks the discriminator fails at the `discriminatedUnion` call instead of on the first object parsed. Options whose shape cannot be enumerated without resolving it — pipes and lazies — are left to the map.
     def.options.forEach((option, i) => {
-      const propShape = util.rawShape(option._zod.def);
+      const propShape = util.rawShape(option._schema.def);
       if (propShape && !Object.prototype.hasOwnProperty.call(propShape, def.discriminator)) {
         throw new Error(`Invalid discriminated union option at index "${i}"`);
       }
@@ -2728,7 +2728,7 @@ export const $ZodDiscriminatedUnion: core.$constructor<$ZodDiscriminatedUnion> =
 
     const disc = util.cached(() => discriminatorMap(def));
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       const input = payload.value;
       if (!util.isObject(input)) {
         payload.issues.push({
@@ -2745,7 +2745,7 @@ export const $ZodDiscriminatedUnion: core.$constructor<$ZodDiscriminatedUnion> =
       const opt = disc.value.get(value as util.Primitive);
       // forward metadata cannot choose an encoder for an absent tag
       if (opt && (value !== undefined || ctx.direction !== "backward")) {
-        return opt._zod.run(payload, ctx) as any;
+        return opt._schema.run(payload, ctx) as any;
       }
 
       // Fall back to union matching when the fast discriminator path fails:
@@ -2774,42 +2774,42 @@ export const $ZodDiscriminatedUnion: core.$constructor<$ZodDiscriminatedUnion> =
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
-//////////      $ZodIntersection      //////////
+//////////      $SchemaIntersection      //////////
 //////////                            //////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
-export interface $ZodIntersectionDef<Left extends SomeType = $ZodType, Right extends SomeType = $ZodType>
-  extends $ZodTypeDef {
+export interface $SchemaIntersectionDef<Left extends SomeType = $SchemaType, Right extends SomeType = $SchemaType>
+  extends $SchemaTypeDef {
   type: "intersection";
   left: Left;
   right: Right;
 }
 
-export interface $ZodIntersectionInternals<A extends SomeType = $ZodType, B extends SomeType = $ZodType>
-  extends _$ZodTypeInternals {
-  // $ZodTypeInternals<core.output<A> & core.output<B>, core.input<A> & core.input<B>>
-  def: $ZodIntersectionDef<A, B>;
+export interface $SchemaIntersectionInternals<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType>
+  extends _$SchemaTypeInternals {
+  // $SchemaTypeInternals<core.output<A> & core.output<B>, core.input<A> & core.input<B>>
+  def: $SchemaIntersectionDef<A, B>;
   isst: never;
-  optin: A["_zod"]["optin"] | B["_zod"]["optin"];
-  optout: A["_zod"]["optout"] | B["_zod"]["optout"];
+  optin: A["_schema"]["optin"] | B["_schema"]["optin"];
+  optout: A["_schema"]["optout"] | B["_schema"]["optout"];
   output: core.output<A> & core.output<B>;
   input: core.input<A> & core.input<B>;
 }
 
-export interface $ZodIntersection<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodIntersectionInternals<A, B>;
+export interface $SchemaIntersection<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaIntersectionInternals<A, B>;
 }
 
-export const $ZodIntersection: core.$constructor<$ZodIntersection> = /*@__PURE__*/ core.$constructor(
-  "$ZodIntersection",
+export const $SchemaIntersection: core.$constructor<$SchemaIntersection> = /*@__PURE__*/ core.$constructor(
+  "$SchemaIntersection",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       const input = payload.value;
-      const left = def.left._zod.run({ value: input, issues: [] }, ctx);
-      const right = def.right._zod.run({ value: input, issues: [] }, ctx);
+      const left = def.left._schema.run({ value: input, issues: [] }, ctx);
+      const right = def.right._schema.run({ value: input, issues: [] }, ctx);
       const async = left instanceof Promise || right instanceof Promise;
 
       if (async) {
@@ -2884,12 +2884,12 @@ export function mergeValues(
 }
 
 function handleIntersectionResults(result: ParsePayload, left: ParsePayload, right: ParsePayload): ParsePayload {
-  // Track which side(s) reject each key. A key rejection is reported only when BOTH sides reject it, so a key owned by one branch survives the other's key schema. strictObject reports these as unrecognized_keys; a record with an open key schema reports one invalid_key per key.
+  // Track which side(s) reject each key. A key rejection is reported only when BOTH sides reject it, so a key owned by one branch survives the other's key Schema. strictObject reports these as unrecognized_keys; a record with an open key schema reports one invalid_key per key.
   const unrecKeys = new Map<string, { l?: true; r?: true }>();
-  let unrecIssue: errors.$ZodRawIssue | undefined;
-  const keyIssues = new Map<string, errors.$ZodRawIssue>();
+  let unrecIssue: errors.$SchemaRawIssue | undefined;
+  const keyIssues = new Map<string, errors.$SchemaRawIssue>();
 
-  const collect = (iss: errors.$ZodRawIssue, side: "l" | "r"): boolean => {
+  const collect = (iss: errors.$SchemaRawIssue, side: "l" | "r"): boolean => {
     let keys: string[];
     if (iss.code === "unrecognized_keys" && !iss.path?.length) {
       unrecIssue ??= iss;
@@ -2940,15 +2940,15 @@ function handleIntersectionResults(result: ParsePayload, left: ParsePayload, rig
 /////////////////////////////////////////
 /////////////////////////////////////////
 //////////                     //////////
-//////////      $ZodTuple      //////////
+//////////      $SchemaTuple      //////////
 //////////                     //////////
 /////////////////////////////////////////
 /////////////////////////////////////////
 
-export interface $ZodTupleDef<
-  T extends util.TupleItems = readonly $ZodType[],
-  Rest extends SomeType | null = $ZodType | null,
-> extends $ZodTypeDef {
+export interface $SchemaTupleDef<
+  T extends util.TupleItems = readonly $SchemaType[],
+  Rest extends SomeType | null = $SchemaType | null,
+> extends $SchemaTypeDef {
   type: "tuple";
   items: T;
   rest: Rest;
@@ -2965,7 +2965,7 @@ type TupleInputTypeWithOptionals<T extends util.TupleItems> = T extends readonly
   ...infer Prefix extends SomeType[],
   infer Tail extends SomeType,
 ]
-  ? Tail["_zod"]["optin"] extends "optional" | "defaulted"
+  ? Tail["_schema"]["optin"] extends "optional" | "defaulted"
     ? [...TupleInputTypeWithOptionals<Prefix>, core.input<Tail>?]
     : TupleInputTypeNoOptionals<T>
   : [];
@@ -2981,36 +2981,36 @@ type TupleOutputTypeWithOptionals<T extends util.TupleItems> = T extends readonl
   ...infer Prefix extends SomeType[],
   infer Tail extends SomeType,
 ]
-  ? Tail["_zod"]["optout"] extends "optional"
+  ? Tail["_schema"]["optout"] extends "optional"
     ? [...TupleOutputTypeWithOptionals<Prefix>, core.output<Tail>?]
     : TupleOutputTypeNoOptionals<T>
   : [];
 
-export interface $ZodTupleInternals<
-  T extends util.TupleItems = readonly $ZodType[],
-  Rest extends SomeType | null = $ZodType | null,
-> extends _$ZodTypeInternals {
-  def: $ZodTupleDef<T, Rest>;
-  isst: errors.$ZodIssueInvalidType | errors.$ZodIssueTooBig<unknown[]> | errors.$ZodIssueTooSmall<unknown[]>;
-  // $ZodTypeInternals<$InferTupleOutputType<T, Rest>, $InferTupleInputType<T, Rest>>
+export interface $SchemaTupleInternals<
+  T extends util.TupleItems = readonly $SchemaType[],
+  Rest extends SomeType | null = $SchemaType | null,
+> extends _$SchemaTypeInternals {
+  def: $SchemaTupleDef<T, Rest>;
+  isst: errors.$SchemaIssueInvalidType | errors.$SchemaIssueTooBig<unknown[]> | errors.$SchemaIssueTooSmall<unknown[]>;
+  // $SchemaTypeInternals<$InferTupleOutputType<T, Rest>, $InferTupleInputType<T, Rest>>
   output: $InferTupleOutputType<T, Rest>;
   input: $InferTupleInputType<T, Rest>;
 }
 
-export interface $ZodTuple<
-  T extends util.TupleItems = readonly $ZodType[],
-  Rest extends SomeType | null = $ZodType | null,
-> extends $ZodType {
-  _zod: $ZodTupleInternals<T, Rest>;
+export interface $SchemaTuple<
+  T extends util.TupleItems = readonly $SchemaType[],
+  Rest extends SomeType | null = $SchemaType | null,
+> extends $SchemaType {
+  _schema: $SchemaTupleInternals<T, Rest>;
 }
 
-export const $ZodTuple: core.$constructor<$ZodTuple> = /*@__PURE__*/ core.$constructor("$ZodTuple", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaTuple: core.$constructor<$SchemaTuple> = /*@__PURE__*/ core.$constructor("$SchemaTuple", (inst, def) => {
+  $SchemaType.init(inst, def);
   const items = def.items;
   const memo = core.globalConfig.memoizer;
   memo?.attach(inst);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     const input = payload.value;
     if (!Array.isArray(input)) {
       payload.issues.push({
@@ -3058,7 +3058,7 @@ export const $ZodTuple: core.$constructor<$ZodTuple> = /*@__PURE__*/ core.$const
     const abortEarly = def.rest ? ctx?.abortEarly : undefined;
     let itemAborted = false;
     for (let i = 0; i < items.length; i++) {
-      const r = items[i]._zod.run({ value: input[i], issues: [] }, ctx);
+      const r = items[i]._schema.run({ value: input[i], issues: [] }, ctx);
       if (r instanceof Promise) {
         proms.push(
           r.then((rr) => {
@@ -3082,7 +3082,7 @@ export const $ZodTuple: core.$constructor<$ZodTuple> = /*@__PURE__*/ core.$const
           seen = payload.issues.length;
         }
         i++;
-        const result = def.rest._zod.run({ value: el, issues: [] }, ctx);
+        const result = def.rest._schema.run({ value: el, issues: [] }, ctx);
         if (result instanceof Promise) {
           proms.push(result.then((r) => handleTupleResult(r, payload, i)));
         } else {
@@ -3098,10 +3098,10 @@ export const $ZodTuple: core.$constructor<$ZodTuple> = /*@__PURE__*/ core.$const
   };
 });
 
-function getTupleOptStart(items: readonly $ZodType[], key: "optin" | "optout") {
+function getTupleOptStart(items: readonly $SchemaType[], key: "optin" | "optout") {
   for (let i = items.length - 1; i >= 0; i--) {
     // optin is a three-rung ladder so any rung above `undefined` permits an absent slot; optout stays two-valued.
-    const omittable = key === "optin" ? items[i]._zod.optin !== undefined : items[i]._zod.optout === "optional";
+    const omittable = key === "optin" ? items[i]._schema.optin !== undefined : items[i]._schema.optout === "optional";
     if (!omittable) return i + 1;
   }
   return 0;
@@ -3117,16 +3117,16 @@ function handleTupleResult(result: ParsePayload, final: ParsePayload<any[]>, ind
 function handleTupleResults(
   itemResults: ParsePayload[],
   final: ParsePayload<any[]>,
-  items: readonly $ZodType[],
+  items: readonly $SchemaType[],
   input: unknown[],
   optoutStart: number
 ) {
-  // Walk results in order. Mirror $ZodObject's swallow-on-absent-optional rule, but only after `optoutStart`: the first index where the output tuple tail can be absent.
+  // Walk results in order. Mirror $SchemaObject's swallow-on-absent-optional rule, but only after `optoutStart`: the first index where the output tuple tail can be absent.
   for (let i = 0; i < items.length; i++) {
     const r = itemResults[i];
     const isPresent = i < input.length;
     // The array analog of `handlePropertyResult`'s absent-key early return: the middle rung permits absence without supplying anything in its place, so the tail truncates here instead of materializing whatever the item made of `undefined`.
-    if (!isPresent && i >= optoutStart && items[i]._zod.optin === "optional") {
+    if (!isPresent && i >= optoutStart && items[i]._schema.optin === "optional") {
       final.value.length = i;
       break;
     }
@@ -3144,10 +3144,10 @@ function handleTupleResults(
   // (the array analog of an absent optional key on an object). The
   // `i >= input.length` floor is critical: an explicit `undefined`
   // *inside* the input must be preserved even when the schema is
-  // optional-out (e.g. `z.string().or(z.undefined())` accepting an
+  // optional-out (e.g. `Schema.string().or(Schema.undefined())` accepting an
   // explicit undefined value).
   for (let i = final.value.length - 1; i >= input.length; i--) {
-    if (items[i]._zod.optout === "optional" && final.value[i] === undefined) {
+    if (items[i]._schema.optout === "optional" && final.value[i] === undefined) {
       final.value.length = i;
     } else {
       break;
@@ -3159,14 +3159,14 @@ function handleTupleResults(
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodRecord      //////////
+//////////      $SchemaRecord      //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
 
-export type $ZodRecordKey = $ZodType<string | number | symbol, unknown>; // $HasValues | $HasPattern;
-export interface $ZodRecordDef<Key extends $ZodRecordKey = $ZodRecordKey, Value extends SomeType = $ZodType>
-  extends $ZodTypeDef {
+export type $SchemaRecordKey = $SchemaType<string | number | symbol, unknown>; // $HasValues | $HasPattern;
+export interface $SchemaRecordDef<Key extends $SchemaRecordKey = $SchemaRecordKey, Value extends SomeType = $SchemaType>
+  extends $SchemaTypeDef {
   type: "record";
   keyType: Key;
   valueType: Value;
@@ -3175,10 +3175,10 @@ export interface $ZodRecordDef<Key extends $ZodRecordKey = $ZodRecordKey, Value 
   partial?: boolean;
 }
 
-// export type $InferZodRecordOutput<
-//   Key extends $ZodRecordKey = $ZodRecordKey,
-//   Value extends SomeType = $ZodType,
-// > = undefined extends Key["_zod"]["values"]
+// export type $InferSchemaRecordOutput<
+//   Key extends $SchemaRecordKey = $SchemaRecordKey,
+//   Value extends SomeType = $SchemaType,
+// > = undefined extends Key["_schema"]["values"]
 //   ? string extends core.output<Key>
 //     ? Record<core.output<Key>, core.output<Value>>
 //     : number extends core.output<Key>
@@ -3187,17 +3187,17 @@ export interface $ZodRecordDef<Key extends $ZodRecordKey = $ZodRecordKey, Value 
 //         ? Record<core.output<Key>, core.output<Value>>
 //         : Record<core.output<Key>, core.output<Value>>
 //   : Record<core.output<Key>, core.output<Value>>;
-export type $InferZodRecordOutput<
-  Key extends $ZodRecordKey = $ZodRecordKey,
-  Value extends SomeType = $ZodType,
+export type $InferSchemaRecordOutput<
+  Key extends $SchemaRecordKey = $SchemaRecordKey,
+  Value extends SomeType = $SchemaType,
 > = Key extends $partial
   ? Partial<Record<core.output<Key>, core.output<Value>>>
   : Record<core.output<Key>, core.output<Value>>;
 
-// export type $InferZodRecordInput<
-//   Key extends $ZodRecordKey = $ZodRecordKey,
-//   Value extends SomeType = $ZodType,
-// > = undefined extends Key["_zod"]["values"]
+// export type $InferSchemaRecordInput<
+//   Key extends $SchemaRecordKey = $SchemaRecordKey,
+//   Value extends SomeType = $SchemaType,
+// > = undefined extends Key["_schema"]["values"]
 //   ? string extends core.input<Key>
 //     ? Record<core.input<Key>, core.input<Value>>
 //     : number extends core.input<Key>
@@ -3207,9 +3207,9 @@ export type $InferZodRecordOutput<
 //         : Record<core.input<Key>, core.input<Value>>
 //   : Record<core.input<Key>, core.input<Value>>;
 
-export type $InferZodRecordInput<
-  Key extends $ZodRecordKey = $ZodRecordKey,
-  Value extends SomeType = $ZodType,
+export type $InferSchemaRecordInput<
+  Key extends $SchemaRecordKey = $SchemaRecordKey,
+  Value extends SomeType = $SchemaType,
 > = Key extends $partial
   ? Partial<Record<core.input<Key> & PropertyKey, core.input<Value>>>
   : // A value schema that accepts an absent slot makes the key omittable on the way in, exactly as it does in an object shape. The output side keeps every key, since the parser fills each one.
@@ -3217,26 +3217,26 @@ export type $InferZodRecordInput<
     ? Partial<Record<core.input<Key> & PropertyKey, core.input<Value>>>
     : Record<core.input<Key> & PropertyKey, core.input<Value>>;
 
-export interface $ZodRecordInternals<Key extends $ZodRecordKey = $ZodRecordKey, Value extends SomeType = $ZodType>
-  extends $ZodTypeInternals<$InferZodRecordOutput<Key, Value>, $InferZodRecordInput<Key, Value>> {
-  def: $ZodRecordDef<Key, Value>;
-  isst: errors.$ZodIssueInvalidType | errors.$ZodIssueInvalidKey<Record<PropertyKey, unknown>>;
+export interface $SchemaRecordInternals<Key extends $SchemaRecordKey = $SchemaRecordKey, Value extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<$InferSchemaRecordOutput<Key, Value>, $InferSchemaRecordInput<Key, Value>> {
+  def: $SchemaRecordDef<Key, Value>;
+  isst: errors.$SchemaIssueInvalidType | errors.$SchemaIssueInvalidKey<Record<PropertyKey, unknown>>;
   optin?: "optional" | undefined;
   optout?: "optional" | undefined;
 }
 
 export type $partial = { "~~partial": true };
-export interface $ZodRecord<Key extends $ZodRecordKey = $ZodRecordKey, Value extends SomeType = $ZodType>
-  extends $ZodType {
-  _zod: $ZodRecordInternals<Key, Value>;
+export interface $SchemaRecord<Key extends $SchemaRecordKey = $SchemaRecordKey, Value extends SomeType = $SchemaType>
+  extends $SchemaType {
+  _schema: $SchemaRecordInternals<Key, Value>;
 }
 
-export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$constructor("$ZodRecord", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaRecord: core.$constructor<$SchemaRecord> = /*@__PURE__*/ core.$constructor("$SchemaRecord", (inst, def) => {
+  $SchemaType.init(inst, def);
   const memo = core.globalConfig.memoizer;
   memo?.attach(inst);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     const input = payload.value;
 
     if (!util.isPlainObject(input)) {
@@ -3253,7 +3253,7 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
     // no guard in either loop below: a record's invalid_key aborts but an enclosing intersection can reconcile it, so a stopped loop hides keys the sibling does not own and the intersection then rejects nothing
     const proms: Promise<any>[] = [];
 
-    const values = def.keyType._zod.values;
+    const values = def.keyType._schema.values;
     if (values && !def.partial) {
       payload.value = memo ? memo.alloc(inst, payload, {}, ctx) : {};
       const recordKeys = new Set<string | symbol>();
@@ -3262,7 +3262,7 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
           recordKeys.add(typeof key === "number" ? key.toString() : key);
           // A declared __proto__ is stripped but is not an unrecognized key.
           if (key === "__proto__") continue;
-          const keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
+          const keyResult = def.keyType._schema.run({ value: key, issues: [] }, ctx);
           if (keyResult instanceof Promise) {
             throw new Error("Async schemas not supported in object keys currently");
           }
@@ -3279,7 +3279,7 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
           }
           const outKey = keyResult.value as PropertyKey;
           if (outKey === "__proto__") continue;
-          const result = def.valueType._zod.run({ value: input[key], issues: [] }, ctx);
+          const result = def.valueType._schema.run({ value: input[key], issues: [] }, ctx);
 
           if (result instanceof Promise) {
             proms.push(
@@ -3326,19 +3326,19 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
       payload.value = memo ? memo.alloc(inst, payload, {}, ctx) : {};
       // An enumerable key schema declares which keys the record owns, so a key outside the set is unrecognized. A non-enumerable one (regex, refine) is a constraint every key must satisfy, so a failing key is invalid. Only the former is reconcilable against the other side of an intersection.
       let unrecognized!: string[];
-      // Reflect.ownKeys for Symbol-key support; filter non-enumerable to match z.object()
+      // Reflect.ownKeys for Symbol-key support; filter non-enumerable to match Schema.object()
       for (const key of Reflect.ownKeys(input)) {
         if (key === "__proto__") continue;
         if (!Object.prototype.propertyIsEnumerable.call(input, key)) continue;
-        let keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
+        let keyResult = def.keyType._schema.run({ value: key, issues: [] }, ctx);
         if (keyResult instanceof Promise) {
           throw new Error("Async schemas not supported in object keys currently");
         }
 
-        // Numeric string fallback: if key is a numeric string and failed, retry with Number(key). This handles z.number(), z.literal([1, 2, 3]), and unions containing numeric literals
+        // Numeric string fallback: if key is a numeric string and failed, retry with Number(key). This handles Schema.number(), Schema.literal([1, 2, 3]), and unions containing numeric literals
         const checkNumericKey = typeof key === "string" && regexes.number.test(key) && keyResult.issues.length;
         if (checkNumericKey) {
-          const retryResult = def.keyType._zod.run({ value: Number(key), issues: [] }, ctx);
+          const retryResult = def.keyType._schema.run({ value: Number(key), issues: [] }, ctx);
           if (retryResult instanceof Promise) {
             throw new Error("Async schemas not supported in object keys currently");
           }
@@ -3372,7 +3372,7 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
         const outKey = keyResult.value as PropertyKey;
         if (outKey === "__proto__") continue;
 
-        const result = def.valueType._zod.run({ value: input[key], issues: [] }, ctx);
+        const result = def.valueType._schema.run({ value: input[key], issues: [] }, ctx);
 
         if (result instanceof Promise) {
           proms.push(
@@ -3413,34 +3413,34 @@ export const $ZodRecord: core.$constructor<$ZodRecord> = /*@__PURE__*/ core.$con
 ///////////////////////////////////////
 ///////////////////////////////////////
 //////////                   //////////
-//////////      $ZodMap      //////////
+//////////      $SchemaMap      //////////
 //////////                   //////////
 ///////////////////////////////////////
 ///////////////////////////////////////
-export interface $ZodMapDef<Key extends SomeType = $ZodType, Value extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaMapDef<Key extends SomeType = $SchemaType, Value extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "map";
   keyType: Key;
   valueType: Value;
 }
 
-export interface $ZodMapInternals<Key extends SomeType = $ZodType, Value extends SomeType = $ZodType>
-  extends $ZodTypeInternals<Map<core.output<Key>, core.output<Value>>, Map<core.input<Key>, core.input<Value>>> {
-  def: $ZodMapDef<Key, Value>;
-  isst: errors.$ZodIssueInvalidType | errors.$ZodIssueInvalidKey | errors.$ZodIssueInvalidElement<unknown>;
+export interface $SchemaMapInternals<Key extends SomeType = $SchemaType, Value extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<Map<core.output<Key>, core.output<Value>>, Map<core.input<Key>, core.input<Value>>> {
+  def: $SchemaMapDef<Key, Value>;
+  isst: errors.$SchemaIssueInvalidType | errors.$SchemaIssueInvalidKey | errors.$SchemaIssueInvalidElement<unknown>;
   optin?: "optional" | undefined;
   optout?: "optional" | undefined;
 }
 
-export interface $ZodMap<Key extends SomeType = $ZodType, Value extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodMapInternals<Key, Value>;
+export interface $SchemaMap<Key extends SomeType = $SchemaType, Value extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaMapInternals<Key, Value>;
 }
 
-export const $ZodMap: core.$constructor<$ZodMap> = /*@__PURE__*/ core.$constructor("$ZodMap", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaMap: core.$constructor<$SchemaMap> = /*@__PURE__*/ core.$constructor("$SchemaMap", (inst, def) => {
+  $SchemaType.init(inst, def);
   const memo = core.globalConfig.memoizer;
   memo?.attach(inst);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     const input = payload.value;
     if (!(input instanceof Map)) {
       payload.issues.push({
@@ -3463,8 +3463,8 @@ export const $ZodMap: core.$constructor<$ZodMap> = /*@__PURE__*/ core.$construct
         if (util.aborted(payload, seen)) break;
         seen = payload.issues.length;
       }
-      const keyResult = def.keyType._zod.run({ value: key, issues: [] }, ctx);
-      const valueResult = def.valueType._zod.run({ value: value, issues: [] }, ctx);
+      const keyResult = def.keyType._schema.run({ value: key, issues: [] }, ctx);
+      const valueResult = def.valueType._schema.run({ value: value, issues: [] }, ctx);
 
       if (keyResult instanceof Promise || valueResult instanceof Promise) {
         proms.push(
@@ -3488,7 +3488,7 @@ function handleMapResult(
   final: ParsePayload<Map<unknown, unknown>>,
   key: unknown,
   input: Map<any, any>,
-  inst: $ZodMap,
+  inst: $SchemaMap,
   ctx?: ParseContext | undefined
 ): void {
   if (keyResult.issues.length) {
@@ -3526,33 +3526,33 @@ function handleMapResult(
 ///////////////////////////////////////
 ///////////////////////////////////////
 //////////                   //////////
-//////////      $ZodSet      //////////
+//////////      $SchemaSet      //////////
 //////////                   //////////
 ///////////////////////////////////////
 ///////////////////////////////////////
-export interface $ZodSetDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaSetDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "set";
   valueType: T;
 }
 
-export interface $ZodSetInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<Set<core.output<T>>, Set<core.input<T>>> {
-  def: $ZodSetDef<T>;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaSetInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<Set<core.output<T>>, Set<core.input<T>>> {
+  def: $SchemaSetDef<T>;
+  isst: errors.$SchemaIssueInvalidType;
   optin?: "optional" | undefined;
   optout?: "optional" | undefined;
 }
 
-export interface $ZodSet<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodSetInternals<T>;
+export interface $SchemaSet<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaSetInternals<T>;
 }
 
-export const $ZodSet: core.$constructor<$ZodSet> = /*@__PURE__*/ core.$constructor("$ZodSet", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaSet: core.$constructor<$SchemaSet> = /*@__PURE__*/ core.$constructor("$SchemaSet", (inst, def) => {
+  $SchemaType.init(inst, def);
   const memo = core.globalConfig.memoizer;
   memo?.attach(inst);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     const input = payload.value;
     if (!(input instanceof Set)) {
       payload.issues.push({
@@ -3573,7 +3573,7 @@ export const $ZodSet: core.$constructor<$ZodSet> = /*@__PURE__*/ core.$construct
         if (util.aborted(payload, seen)) break;
         seen = payload.issues.length;
       }
-      const result = def.valueType._zod.run({ value: item, issues: [] }, ctx);
+      const result = def.valueType._schema.run({ value: item, issues: [] }, ctx);
       if (result instanceof Promise) {
         proms.push(result.then((result) => handleSetResult(result, payload)));
       } else handleSetResult(result, payload);
@@ -3594,52 +3594,52 @@ function handleSetResult(result: ParsePayload, final: ParsePayload<Set<any>>) {
 ////////////////////////////////////////
 ////////////////////////////////////////
 //////////                    //////////
-//////////      $ZodEnum      //////////
+//////////      $SchemaEnum      //////////
 //////////                    //////////
 ////////////////////////////////////////
 ////////////////////////////////////////
 export type $InferEnumOutput<T extends util.EnumLike> = T[keyof T] & {};
 export type $InferEnumInput<T extends util.EnumLike> = T[keyof T] & {};
 
-export interface $ZodEnumDef<T extends util.EnumLike = util.EnumLike> extends $ZodTypeDef {
+export interface $SchemaEnumDef<T extends util.EnumLike = util.EnumLike> extends $SchemaTypeDef {
   type: "enum";
   entries: T;
 }
 
-export interface $ZodEnumInternals<
+export interface $SchemaEnumInternals<
   /** @ts-ignore Cast variance */
   out T extends util.EnumLike = util.EnumLike,
-> extends $ZodTypeInternals<$InferEnumOutput<T>, $InferEnumInput<T>> {
+> extends $SchemaTypeInternals<$InferEnumOutput<T>, $InferEnumInput<T>> {
   // enum: T;
 
-  def: $ZodEnumDef<T>;
+  def: $SchemaEnumDef<T>;
   /** @deprecated Internal API, use with caution (not deprecated) */
   values: util.PrimitiveSet;
   /** @deprecated Internal API, use with caution (not deprecated) */
   pattern: RegExp;
-  isst: errors.$ZodIssueInvalidValue;
+  isst: errors.$SchemaIssueInvalidValue;
 }
 
-export interface $ZodEnum<T extends util.EnumLike = util.EnumLike> extends $ZodType {
-  _zod: $ZodEnumInternals<T>;
+export interface $SchemaEnum<T extends util.EnumLike = util.EnumLike> extends $SchemaType {
+  _schema: $SchemaEnumInternals<T>;
 }
 
-export const $ZodEnum: core.$constructor<$ZodEnum> = /*@__PURE__*/ core.$constructor("$ZodEnum", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaEnum: core.$constructor<$SchemaEnum> = /*@__PURE__*/ core.$constructor("$SchemaEnum", (inst, def) => {
+  $SchemaType.init(inst, def);
 
   const values = util.getEnumValues(def.entries);
   const valuesSet = new Set<util.Primitive>(values);
-  inst._zod.values = valuesSet;
+  inst._schema.values = valuesSet;
 
-  util.defineLazyInternal(inst, "pattern", (zod) => {
-    const patternValues = util.getEnumValues(zod.def.entries).filter((k) => util.propertyKeyTypes.has(typeof k));
+  util.defineLazyInternal(inst, "pattern", (schema) => {
+    const patternValues = util.getEnumValues(Schema.def.entries).filter((k) => util.propertyKeyTypes.has(typeof k));
     // unmatchable fallback, RE2-safe: an empty alternation would compile to /^()$/, which matches ""
     return new RegExp(
       patternValues.length ? `^(${patternValues.map((o) => util.escapeRegex(o.toString())).join("|")})$` : "^[^\\s\\S]$"
     );
   });
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     const input = payload.value;
     if (valuesSet.has(input)) {
       return payload;
@@ -3658,37 +3658,37 @@ export const $ZodEnum: core.$constructor<$ZodEnum> = /*@__PURE__*/ core.$constru
 ////////////////////////////////////////
 ////////////////////////////////////////
 //////////                    //////////
-//////////      $ZodLiteral      //////////
+//////////      $SchemaLiteral      //////////
 //////////                    //////////
 ////////////////////////////////////////
 ////////////////////////////////////////
 
-export interface $ZodLiteralDef<T extends util.Literal> extends $ZodTypeDef {
+export interface $SchemaLiteralDef<T extends util.Literal> extends $SchemaTypeDef {
   type: "literal";
   values: T[];
 }
 
-export interface $ZodLiteralInternals<T extends util.Literal = util.Literal> extends $ZodTypeInternals<T, T> {
-  def: $ZodLiteralDef<T>;
+export interface $SchemaLiteralInternals<T extends util.Literal = util.Literal> extends $SchemaTypeInternals<T, T> {
+  def: $SchemaLiteralDef<T>;
   values: Set<T>;
   pattern: RegExp;
-  isst: errors.$ZodIssueInvalidValue;
+  isst: errors.$SchemaIssueInvalidValue;
 }
 
-export interface $ZodLiteral<T extends util.Literal = util.Literal> extends $ZodType {
-  _zod: $ZodLiteralInternals<T>;
+export interface $SchemaLiteral<T extends util.Literal = util.Literal> extends $SchemaType {
+  _schema: $SchemaLiteralInternals<T>;
 }
 
-export const $ZodLiteral: core.$constructor<$ZodLiteral> = /*@__PURE__*/ core.$constructor(
-  "$ZodLiteral",
+export const $SchemaLiteral: core.$constructor<$SchemaLiteral> = /*@__PURE__*/ core.$constructor(
+  "$SchemaLiteral",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
     const values = new Set<util.Literal>(def.values);
-    inst._zod.values = values;
+    inst._schema.values = values;
 
-    util.defineLazyInternal(inst, "pattern", (zod) => {
-      const vals = zod.def.values;
+    util.defineLazyInternal(inst, "pattern", (schema) => {
+      const vals = Schema.def.values;
       // unmatchable fallback, RE2-safe: an empty alternation would compile to /^()$/, which matches ""
       return new RegExp(
         vals.length
@@ -3701,7 +3701,7 @@ export const $ZodLiteral: core.$constructor<$ZodLiteral> = /*@__PURE__*/ core.$c
       );
     });
 
-    inst._zod.parse = (payload, _ctx) => {
+    inst._schema.parse = (payload, _ctx) => {
       const input = payload.value;
       if (values.has(input)) {
         return payload;
@@ -3721,39 +3721,39 @@ export const $ZodLiteral: core.$constructor<$ZodLiteral> = /*@__PURE__*/ core.$c
 ////////////////////////////////////////
 ////////////////////////////////////////
 //////////                    //////////
-//////////      $ZodConst      //////////
+//////////      $SchemaConst      //////////
 //////////                    //////////
 ////////////////////////////////////////
 ////////////////////////////////////////
 
-// export interface $ZodConstDef extends $ZodTypeDef {
+// export interface $SchemaConstDef extends $SchemaTypeDef {
 //   type: "const";
 //   value: unknown;
 // }
 
-// export _interface $ZodConstInternals<T extends util.Literal = util.Literal> extends $ZodTypeInternals<T, T> {
-//   _def: $ZodConstDef;
+// export _interface $SchemaConstInternals<T extends util.Literal = util.Literal> extends $SchemaTypeInternals<T, T> {
+//   _def: $SchemaConstDef;
 //   _values: util.PrimitiveSet;
 //   _pattern: RegExp;
-//   _isst: errors.$ZodIssueInvalidValue;
+//   _isst: errors.$SchemaIssueInvalidValue;
 // }
 
-// export const $ZodConst: core.$constructor<{_zod: $ZodConstInternals}> = /*@__PURE__*/ core.$constructor("$ZodConst", (inst, def) => {
-//   $ZodType.init(inst, def);
+// export const $SchemaConst: core.$constructor<{_schema: $SchemaConstInternals}> = /*@__PURE__*/ core.$constructor("$SchemaConst", (inst, def) => {
+//   $SchemaType.init(inst, def);
 
 //   if (util.primitiveTypes.has(typeof def.value) || def.value === null) {
-//     inst._zod.values = new Set<util.Primitive>(def.value as any);
+//     inst._schema.values = new Set<util.Primitive>(def.value as any);
 //   }
 
 //   if (util.propertyKeyTypes.has(typeof def.value)) {
-//     inst._zod.pattern = new RegExp(
+//     inst._schema.pattern = new RegExp(
 //       `^(${typeof def.value === "string" ? util.escapeRegex(def.value) : (def.value as any).toString()})$`
 //     );
 //   } else {
 //     throw new Error("Const value cannot be converted to regex");
 //   }
 
-//   inst._zod.parse = (payload, _ctx) => {
+//   inst._schema.parse = (payload, _ctx) => {
 //     payload.value = def.value; // always override
 //     return payload;
 //   };
@@ -3762,7 +3762,7 @@ export const $ZodLiteral: core.$constructor<$ZodLiteral> = /*@__PURE__*/ core.$c
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodFile        //////////
+//////////      $SchemaFile        //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
@@ -3775,13 +3775,13 @@ export interface File extends _File {
   readonly size: number;
 }
 
-export interface $ZodFileDef extends $ZodTypeDef {
+export interface $SchemaFileDef extends $SchemaTypeDef {
   type: "file";
 }
 
-export interface $ZodFileInternals extends $ZodTypeInternals<File, File> {
-  def: $ZodFileDef;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaFileInternals extends $SchemaTypeInternals<File, File> {
+  def: $SchemaFileDef;
+  isst: errors.$SchemaIssueInvalidType;
   bag: util.LoosePartial<{
     minimum: number;
     maximum: number;
@@ -3789,14 +3789,14 @@ export interface $ZodFileInternals extends $ZodTypeInternals<File, File> {
   }>;
 }
 
-export interface $ZodFile extends $ZodType {
-  _zod: $ZodFileInternals;
+export interface $SchemaFile extends $SchemaType {
+  _schema: $SchemaFileInternals;
 }
 
-export const $ZodFile: core.$constructor<$ZodFile> = /*@__PURE__*/ core.$constructor("$ZodFile", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaFile: core.$constructor<$SchemaFile> = /*@__PURE__*/ core.$constructor("$SchemaFile", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     const input = payload.value;
     // @ts-ignore
     if (input instanceof File) return payload;
@@ -3814,33 +3814,33 @@ export const $ZodFile: core.$constructor<$ZodFile> = /*@__PURE__*/ core.$constru
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 //////////                          //////////
-//////////        $ZodTransform        //////////
+//////////        $SchemaTransform        //////////
 //////////                          //////////
 //////////////////////////////////////////////
 //////////////////////////////////////////////
-export interface $ZodTransformDef extends $ZodTypeDef {
+export interface $SchemaTransformDef extends $SchemaTypeDef {
   type: "transform";
   transform: (input: unknown, payload: ParsePayload<unknown>) => util.MaybeAsync<unknown>;
 }
-export interface $ZodTransformInternals<O = unknown, I = unknown> extends $ZodTypeInternals<O, I> {
-  def: $ZodTransformDef;
+export interface $SchemaTransformInternals<O = unknown, I = unknown> extends $SchemaTypeInternals<O, I> {
+  def: $SchemaTransformDef;
   isst: never;
 }
 
-export interface $ZodTransform<O = unknown, I = unknown> extends $ZodType {
-  _zod: $ZodTransformInternals<O, I>;
+export interface $SchemaTransform<O = unknown, I = unknown> extends $SchemaType {
+  _schema: $SchemaTransformInternals<O, I>;
 }
 
-export const $ZodTransform: core.$constructor<$ZodTransform> = /*@__PURE__*/ core.$constructor(
-  "$ZodTransform",
+export const $SchemaTransform: core.$constructor<$SchemaTransform> = /*@__PURE__*/ core.$constructor(
+  "$SchemaTransform",
   (inst, def) => {
-    $ZodType.init(inst, def);
-    inst._zod.optin = "optional";
+    $SchemaType.init(inst, def);
+    inst._schema.optin = "optional";
     core.globalConfig.memoizer?.guard(inst);
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       if (ctx.direction === "backward") {
-        throw new core.$ZodEncodeError(inst.constructor.name);
+        throw new core.$SchemaEncodeError(inst.constructor.name);
       }
 
       const _out = def.transform(payload.value, payload);
@@ -3853,7 +3853,7 @@ export const $ZodTransform: core.$constructor<$ZodTransform> = /*@__PURE__*/ cor
       }
 
       if (_out instanceof Promise) {
-        throw new core.$ZodAsyncError();
+        throw new core.$SchemaAsyncError();
       }
 
       payload.value = _out;
@@ -3865,27 +3865,27 @@ export const $ZodTransform: core.$constructor<$ZodTransform> = /*@__PURE__*/ cor
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodOptional      //////////
+//////////      $SchemaOptional      //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodOptionalDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaOptionalDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "optional";
   innerType: T;
 }
 
-export interface $ZodOptionalInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<T> | undefined, core.input<T> | undefined> {
-  def: $ZodOptionalDef<T>;
+export interface $SchemaOptionalInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<T> | undefined, core.input<T> | undefined> {
+  def: $SchemaOptionalDef<T>;
   optin: "optional" | "defaulted";
   optout: "optional";
   isst: never;
-  values: T["_zod"]["values"];
-  pattern: T["_zod"]["pattern"];
+  values: T["_schema"]["values"];
+  pattern: T["_schema"]["pattern"];
 }
 
-export interface $ZodOptional<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodOptionalInternals<T>;
+export interface $SchemaOptional<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaOptionalInternals<T>;
 }
 
 function handleOptionalResult(payload: ParsePayload, result: ParsePayload) {
@@ -3894,35 +3894,35 @@ function handleOptionalResult(payload: ParsePayload, result: ParsePayload) {
   return payload;
 }
 
-export const $ZodOptional: core.$constructor<$ZodOptional> = /*@__PURE__*/ core.$constructor(
-  "$ZodOptional",
+export const $SchemaOptional: core.$constructor<$SchemaOptional> = /*@__PURE__*/ core.$constructor(
+  "$SchemaOptional",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
     // .optional() propagates absence rather than substituting for it, so a defaulted inner keeps its rung.
-    util.defineLazyInternal(inst, "optin", (zod) =>
-      zod.def.innerType._zod.optin === "defaulted" ? "defaulted" : "optional"
+    util.defineLazyInternal(inst, "optin", (schema) =>
+      Schema.def.innerType._schema.optin === "defaulted" ? "defaulted" : "optional"
     );
-    inst._zod.optout = "optional";
+    inst._schema.optout = "optional";
 
-    util.defineLazyInternal(inst, "values", (zod) => {
-      const values = (zod.def as $ZodOptionalDef).innerType._zod.values;
+    util.defineLazyInternal(inst, "values", (schema) => {
+      const values = (Schema.def as $SchemaOptionalDef).innerType._schema.values;
       return values ? new Set([...values, undefined]) : undefined;
     });
-    util.defineLazyInternal(inst, "pattern", (zod) => {
-      const pattern = (zod.def as $ZodOptionalDef).innerType._zod.pattern;
+    util.defineLazyInternal(inst, "pattern", (schema) => {
+      const pattern = (Schema.def as $SchemaOptionalDef).innerType._schema.pattern;
       return pattern ? new RegExp(`^(${util.cleanRegex(pattern.source)})?$`) : undefined;
     });
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       if (payload.value === undefined) {
         // Only the top rung substitutes a value for absence; everything else leaves it intact, which is what .optional() means.
-        if (def.innerType._zod.optin !== "defaulted") return payload;
-        // Its own payload, for the same reason $ZodCatch gets one: a pipe forwards an unrecognized key through the caller's issues array, and this must not read that as the substituting schema failing and drop it.
-        const result = def.innerType._zod.run({ value: payload.value, issues: [] }, ctx);
+        if (def.innerType._schema.optin !== "defaulted") return payload;
+        // Its own payload, for the same reason $SchemaCatch gets one: a pipe forwards an unrecognized key through the caller's issues array, and this must not read that as the substituting schema failing and drop it.
+        const result = def.innerType._schema.run({ value: payload.value, issues: [] }, ctx);
         if (result instanceof Promise) return result.then((result) => handleOptionalResult(payload, result));
         return handleOptionalResult(payload, result);
       }
-      return def.innerType._zod.run(payload, ctx);
+      return def.innerType._schema.run(payload, ctx);
     };
   }
 );
@@ -3930,38 +3930,38 @@ export const $ZodOptional: core.$constructor<$ZodOptional> = /*@__PURE__*/ core.
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 //////////                            //////////
-//////////      $ZodExactOptional     //////////
+//////////      $SchemaExactOptional     //////////
 //////////                            //////////
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
-// Def extends $ZodOptionalDef (no additional fields needed)
-export interface $ZodExactOptionalDef<T extends SomeType = $ZodType> extends $ZodOptionalDef<T> {}
+// Def extends $SchemaOptionalDef (no additional fields needed)
+export interface $SchemaExactOptionalDef<T extends SomeType = $SchemaType> extends $SchemaOptionalDef<T> {}
 
-// Internals extends $ZodOptionalInternals but narrows output/input types (removes | undefined)
-export interface $ZodExactOptionalInternals<T extends SomeType = $ZodType> extends $ZodOptionalInternals<T> {
-  def: $ZodExactOptionalDef<T>;
+// Internals extends $SchemaOptionalInternals but narrows output/input types (removes | undefined)
+export interface $SchemaExactOptionalInternals<T extends SomeType = $SchemaType> extends $SchemaOptionalInternals<T> {
+  def: $SchemaExactOptionalDef<T>;
   output: core.output<T>; // NO | undefined (narrowed from parent)
   input: core.input<T>; // NO | undefined (narrowed from parent)
 }
 
-export interface $ZodExactOptional<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodExactOptionalInternals<T>;
+export interface $SchemaExactOptional<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaExactOptionalInternals<T>;
 }
 
-export const $ZodExactOptional: core.$constructor<$ZodExactOptional> = /*@__PURE__*/ core.$constructor(
-  "$ZodExactOptional",
+export const $SchemaExactOptional: core.$constructor<$SchemaExactOptional> = /*@__PURE__*/ core.$constructor(
+  "$SchemaExactOptional",
   (inst, def) => {
     // Call parent init - inherits optin/optout = "optional"
-    $ZodOptional.init(inst, def);
+    $SchemaOptional.init(inst, def);
 
     // Override values/pattern to NOT add undefined
-    util.defineLazyInternal(inst, "values", (zod) => zod.def.innerType._zod.values);
-    util.defineLazyInternal(inst, "pattern", (zod) => zod.def.innerType._zod.pattern);
+    util.defineLazyInternal(inst, "values", (schema) => Schema.def.innerType._schema.values);
+    util.defineLazyInternal(inst, "pattern", (schema) => Schema.def.innerType._schema.pattern);
 
     // Override parse to just delegate (no undefined handling)
-    inst._zod.parse = (payload, ctx) => {
-      return def.innerType._zod.run(payload, ctx);
+    inst._schema.parse = (payload, ctx) => {
+      return def.innerType._schema.run(payload, ctx);
     };
   }
 );
@@ -3969,49 +3969,49 @@ export const $ZodExactOptional: core.$constructor<$ZodExactOptional> = /*@__PURE
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodNullable      //////////
+//////////      $SchemaNullable      //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodNullableDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaNullableDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "nullable";
   innerType: T;
 }
 
-export interface $ZodNullableInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<T> | null, core.input<T> | null> {
-  def: $ZodNullableDef<T>;
-  optin: T["_zod"]["optin"];
-  optout: T["_zod"]["optout"];
+export interface $SchemaNullableInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<T> | null, core.input<T> | null> {
+  def: $SchemaNullableDef<T>;
+  optin: T["_schema"]["optin"];
+  optout: T["_schema"]["optout"];
   isst: never;
-  values: T["_zod"]["values"];
-  pattern: T["_zod"]["pattern"];
+  values: T["_schema"]["values"];
+  pattern: T["_schema"]["pattern"];
 }
 
-export interface $ZodNullable<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodNullableInternals<T>;
+export interface $SchemaNullable<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaNullableInternals<T>;
 }
 
-export const $ZodNullable: core.$constructor<$ZodNullable> = /*@__PURE__*/ core.$constructor(
-  "$ZodNullable",
+export const $SchemaNullable: core.$constructor<$SchemaNullable> = /*@__PURE__*/ core.$constructor(
+  "$SchemaNullable",
   (inst, def) => {
-    $ZodType.init(inst, def);
-    util.defineLazyInternal(inst, "optin", (zod) => zod.def.innerType._zod.optin);
-    util.defineLazyInternal(inst, "optout", (zod) => zod.def.innerType._zod.optout);
+    $SchemaType.init(inst, def);
+    util.defineLazyInternal(inst, "optin", (schema) => Schema.def.innerType._schema.optin);
+    util.defineLazyInternal(inst, "optout", (schema) => Schema.def.innerType._schema.optout);
 
-    util.defineLazyInternal(inst, "pattern", (zod) => {
-      const pattern = zod.def.innerType._zod.pattern;
+    util.defineLazyInternal(inst, "pattern", (schema) => {
+      const pattern = Schema.def.innerType._schema.pattern;
       return pattern ? new RegExp(`^(${util.cleanRegex(pattern.source)}|null)$`) : undefined;
     });
 
-    util.defineLazyInternal(inst, "values", (zod) => {
-      return zod.def.innerType._zod.values ? new Set([...zod.def.innerType._zod.values, null]) : undefined;
+    util.defineLazyInternal(inst, "values", (schema) => {
+      return Schema.def.innerType._schema.values ? new Set([...Schema.def.innerType._schema.values, null]) : undefined;
     });
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       // Forward direction (decode): allow null to pass through
       if (payload.value === null) return payload;
-      return def.innerType._zod.run(payload, ctx);
+      return def.innerType._schema.run(payload, ctx);
     };
   }
 );
@@ -4020,54 +4020,54 @@ export const $ZodNullable: core.$constructor<$ZodNullable> = /*@__PURE__*/ core.
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodDefault       //////////
+//////////      $SchemaDefault       //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodDefaultDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaDefaultDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "default";
   innerType: T;
   /** The default value. May be a getter. */
   defaultValue: util.NoUndefined<core.output<T>>;
 }
 
-export interface $ZodDefaultInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<util.NoUndefined<core.output<T>>, core.input<T> | undefined> {
-  def: $ZodDefaultDef<T>;
+export interface $SchemaDefaultInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<util.NoUndefined<core.output<T>>, core.input<T> | undefined> {
+  def: $SchemaDefaultDef<T>;
   optin: "defaulted";
   optout?: "optional" | undefined; // required
   isst: never;
-  values: T["_zod"]["values"];
+  values: T["_schema"]["values"];
 }
 
-export interface $ZodDefault<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodDefaultInternals<T>;
+export interface $SchemaDefault<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaDefaultInternals<T>;
 }
 
-export const $ZodDefault: core.$constructor<$ZodDefault> = /*@__PURE__*/ core.$constructor(
-  "$ZodDefault",
+export const $SchemaDefault: core.$constructor<$SchemaDefault> = /*@__PURE__*/ core.$constructor(
+  "$SchemaDefault",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    // inst._zod.qin = "true";
-    inst._zod.optin = "defaulted";
-    util.defineLazyInternal(inst, "values", (zod) => zod.def.innerType._zod.values);
+    // inst._schema.qin = "true";
+    inst._schema.optin = "defaulted";
+    util.defineLazyInternal(inst, "values", (schema) => Schema.def.innerType._schema.values);
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       if (ctx.direction === "backward") {
-        return def.innerType._zod.run(payload, ctx);
+        return def.innerType._schema.run(payload, ctx);
       }
 
       // Forward direction (decode): apply defaults for undefined input
       if (payload.value === undefined) {
         payload.value = def.defaultValue;
         /**
-         * $ZodDefault returns the default value immediately in forward direction.
-         * It doesn't pass the default value into the validator ("prefault"). There's no reason to pass the default value through validation. The validity of the default is enforced by TypeScript statically. Otherwise, it's the responsibility of the user to ensure the default is valid. In the case of pipes with divergent in/out types, you can specify the default on the `in` schema of your ZodPipe to set a "prefault" for the pipe.   */
+         * $SchemaDefault returns the default value immediately in forward direction.
+         * It doesn't pass the default value into the validator ("prefault"). There's no reason to pass the default value through validation. The validity of the default is enforced by TypeScript statically. Otherwise, it's the responsibility of the user to ensure the default is valid. In the case of pipes with divergent in/out types, you can specify the default on the `in` schema of your SchemaPipe to set a "prefault" for the pipe.   */
         return payload;
       }
       // Forward direction: continue with default handling
-      const result = def.innerType._zod.run(payload, ctx);
+      const result = def.innerType._schema.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then((result) => handleDefaultResult(result, def));
       }
@@ -4076,7 +4076,7 @@ export const $ZodDefault: core.$constructor<$ZodDefault> = /*@__PURE__*/ core.$c
   }
 );
 
-function handleDefaultResult(payload: ParsePayload, def: $ZodDefaultDef) {
+function handleDefaultResult(payload: ParsePayload, def: $SchemaDefaultDef) {
   if (payload.value === undefined) {
     payload.value = def.defaultValue;
   }
@@ -4086,49 +4086,49 @@ function handleDefaultResult(payload: ParsePayload, def: $ZodDefaultDef) {
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodPrefault      //////////
+//////////      $SchemaPrefault      //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
-export interface $ZodPrefaultDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaPrefaultDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "prefault";
   innerType: T;
   /** The default value. May be a getter. */
   defaultValue: core.input<T>;
 }
 
-export interface $ZodPrefaultInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<T>, core.input<T> | undefined> {
-  def: $ZodPrefaultDef<T>;
+export interface $SchemaPrefaultInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<T>, core.input<T> | undefined> {
+  def: $SchemaPrefaultDef<T>;
   optin: "defaulted";
   optout?: "optional" | undefined;
   isst: never;
-  values: T["_zod"]["values"];
+  values: T["_schema"]["values"];
 }
 
-export interface $ZodPrefault<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodPrefaultInternals<T>;
+export interface $SchemaPrefault<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaPrefaultInternals<T>;
 }
 
-export const $ZodPrefault: core.$constructor<$ZodPrefault> = /*@__PURE__*/ core.$constructor(
-  "$ZodPrefault",
+export const $SchemaPrefault: core.$constructor<$SchemaPrefault> = /*@__PURE__*/ core.$constructor(
+  "$SchemaPrefault",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    inst._zod.optin = "defaulted";
-    util.defineLazyInternal(inst, "values", (zod) => zod.def.innerType._zod.values);
+    inst._schema.optin = "defaulted";
+    util.defineLazyInternal(inst, "values", (schema) => Schema.def.innerType._schema.values);
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       if (ctx.direction === "backward") {
-        return def.innerType._zod.run(payload, ctx);
+        return def.innerType._schema.run(payload, ctx);
       }
 
       // Forward direction (decode): apply prefault for undefined input
       if (payload.value === undefined) {
         payload.value = def.defaultValue;
       }
-      return def.innerType._zod.run(payload, ctx);
+      return def.innerType._schema.run(payload, ctx);
     };
   }
 );
@@ -4136,40 +4136,40 @@ export const $ZodPrefault: core.$constructor<$ZodPrefault> = /*@__PURE__*/ core.
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
 //////////                           //////////
-//////////      $ZodNonOptional      //////////
+//////////      $SchemaNonOptional      //////////
 //////////                           //////////
 ///////////////////////////////////////////////
 ///////////////////////////////////////////////
-export interface $ZodNonOptionalDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaNonOptionalDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "nonoptional";
   innerType: T;
 }
 
-export interface $ZodNonOptionalInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<util.NoUndefined<core.output<T>>, util.NoUndefined<core.input<T>>> {
-  def: $ZodNonOptionalDef<T>;
-  isst: errors.$ZodIssueInvalidType;
-  values: T["_zod"]["values"];
+export interface $SchemaNonOptionalInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<util.NoUndefined<core.output<T>>, util.NoUndefined<core.input<T>>> {
+  def: $SchemaNonOptionalDef<T>;
+  isst: errors.$SchemaIssueInvalidType;
+  values: T["_schema"]["values"];
   optin: "optional" | undefined;
   optout: "optional" | undefined;
 }
 
-export interface $ZodNonOptional<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodNonOptionalInternals<T>;
+export interface $SchemaNonOptional<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaNonOptionalInternals<T>;
 }
 
-export const $ZodNonOptional: core.$constructor<$ZodNonOptional> = /*@__PURE__*/ core.$constructor(
-  "$ZodNonOptional",
+export const $SchemaNonOptional: core.$constructor<$SchemaNonOptional> = /*@__PURE__*/ core.$constructor(
+  "$SchemaNonOptional",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    util.defineLazyInternal(inst, "values", (zod) => {
-      const v = zod.def.innerType._zod.values;
+    util.defineLazyInternal(inst, "values", (schema) => {
+      const v = Schema.def.innerType._schema.values;
       return v ? new Set([...v].filter((x) => x !== undefined)) : undefined;
     });
 
-    inst._zod.parse = (payload, ctx) => {
-      const result = def.innerType._zod.run(payload, ctx);
+    inst._schema.parse = (payload, ctx) => {
+      const result = def.innerType._schema.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then((result) => handleNonOptionalResult(result, inst));
       }
@@ -4178,7 +4178,7 @@ export const $ZodNonOptional: core.$constructor<$ZodNonOptional> = /*@__PURE__*/
   }
 );
 
-function handleNonOptionalResult(payload: ParsePayload, inst: $ZodNonOptional) {
+function handleNonOptionalResult(payload: ParsePayload, inst: $SchemaNonOptional) {
   if (!payload.issues.length && payload.value === undefined) {
     payload.issues.push({
       code: "invalid_type",
@@ -4193,35 +4193,35 @@ function handleNonOptionalResult(payload: ParsePayload, inst: $ZodNonOptional) {
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodCoalesce      //////////
+//////////      $SchemaCoalesce      //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-// export interface $ZodCoalesceDef<T extends $ZodType = $ZodType> extends $ZodTypeDef {
+// export interface $SchemaCoalesceDef<T extends $SchemaType = $SchemaType> extends $SchemaTypeDef {
 //   type: "coalesce";
 //   innerType: T;
-//   defaultValue: () => NonNullable<T['_zod']["output"]>;
+//   defaultValue: () => NonNullable<T['_schema']["output"]>;
 // }
 
-// export _interface $ZodCoalesceInternals<T extends $ZodType = $ZodType>
-//   extends $ZodTypeInternals<NonNullable<T['_zod']["output"]>, T['_zod']["input"] | undefined | null> {
-//   _def: $ZodCoalesceDef<T>;
-//   _isst: errors.$ZodIssueInvalidType;
+// export _interface $SchemaCoalesceInternals<T extends $SchemaType = $SchemaType>
+//   extends $SchemaTypeInternals<NonNullable<T['_schema']["output"]>, T['_schema']["input"] | undefined | null> {
+//   _def: $SchemaCoalesceDef<T>;
+//   _isst: errors.$SchemaIssueInvalidType;
 //   _qin: "true";
 // }
 
-// function handleCoalesceResult(payload: ParsePayload, def: $ZodCoalesceDef) {
+// function handleCoalesceResult(payload: ParsePayload, def: $SchemaCoalesceDef) {
 //   payload.value ??= def.defaultValue();
 //   return payload;
 // }
 
-// export const $ZodCoalesce: core.$constructor<{_zod: $ZodCoalesceInternals}> = /*@__PURE__*/ core.$constructor(
-//   "$ZodCoalesce",
+// export const $SchemaCoalesce: core.$constructor<{_schema: $SchemaCoalesceInternals}> = /*@__PURE__*/ core.$constructor(
+//   "$SchemaCoalesce",
 //   (inst, def) => {
-//     $ZodType.init(inst, def);
-// inst._zod.qin = "true";
-//     inst._zod.parse = (payload, ctx) => {
-//       const result = def.innerType._zod.run(payload, ctx);
+//     $SchemaType.init(inst, def);
+// inst._schema.qin = "true";
+//     inst._schema.parse = (payload, ctx) => {
+//       const result = def.innerType._schema.run(payload, ctx);
 //       if (result instanceof Promise) {
 //         return result.then((result) => handleCoalesceResult(result, def));
 //       }
@@ -4233,37 +4233,37 @@ function handleNonOptionalResult(payload: ParsePayload, inst: $ZodNonOptional) {
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 //////////                         //////////
-//////////      $ZodSuccess        //////////
+//////////      $SchemaSuccess        //////////
 //////////                         //////////
 /////////////////////////////////////////////
 /////////////////////////////////////////////
-export interface $ZodSuccessDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaSuccessDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "success";
   innerType: T;
 }
 
-export interface $ZodSuccessInternals<T extends SomeType = $ZodType> extends $ZodTypeInternals<boolean, core.input<T>> {
-  def: $ZodSuccessDef<T>;
+export interface $SchemaSuccessInternals<T extends SomeType = $SchemaType> extends $SchemaTypeInternals<boolean, core.input<T>> {
+  def: $SchemaSuccessDef<T>;
   isst: never;
-  optin: T["_zod"]["optin"];
+  optin: T["_schema"]["optin"];
   optout: "optional" | undefined;
 }
 
-export interface $ZodSuccess<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodSuccessInternals<T>;
+export interface $SchemaSuccess<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaSuccessInternals<T>;
 }
 
-export const $ZodSuccess: core.$constructor<$ZodSuccess> = /*@__PURE__*/ core.$constructor(
-  "$ZodSuccess",
+export const $SchemaSuccess: core.$constructor<$SchemaSuccess> = /*@__PURE__*/ core.$constructor(
+  "$SchemaSuccess",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       if (ctx.direction === "backward") {
-        throw new core.$ZodEncodeError("ZodSuccess");
+        throw new core.$SchemaEncodeError("SchemaSuccess");
       }
 
-      const result = def.innerType._zod.run(payload, ctx);
+      const result = def.innerType._schema.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then((result) => {
           payload.value = result.issues.length === 0;
@@ -4279,36 +4279,36 @@ export const $ZodSuccess: core.$constructor<$ZodSuccess> = /*@__PURE__*/ core.$c
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////       $ZodCatch        //////////
+//////////       $SchemaCatch        //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodCatchCtx extends ParsePayload {
+export interface $SchemaCatchCtx extends ParsePayload {
   /** @deprecated Use `ctx.issues` */
-  error: { issues: errors.$ZodIssue[] };
+  error: { issues: errors.$SchemaIssue[] };
   /** @deprecated Use `ctx.value` */
   input: unknown;
 }
-export interface $ZodCatchDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaCatchDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "catch";
   innerType: T;
-  catchValue: (ctx: $ZodCatchCtx) => unknown;
+  catchValue: (ctx: $SchemaCatchCtx) => unknown;
 }
 
-export interface $ZodCatchInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<T>, core.input<T>> {
-  def: $ZodCatchDef<T>;
-  optin: T["_zod"]["optin"];
-  optout: T["_zod"]["optout"];
+export interface $SchemaCatchInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<T>, core.input<T>> {
+  def: $SchemaCatchDef<T>;
+  optin: T["_schema"]["optin"];
+  optout: T["_schema"]["optout"];
   isst: never;
-  values: T["_zod"]["values"];
+  values: T["_schema"]["values"];
 }
 
-export interface $ZodCatch<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodCatchInternals<T>;
+export interface $SchemaCatch<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaCatchInternals<T>;
 }
 
-function handleCatchResult(payload: ParsePayload, result: ParsePayload, def: $ZodCatchDef, ctx: ParseContextInternal) {
+function handleCatchResult(payload: ParsePayload, result: ParsePayload, def: $SchemaCatchDef, ctx: ParseContextInternal) {
   if (!result.issues.length) {
     payload.value = result.value;
     // The value carries up, so the flag describing it has to carry with it: a back-edge into a node still being parsed must not be frozen by an enclosing readonly, and its checks belong to the node itself. Guarded so the ordinary case adds no own property.
@@ -4328,21 +4328,21 @@ function handleCatchResult(payload: ParsePayload, result: ParsePayload, def: $Zo
   return payload;
 }
 
-export const $ZodCatch: core.$constructor<$ZodCatch> = /*@__PURE__*/ core.$constructor("$ZodCatch", (inst, def) => {
-  $ZodType.init(inst, def);
-  util.defineLazyInternal(inst, "optin", (zod) =>
-    zod.def.innerType._zod.optin === "defaulted" ? "defaulted" : "optional"
+export const $SchemaCatch: core.$constructor<$SchemaCatch> = /*@__PURE__*/ core.$constructor("$SchemaCatch", (inst, def) => {
+  $SchemaType.init(inst, def);
+  util.defineLazyInternal(inst, "optin", (schema) =>
+    Schema.def.innerType._schema.optin === "defaulted" ? "defaulted" : "optional"
   );
-  util.defineLazyInternal(inst, "optout", (zod) => zod.def.innerType._zod.optout);
-  util.defineLazyInternal(inst, "values", (zod) => zod.def.innerType._zod.values);
+  util.defineLazyInternal(inst, "optout", (schema) => Schema.def.innerType._schema.optout);
+  util.defineLazyInternal(inst, "values", (schema) => Schema.def.innerType._schema.values);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     if (ctx.direction === "backward") {
-      return def.innerType._zod.run(payload, ctx);
+      return def.innerType._schema.run(payload, ctx);
     }
 
     // Forward direction (decode): apply catch logic
-    const result = def.innerType._zod.run({ value: payload.value, issues: [] }, ctx);
+    const result = def.innerType._schema.run({ value: payload.value, issues: [] }, ctx);
     if (result instanceof Promise) {
       return result.then((result) => handleCatchResult(payload, result, def, ctx));
     }
@@ -4354,27 +4354,27 @@ export const $ZodCatch: core.$constructor<$ZodCatch> = /*@__PURE__*/ core.$const
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////        $ZodNaN         //////////
+//////////        $SchemaNaN         //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodNaNDef extends $ZodTypeDef {
+export interface $SchemaNaNDef extends $SchemaTypeDef {
   type: "nan";
 }
 
-export interface $ZodNaNInternals extends $ZodTypeInternals<number, number> {
-  def: $ZodNaNDef;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaNaNInternals extends $SchemaTypeInternals<number, number> {
+  def: $SchemaNaNDef;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodNaN extends $ZodType {
-  _zod: $ZodNaNInternals;
+export interface $SchemaNaN extends $SchemaType {
+  _schema: $SchemaNaNInternals;
 }
 
-export const $ZodNaN: core.$constructor<$ZodNaN> = /*@__PURE__*/ core.$constructor("$ZodNaN", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaNaN: core.$constructor<$SchemaNaN> = /*@__PURE__*/ core.$constructor("$SchemaNaN", (inst, def) => {
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload, _ctx) => {
+  inst._schema.parse = (payload, _ctx) => {
     if (typeof payload.value !== "number" || !Number.isNaN(payload.value)) {
       payload.issues.push({
         input: payload.value,
@@ -4391,51 +4391,51 @@ export const $ZodNaN: core.$constructor<$ZodNaN> = /*@__PURE__*/ core.$construct
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodPipe      //////////
+//////////      $SchemaPipe      //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodPipeDef<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaPipeDef<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "pipe";
   in: A;
   out: B;
-  /** Only defined inside $ZodCodec instances. */
+  /** Only defined inside $SchemaCodec instances. */
   transform?: (value: core.output<A>, payload: ParsePayload<core.output<A>>) => util.MaybeAsync<core.input<B>>;
-  /** Only defined inside $ZodCodec instances. */
+  /** Only defined inside $SchemaCodec instances. */
   reverseTransform?: (value: core.input<B>, payload: ParsePayload<core.input<B>>) => util.MaybeAsync<core.output<A>>;
 }
 
-export interface $ZodPipeInternals<A extends SomeType = $ZodType, B extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<B>, core.input<A>> {
-  def: $ZodPipeDef<A, B>;
+export interface $SchemaPipeInternals<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<B>, core.input<A>> {
+  def: $SchemaPipeDef<A, B>;
   isst: never;
-  values: A["_zod"]["values"];
-  optin: A["_zod"]["optin"];
-  optout: B["_zod"]["optout"];
-  propValues: A["_zod"]["propValues"];
+  values: A["_schema"]["values"];
+  optin: A["_schema"]["optin"];
+  optout: B["_schema"]["optout"];
+  propValues: A["_schema"]["propValues"];
 }
 
-export interface $ZodPipe<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodPipeInternals<A, B>;
+export interface $SchemaPipe<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaPipeInternals<A, B>;
 }
 
-export const $ZodPipe: core.$constructor<$ZodPipe> = /*@__PURE__*/ core.$constructor("$ZodPipe", (inst, def) => {
-  $ZodType.init(inst, def);
-  util.defineLazyInternal(inst, "values", (zod) => zod.def.in._zod.values);
-  util.defineLazyInternal(inst, "optin", (zod) => zod.def.in._zod.optin);
-  util.defineLazyInternal(inst, "optout", (zod) => zod.def.out._zod.optout);
-  util.defineLazyInternal(inst, "propValues", (zod) => zod.def.in._zod.propValues);
+export const $SchemaPipe: core.$constructor<$SchemaPipe> = /*@__PURE__*/ core.$constructor("$SchemaPipe", (inst, def) => {
+  $SchemaType.init(inst, def);
+  util.defineLazyInternal(inst, "values", (schema) => Schema.def.in._schema.values);
+  util.defineLazyInternal(inst, "optin", (schema) => Schema.def.in._schema.optin);
+  util.defineLazyInternal(inst, "optout", (schema) => Schema.def.out._schema.optout);
+  util.defineLazyInternal(inst, "propValues", (schema) => Schema.def.in._schema.propValues);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     if (ctx.direction === "backward") {
-      const right = def.out._zod.run(payload, ctx);
+      const right = def.out._schema.run(payload, ctx);
       if (right instanceof Promise) {
         return right.then((right) => handlePipeResult(right, def.in, ctx));
       }
       return handlePipeResult(right, def.in, ctx);
     }
 
-    const left = def.in._zod.run(payload, ctx);
+    const left = def.in._schema.run(payload, ctx);
     if (left instanceof Promise) {
       return left.then((left) => handlePipeResult(left, def.out, ctx));
     }
@@ -4443,59 +4443,59 @@ export const $ZodPipe: core.$constructor<$ZodPipe> = /*@__PURE__*/ core.$constru
   };
 });
 
-function handlePipeResult(left: ParsePayload, next: $ZodType, ctx: ParseContextInternal) {
+function handlePipeResult(left: ParsePayload, next: $SchemaType, ctx: ParseContextInternal) {
   // Any issue stops the pipe, so a failing refinement never feeds its transform. An unrecognized key is the exception: it describes the input's extra properties, not the value being piped, and an enclosing intersection may yet reconcile it.
   if (left.issues.some((iss) => iss.code !== "unrecognized_keys")) {
     // prevent further checks
     left.aborted = true;
     return left;
   }
-  return next._zod.run({ value: left.value, issues: left.issues }, ctx);
+  return next._schema.run({ value: left.value, issues: left.issues }, ctx);
 }
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodCodec         //////////
+//////////      $SchemaCodec         //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
-export interface $ZodCodecDef<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends $ZodPipeDef<A, B> {
+export interface $SchemaCodecDef<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType> extends $SchemaPipeDef<A, B> {
   transform: (value: core.output<A>, payload: ParsePayload<core.output<A>>) => util.MaybeAsync<core.input<B>>;
   reverseTransform: (value: core.input<B>, payload: ParsePayload<core.input<B>>) => util.MaybeAsync<core.output<A>>;
 }
 
-export interface $ZodCodecInternals<A extends SomeType = $ZodType, B extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<B>, core.input<A>> {
-  def: $ZodCodecDef<A, B>;
+export interface $SchemaCodecInternals<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<B>, core.input<A>> {
+  def: $SchemaCodecDef<A, B>;
   isst: never;
-  values: A["_zod"]["values"];
-  optin: A["_zod"]["optin"];
-  optout: B["_zod"]["optout"];
-  propValues: A["_zod"]["propValues"];
+  values: A["_schema"]["values"];
+  optin: A["_schema"]["optin"];
+  optout: B["_schema"]["optout"];
+  propValues: A["_schema"]["propValues"];
 }
 
-export interface $ZodCodec<A extends SomeType = $ZodType, B extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodCodecInternals<A, B>;
+export interface $SchemaCodec<A extends SomeType = $SchemaType, B extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaCodecInternals<A, B>;
 }
 
-export const $ZodCodec: core.$constructor<$ZodCodec> = /*@__PURE__*/ core.$constructor("$ZodCodec", (inst, def) => {
-  $ZodType.init(inst, def);
-  util.defineLazyInternal(inst, "values", (zod) => zod.def.in._zod.values);
-  util.defineLazyInternal(inst, "optin", (zod) => zod.def.in._zod.optin);
-  util.defineLazyInternal(inst, "optout", (zod) => zod.def.out._zod.optout);
-  util.defineLazyInternal(inst, "propValues", (zod) => zod.def.in._zod.propValues);
+export const $SchemaCodec: core.$constructor<$SchemaCodec> = /*@__PURE__*/ core.$constructor("$SchemaCodec", (inst, def) => {
+  $SchemaType.init(inst, def);
+  util.defineLazyInternal(inst, "values", (schema) => Schema.def.in._schema.values);
+  util.defineLazyInternal(inst, "optin", (schema) => Schema.def.in._schema.optin);
+  util.defineLazyInternal(inst, "optout", (schema) => Schema.def.out._schema.optout);
+  util.defineLazyInternal(inst, "propValues", (schema) => Schema.def.in._schema.propValues);
 
-  inst._zod.parse = (payload, ctx) => {
+  inst._schema.parse = (payload, ctx) => {
     const direction = ctx.direction || "forward";
     if (direction === "forward") {
-      const left = def.in._zod.run(payload, ctx);
+      const left = def.in._schema.run(payload, ctx);
       if (left instanceof Promise) {
         return left.then((left) => handleCodecAResult(left, def, ctx));
       }
       return handleCodecAResult(left, def, ctx);
     } else {
-      const right = def.out._zod.run(payload, ctx);
+      const right = def.out._schema.run(payload, ctx);
       if (right instanceof Promise) {
         return right.then((right) => handleCodecAResult(right, def, ctx));
       }
@@ -4504,7 +4504,7 @@ export const $ZodCodec: core.$constructor<$ZodCodec> = /*@__PURE__*/ core.$const
   };
 });
 
-function handleCodecAResult(result: ParsePayload, def: $ZodCodecDef, ctx: ParseContextInternal) {
+function handleCodecAResult(result: ParsePayload, def: $SchemaCodecDef, ctx: ParseContextInternal) {
   if (result.issues.length) {
     // prevent further checks
     result.aborted = true;
@@ -4535,82 +4535,82 @@ function handleCodecTxResult(left: ParsePayload, value: any, nextSchema: SomeTyp
     return left;
   }
 
-  return nextSchema._zod.run({ value, issues: left.issues }, ctx);
+  return nextSchema._schema.run({ value, issues: left.issues }, ctx);
 }
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 //////////                             //////////
-//////////      $ZodPreprocess         //////////
+//////////      $SchemaPreprocess         //////////
 //////////                             //////////
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-export interface $ZodPreprocessDef<B extends SomeType = $ZodType, I = unknown>
-  extends $ZodPipeDef<$ZodTransform<unknown, I>, B> {
-  in: $ZodTransform<unknown, I>;
+export interface $SchemaPreprocessDef<B extends SomeType = $SchemaType, I = unknown>
+  extends $SchemaPipeDef<$SchemaTransform<unknown, I>, B> {
+  in: $SchemaTransform<unknown, I>;
   out: B;
 }
 
-export interface $ZodPreprocessInternals<B extends SomeType = $ZodType, I = unknown>
-  extends $ZodPipeInternals<$ZodTransform<unknown, I>, B> {
-  def: $ZodPreprocessDef<B, I>;
-  optin: B["_zod"]["optin"];
-  optout: B["_zod"]["optout"];
+export interface $SchemaPreprocessInternals<B extends SomeType = $SchemaType, I = unknown>
+  extends $SchemaPipeInternals<$SchemaTransform<unknown, I>, B> {
+  def: $SchemaPreprocessDef<B, I>;
+  optin: B["_schema"]["optin"];
+  optout: B["_schema"]["optout"];
 }
 
-export interface $ZodPreprocess<B extends SomeType = $ZodType, I = unknown>
-  extends $ZodPipe<$ZodTransform<unknown, I>, B> {
-  _zod: $ZodPreprocessInternals<B, I>;
+export interface $SchemaPreprocess<B extends SomeType = $SchemaType, I = unknown>
+  extends $SchemaPipe<$SchemaTransform<unknown, I>, B> {
+  _schema: $SchemaPreprocessInternals<B, I>;
 }
 
-export const $ZodPreprocess: core.$constructor<$ZodPreprocess> = /*@__PURE__*/ core.$constructor(
-  "$ZodPreprocess",
+export const $SchemaPreprocess: core.$constructor<$SchemaPreprocess> = /*@__PURE__*/ core.$constructor(
+  "$SchemaPreprocess",
   (inst, def) => {
-    $ZodPipe.init(inst, def);
+    $SchemaPipe.init(inst, def);
   }
 );
 
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 //////////                        //////////
-//////////      $ZodReadonly      //////////
+//////////      $SchemaReadonly      //////////
 //////////                        //////////
 ////////////////////////////////////////////
 ////////////////////////////////////////////
 
-export interface $ZodReadonlyDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaReadonlyDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "readonly";
   innerType: T;
 }
 
-export interface $ZodReadonlyInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<util.MakeReadonly<core.output<T>>, util.MakeReadonly<core.input<T>>> {
-  def: $ZodReadonlyDef<T>;
-  optin: T["_zod"]["optin"];
-  optout: T["_zod"]["optout"];
+export interface $SchemaReadonlyInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<util.MakeReadonly<core.output<T>>, util.MakeReadonly<core.input<T>>> {
+  def: $SchemaReadonlyDef<T>;
+  optin: T["_schema"]["optin"];
+  optout: T["_schema"]["optout"];
   isst: never;
-  propValues: T["_zod"]["propValues"];
-  values: T["_zod"]["values"];
+  propValues: T["_schema"]["propValues"];
+  values: T["_schema"]["values"];
 }
 
-export interface $ZodReadonly<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodReadonlyInternals<T>;
+export interface $SchemaReadonly<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaReadonlyInternals<T>;
 }
 
-export const $ZodReadonly: core.$constructor<$ZodReadonly> = /*@__PURE__*/ core.$constructor(
-  "$ZodReadonly",
+export const $SchemaReadonly: core.$constructor<$SchemaReadonly> = /*@__PURE__*/ core.$constructor(
+  "$SchemaReadonly",
   (inst, def) => {
-    $ZodType.init(inst, def);
-    util.defineLazyInternal(inst, "propValues", (zod) => zod.def.innerType._zod.propValues);
-    util.defineLazyInternal(inst, "values", (zod) => zod.def.innerType._zod.values);
-    util.defineLazyInternal(inst, "optin", (zod) => zod.def.innerType?._zod?.optin);
-    util.defineLazyInternal(inst, "optout", (zod) => zod.def.innerType?._zod?.optout);
+    $SchemaType.init(inst, def);
+    util.defineLazyInternal(inst, "propValues", (schema) => Schema.def.innerType._schema.propValues);
+    util.defineLazyInternal(inst, "values", (schema) => Schema.def.innerType._schema.values);
+    util.defineLazyInternal(inst, "optin", (schema) => Schema.def.innerType?._schema?.optin);
+    util.defineLazyInternal(inst, "optout", (schema) => Schema.def.innerType?._schema?.optout);
 
-    inst._zod.parse = (payload, ctx) => {
+    inst._schema.parse = (payload, ctx) => {
       if (ctx.direction === "backward") {
-        return def.innerType._zod.run(payload, ctx);
+        return def.innerType._schema.run(payload, ctx);
       }
-      const result = def.innerType._zod.run(payload, ctx);
+      const result = def.innerType._schema.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then(handleReadonlyResult);
       }
@@ -4628,43 +4628,43 @@ function handleReadonlyResult(payload: ParsePayload): ParsePayload {
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 //////////                         //////////
-//////////   $ZodTemplateLiteral   //////////
+//////////   $SchemaTemplateLiteral   //////////
 //////////                         //////////
 /////////////////////////////////////////////
 /////////////////////////////////////////////
 
-export interface $ZodTemplateLiteralDef extends $ZodTypeDef {
+export interface $SchemaTemplateLiteralDef extends $SchemaTypeDef {
   type: "template_literal";
-  parts: $ZodTemplateLiteralPart[];
+  parts: $SchemaTemplateLiteralPart[];
   format?: string | undefined;
 }
-export interface $ZodTemplateLiteralInternals<Template extends string = string>
-  extends $ZodTypeInternals<Template, Template> {
+export interface $SchemaTemplateLiteralInternals<Template extends string = string>
+  extends $SchemaTypeInternals<Template, Template> {
   pattern: RegExp;
-  def: $ZodTemplateLiteralDef;
-  isst: errors.$ZodIssueInvalidType;
+  def: $SchemaTemplateLiteralDef;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodTemplateLiteral<Template extends string = string> extends $ZodType {
-  _zod: $ZodTemplateLiteralInternals<Template>;
+export interface $SchemaTemplateLiteral<Template extends string = string> extends $SchemaType {
+  _schema: $SchemaTemplateLiteralInternals<Template>;
 }
 
 type LiteralPart = Exclude<util.Literal, symbol>; //string | number | boolean | null | undefined;
-interface SchemaPartInternals extends $ZodTypeInternals<LiteralPart, LiteralPart> {
+interface SchemaPartInternals extends $SchemaTypeInternals<LiteralPart, LiteralPart> {
   pattern: RegExp;
 }
-interface SchemaPart extends $ZodType {
-  _zod: SchemaPartInternals;
+interface SchemaPart extends $SchemaType {
+  _schema: SchemaPartInternals;
 }
-export type $ZodTemplateLiteralPart = LiteralPart | SchemaPart;
+export type $SchemaTemplateLiteralPart = LiteralPart | SchemaPart;
 
 type UndefinedToEmptyString<T> = T extends undefined ? "" : T;
 type AppendToTemplateLiteral<
   Template extends string,
-  Suffix extends LiteralPart | $ZodType,
+  Suffix extends LiteralPart | $SchemaType,
 > = Suffix extends LiteralPart
   ? `${Template}${UndefinedToEmptyString<Suffix>}`
-  : Suffix extends $ZodType
+  : Suffix extends $SchemaType
     ? `${Template}${core.output<Suffix> extends infer T extends LiteralPart ? UndefinedToEmptyString<T> : never}`
     : never;
 
@@ -4678,35 +4678,35 @@ export type ConcatenateTupleOfStrings<T extends string[]> = T extends [
       : `${First}${ConcatenateTupleOfStrings<Rest>}`
     : never
   : "";
-export type ConvertPartsToStringTuple<Parts extends $ZodTemplateLiteralPart[]> = {
+export type ConvertPartsToStringTuple<Parts extends $SchemaTemplateLiteralPart[]> = {
   [K in keyof Parts]: Parts[K] extends LiteralPart
     ? `${UndefinedToEmptyString<Parts[K]>}`
-    : Parts[K] extends $ZodType
+    : Parts[K] extends $SchemaType
       ? `${core.output<Parts[K]> extends infer T extends LiteralPart ? UndefinedToEmptyString<T> : never}`
       : never;
 };
 
-export type ToTemplateLiteral<Parts extends $ZodTemplateLiteralPart[]> = ConcatenateTupleOfStrings<
+export type ToTemplateLiteral<Parts extends $SchemaTemplateLiteralPart[]> = ConcatenateTupleOfStrings<
   ConvertPartsToStringTuple<Parts>
 >;
 // type lkjasd = ConcatenateTupleOfStrings<["Hello", " ", "World", "!"]>; // "Hello World!"
-export type $PartsToTemplateLiteral<Parts extends $ZodTemplateLiteralPart[]> = [] extends Parts
+export type $PartsToTemplateLiteral<Parts extends $SchemaTemplateLiteralPart[]> = [] extends Parts
   ? ``
-  : Parts extends [...infer Rest, infer Last extends $ZodTemplateLiteralPart]
-    ? Rest extends $ZodTemplateLiteralPart[]
+  : Parts extends [...infer Rest, infer Last extends $SchemaTemplateLiteralPart]
+    ? Rest extends $SchemaTemplateLiteralPart[]
       ? AppendToTemplateLiteral<$PartsToTemplateLiteral<Rest>, Last>
       : never
     : never;
 
-// a leaf's pattern source with its own checks folded in: the last pattern-carrying check wins, else length bounds narrow the catch-all, else an integer format narrows the number form. the fold lives here instead of on `_zod.pattern` so a bundle without template literals never pays for it
-function leafPattern(schema: $ZodType): string | undefined {
-  const def = schema._zod.def as { pattern?: RegExp; format?: string; checks?: checks.$ZodCheck[] };
+// a leaf's pattern source with its own checks folded in: the last pattern-carrying check wins, else length bounds narrow the catch-all, else an integer format narrows the number form. the fold lives here instead of on `_schema.pattern` so a bundle without template literals never pays for it
+function leafPattern(schema: $SchemaType): string | undefined {
+  const def = Schema._schema.def as { pattern?: RegExp; format?: string; checks?: checks.$SchemaCheck[] };
   let pattern = def.pattern;
   let isInt = !!def.format?.includes("int");
   let minimum: number | undefined;
   let maximum: number | undefined;
   for (const ch of def.checks ?? []) {
-    const d = ch._zod.def as { pattern?: RegExp; format?: string; minimum?: number; maximum?: number; length?: number };
+    const d = ch._schema.def as { pattern?: RegExp; format?: string; minimum?: number; maximum?: number; length?: number };
     if (d.pattern) pattern = d.pattern;
     isInt ||= !!d.format?.includes("int");
     const lo = d.minimum ?? d.length;
@@ -4718,18 +4718,18 @@ function leafPattern(schema: $ZodType): string | undefined {
   // an empty range matches nothing at runtime, and `{8,5}` is not a legal quantifier
   if (minimum !== undefined && maximum !== undefined && minimum > maximum) return "(?!)";
   if (minimum !== undefined || maximum !== undefined) return regexes.string({ minimum, maximum }).source;
-  const own = schema._zod.pattern;
+  const own = Schema._schema.pattern;
   return (isInt && own === regexes.number ? regexes.integer : own)?.source;
 }
 
 // a part's pattern source. a wrapper's pattern embeds its inner pattern's source verbatim, so the folded form is substituted in place without knowing the wrapper's own composition; a union's options are joined the way the union builds its own pattern
-function partPattern(schema: $ZodType): string | undefined {
-  const def = schema._zod.def as { innerType?: $ZodType; options?: $ZodType[] };
-  const own = schema._zod.pattern?.source;
+function partPattern(schema: $SchemaType): string | undefined {
+  const def = Schema._schema.def as { innerType?: $SchemaType; options?: $SchemaType[] };
+  const own = Schema._schema.pattern?.source;
   // lazy resolves its inner on the internals, not the def
-  const inner = def.innerType ?? (schema._zod as { innerType?: $ZodType }).innerType;
+  const inner = def.innerType ?? (Schema._schema as { innerType?: $SchemaType }).innerType;
   if (inner) {
-    const before = inner._zod.pattern?.source;
+    const before = inner._schema.pattern?.source;
     const after = partPattern(inner);
     if (own && before && after && after !== before) {
       return own.replace(util.cleanRegex(before), () => util.cleanRegex(after));
@@ -4743,17 +4743,17 @@ function partPattern(schema: $ZodType): string | undefined {
   return leafPattern(schema);
 }
 
-export const $ZodTemplateLiteral: core.$constructor<$ZodTemplateLiteral> = /*@__PURE__*/ core.$constructor(
-  "$ZodTemplateLiteral",
+export const $SchemaTemplateLiteral: core.$constructor<$SchemaTemplateLiteral> = /*@__PURE__*/ core.$constructor(
+  "$SchemaTemplateLiteral",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
     const regexParts: string[] = [];
     for (const part of def.parts) {
       if (typeof part === "object" && part !== null) {
-        // is Zod schema
+        // is Schema schema
         const source = partPattern(part);
         if (!source) {
-          throw new Error(`Invalid template literal part, no pattern found: ${[...(part as any)._zod.traits].shift()}`);
+          throw new Error(`Invalid template literal part, no pattern found: ${[...(part as any)._schema.traits].shift()}`);
         }
         regexParts.push(util.cleanRegex(source));
       } else if (part === null || util.primitiveTypes.has(typeof part)) {
@@ -4762,9 +4762,9 @@ export const $ZodTemplateLiteral: core.$constructor<$ZodTemplateLiteral> = /*@__
         throw new Error(`Invalid template literal part: ${part}`);
       }
     }
-    inst._zod.pattern = new RegExp(`^${regexParts.join("")}$`);
+    inst._schema.pattern = new RegExp(`^${regexParts.join("")}$`);
 
-    inst._zod.parse = (payload, _ctx) => {
+    inst._schema.parse = (payload, _ctx) => {
       if (typeof payload.value !== "string") {
         payload.issues.push({
           input: payload.value,
@@ -4775,16 +4775,16 @@ export const $ZodTemplateLiteral: core.$constructor<$ZodTemplateLiteral> = /*@__
         return payload;
       }
 
-      inst._zod.pattern.lastIndex = 0;
+      inst._schema.pattern.lastIndex = 0;
 
-      if (!inst._zod.pattern.test(payload.value)) {
+      if (!inst._schema.pattern.test(payload.value)) {
         payload.issues.push({
           input: payload.value,
           inst,
 
           code: "invalid_format",
           format: def.format ?? "template_literal",
-          pattern: inst._zod.pattern.source,
+          pattern: inst._schema.pattern.source,
         });
         return payload;
       }
@@ -4797,51 +4797,51 @@ export const $ZodTemplateLiteral: core.$constructor<$ZodTemplateLiteral> = /*@__
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////     $ZodFunction     //////////
+//////////     $SchemaFunction     //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
-export type $ZodFunctionArgs = $ZodType<unknown[], unknown[]>;
-export type $ZodFunctionIn = $ZodFunctionArgs;
-export type $ZodFunctionOut = $ZodType;
+export type $SchemaFunctionArgs = $SchemaType<unknown[], unknown[]>;
+export type $SchemaFunctionIn = $SchemaFunctionArgs;
+export type $SchemaFunctionOut = $SchemaType;
 
-export type $InferInnerFunctionType<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (
-  ...args: $ZodFunctionIn extends Args ? never[] : core.output<Args>
+export type $InferInnerFunctionType<Args extends $SchemaFunctionIn, Returns extends $SchemaFunctionOut> = (
+  ...args: $SchemaFunctionIn extends Args ? never[] : core.output<Args>
 ) => core.input<Returns>;
 
-export type $InferInnerFunctionTypeAsync<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (
-  ...args: $ZodFunctionIn extends Args ? never[] : core.output<Args>
+export type $InferInnerFunctionTypeAsync<Args extends $SchemaFunctionIn, Returns extends $SchemaFunctionOut> = (
+  ...args: $SchemaFunctionIn extends Args ? never[] : core.output<Args>
 ) => util.MaybeAsync<core.input<Returns>>;
 
-export type $InferOuterFunctionType<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (
-  ...args: $ZodFunctionIn extends Args ? never[] : core.input<Args>
+export type $InferOuterFunctionType<Args extends $SchemaFunctionIn, Returns extends $SchemaFunctionOut> = (
+  ...args: $SchemaFunctionIn extends Args ? never[] : core.input<Args>
 ) => core.output<Returns>;
 
-export type $InferOuterFunctionTypeAsync<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut> = (
-  ...args: $ZodFunctionIn extends Args ? never[] : core.input<Args>
+export type $InferOuterFunctionTypeAsync<Args extends $SchemaFunctionIn, Returns extends $SchemaFunctionOut> = (
+  ...args: $SchemaFunctionIn extends Args ? never[] : core.input<Args>
 ) => Promise<core.output<Returns>>;
 
-export interface $ZodFunctionDef<
-  In extends $ZodFunctionIn = $ZodFunctionIn,
-  Out extends $ZodFunctionOut = $ZodFunctionOut,
-> extends $ZodTypeDef {
+export interface $SchemaFunctionDef<
+  In extends $SchemaFunctionIn = $SchemaFunctionIn,
+  Out extends $SchemaFunctionOut = $SchemaFunctionOut,
+> extends $SchemaTypeDef {
   type: "function";
   input: In;
   output: Out;
 }
 
-export interface $ZodFunctionInternals<Args extends $ZodFunctionIn, Returns extends $ZodFunctionOut>
-  extends $ZodTypeInternals<$InferOuterFunctionType<Args, Returns>, $InferInnerFunctionType<Args, Returns>> {
-  def: $ZodFunctionDef<Args, Returns>;
-  isst: errors.$ZodIssueInvalidType;
+export interface $SchemaFunctionInternals<Args extends $SchemaFunctionIn, Returns extends $SchemaFunctionOut>
+  extends $SchemaTypeInternals<$InferOuterFunctionType<Args, Returns>, $InferInnerFunctionType<Args, Returns>> {
+  def: $SchemaFunctionDef<Args, Returns>;
+  isst: errors.$SchemaIssueInvalidType;
 }
 
-export interface $ZodFunction<
-  Args extends $ZodFunctionIn = $ZodFunctionIn,
-  Returns extends $ZodFunctionOut = $ZodFunctionOut,
-> extends $ZodType<any, any, $ZodFunctionInternals<Args, Returns>> {
+export interface $SchemaFunction<
+  Args extends $SchemaFunctionIn = $SchemaFunctionIn,
+  Returns extends $SchemaFunctionOut = $SchemaFunctionOut,
+> extends $SchemaType<any, any, $SchemaFunctionInternals<Args, Returns>> {
   /** @deprecated */
-  _def: $ZodFunctionDef<Args, Returns>;
+  _def: $SchemaFunctionDef<Args, Returns>;
   _input: $InferInnerFunctionType<Args, Returns>;
   _output: $InferOuterFunctionType<Args, Returns>;
 
@@ -4856,28 +4856,28 @@ export interface $ZodFunction<
     func: F
   ): F extends $InferOuterFunctionTypeAsync<Args, Returns> ? F : $InferOuterFunctionTypeAsync<Args, Returns>;
 
-  input<const Items extends util.TupleItems, const Rest extends $ZodFunctionOut = $ZodFunctionOut>(
+  input<const Items extends util.TupleItems, const Rest extends $SchemaFunctionOut = $SchemaFunctionOut>(
     args: Items,
     rest?: Rest
-  ): $ZodFunction<$ZodTuple<Items, Rest>, Returns>;
-  input<NewArgs extends $ZodFunctionIn>(args: NewArgs): $ZodFunction<NewArgs, Returns>;
-  input(...args: any[]): $ZodFunction<any, Returns>;
+  ): $SchemaFunction<$SchemaTuple<Items, Rest>, Returns>;
+  input<NewArgs extends $SchemaFunctionIn>(args: NewArgs): $SchemaFunction<NewArgs, Returns>;
+  input(...args: any[]): $SchemaFunction<any, Returns>;
 
-  output<NewReturns extends $ZodType>(output: NewReturns): $ZodFunction<Args, NewReturns>;
+  output<NewReturns extends $SchemaType>(output: NewReturns): $SchemaFunction<Args, NewReturns>;
 }
 
-export interface $ZodFunctionParams<I extends $ZodFunctionIn, O extends $ZodType> {
+export interface $SchemaFunctionParams<I extends $SchemaFunctionIn, O extends $SchemaType> {
   input?: I;
   output?: O;
 }
 
-export const $ZodFunction: core.$constructor<$ZodFunction> = /*@__PURE__*/ core.$constructor(
-  "$ZodFunction",
+export const $SchemaFunction: core.$constructor<$SchemaFunction> = /*@__PURE__*/ core.$constructor(
+  "$SchemaFunction",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
     // Defined, not assigned: the classic prototype exposes `_def` as a getter with no setter.
     Object.defineProperty(inst, "_def", { value: def });
-    inst._zod.def = def;
+    inst._schema.def = def;
 
     inst.implement = (func) => {
       if (typeof func !== "function") {
@@ -4893,8 +4893,8 @@ export const $ZodFunction: core.$constructor<$ZodFunction> = /*@__PURE__*/ core.
           }
           return result as any;
         },
-        "_zod",
-        { value: inst._zod, enumerable: false }
+        "_schema",
+        { value: inst._schema, enumerable: false }
       ) as any;
     };
 
@@ -4911,12 +4911,12 @@ export const $ZodFunction: core.$constructor<$ZodFunction> = /*@__PURE__*/ core.
           }
           return result;
         },
-        "_zod",
-        { value: inst._zod, enumerable: false }
+        "_schema",
+        { value: inst._schema, enumerable: false }
       ) as any;
     };
 
-    inst._zod.parse = (payload, _ctx) => {
+    inst._schema.parse = (payload, _ctx) => {
       if (typeof payload.value !== "function") {
         payload.issues.push({
           code: "invalid_type",
@@ -4928,7 +4928,7 @@ export const $ZodFunction: core.$constructor<$ZodFunction> = /*@__PURE__*/ core.
       }
 
       // Check if output is a promise type to determine if we should use async implementation
-      const hasPromiseOutput = inst._def.output && inst._def.output._zod.def.type === "promise";
+      const hasPromiseOutput = inst._def.output && inst._def.output._schema.def.type === "promise";
 
       if (hasPromiseOutput) {
         payload.value = inst.implementAsync(payload.value);
@@ -4938,12 +4938,12 @@ export const $ZodFunction: core.$constructor<$ZodFunction> = /*@__PURE__*/ core.
       return payload;
     };
 
-    inst.input = (...args: any[]): $ZodFunction<any, any> => {
+    inst.input = (...args: any[]): $SchemaFunction<any, any> => {
       const F: any = inst.constructor;
       if (Array.isArray(args[0])) {
         return new F({
           type: "function",
-          input: new $ZodTuple({
+          input: new $SchemaTuple({
             type: "tuple",
             items: args[0],
             rest: args[1],
@@ -4975,32 +4975,32 @@ export const $ZodFunction: core.$constructor<$ZodFunction> = /*@__PURE__*/ core.
 /////////////////////////////////////////
 /////////////////////////////////////////
 //////////                     //////////
-//////////     $ZodPromise     //////////
+//////////     $SchemaPromise     //////////
 //////////                     //////////
 /////////////////////////////////////////
 /////////////////////////////////////////
-export interface $ZodPromiseDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaPromiseDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "promise";
   innerType: T;
 }
 
-export interface $ZodPromiseInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<Promise<core.output<T>>, util.MaybeAsync<core.input<T>>> {
-  def: $ZodPromiseDef<T>;
+export interface $SchemaPromiseInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<Promise<core.output<T>>, util.MaybeAsync<core.input<T>>> {
+  def: $SchemaPromiseDef<T>;
   isst: never;
 }
 
-export interface $ZodPromise<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodPromiseInternals<T>;
+export interface $SchemaPromise<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaPromiseInternals<T>;
 }
 
-export const $ZodPromise: core.$constructor<$ZodPromise> = /*@__PURE__*/ core.$constructor(
-  "$ZodPromise",
+export const $SchemaPromise: core.$constructor<$SchemaPromise> = /*@__PURE__*/ core.$constructor(
+  "$SchemaPromise",
   (inst, def) => {
-    $ZodType.init(inst, def);
+    $SchemaType.init(inst, def);
 
-    inst._zod.parse = (payload, ctx) => {
-      return Promise.resolve(payload.value).then((inner) => def.innerType._zod.run({ value: inner, issues: [] }, ctx));
+    inst._schema.parse = (payload, ctx) => {
+      return Promise.resolve(payload.value).then((inner) => def.innerType._schema.run({ value: inner, issues: [] }, ctx));
     };
   }
 );
@@ -5008,91 +5008,91 @@ export const $ZodPromise: core.$constructor<$ZodPromise> = /*@__PURE__*/ core.$c
 //////////////////////////////////////////
 //////////////////////////////////////////
 //////////                      //////////
-//////////      $ZodLazy        //////////
+//////////      $SchemaLazy        //////////
 //////////                      //////////
 //////////////////////////////////////////
 //////////////////////////////////////////
 
-export interface $ZodLazyDef<T extends SomeType = $ZodType> extends $ZodTypeDef {
+export interface $SchemaLazyDef<T extends SomeType = $SchemaType> extends $SchemaTypeDef {
   type: "lazy";
   getter: () => T;
 }
 
-export interface $ZodLazyInternals<T extends SomeType = $ZodType>
-  extends $ZodTypeInternals<core.output<T>, core.input<T>> {
-  def: $ZodLazyDef<T>;
+export interface $SchemaLazyInternals<T extends SomeType = $SchemaType>
+  extends $SchemaTypeInternals<core.output<T>, core.input<T>> {
+  def: $SchemaLazyDef<T>;
   isst: never;
   /** Auto-cached way to retrieve the inner schema */
   innerType: T;
-  pattern: T["_zod"]["pattern"];
-  propValues: T["_zod"]["propValues"];
-  optin: T["_zod"]["optin"];
-  optout: T["_zod"]["optout"];
+  pattern: T["_schema"]["pattern"];
+  propValues: T["_schema"]["propValues"];
+  optin: T["_schema"]["optin"];
+  optout: T["_schema"]["optout"];
 }
 
-export interface $ZodLazy<T extends SomeType = $ZodType> extends $ZodType {
-  _zod: $ZodLazyInternals<T>;
+export interface $SchemaLazy<T extends SomeType = $SchemaType> extends $SchemaType {
+  _schema: $SchemaLazyInternals<T>;
 }
 
-export const $ZodLazy: core.$constructor<$ZodLazy> = /*@__PURE__*/ core.$constructor("$ZodLazy", (inst, def) => {
-  $ZodType.init(inst, def);
+export const $SchemaLazy: core.$constructor<$SchemaLazy> = /*@__PURE__*/ core.$constructor("$SchemaLazy", (inst, def) => {
+  $SchemaType.init(inst, def);
 
   // Cache the resolved inner type on the shared `def` so all clones of this lazy (e.g. via `.describe()`/`.meta()`) share the same inner instance, preserving identity for cycle detection on recursive schemas.
-  util.defineLazy(inst._zod, "innerType", () => {
-    const d = def as $ZodLazyDef & { _cachedInner?: $ZodType };
-    if (!d._cachedInner) d._cachedInner = def.getter() as $ZodType;
+  util.defineLazy(inst._schema, "innerType", () => {
+    const d = def as $SchemaLazyDef & { _cachedInner?: $SchemaType };
+    if (!d._cachedInner) d._cachedInner = def.getter() as $SchemaType;
     return d._cachedInner;
   });
-  util.defineLazyInternal(inst, "pattern", (zod) => zod.innerType?._zod?.pattern);
-  util.defineLazyInternal(inst, "propValues", (zod) => zod.innerType?._zod?.propValues);
-  util.defineLazyInternal(inst, "optin", (zod) => zod.innerType?._zod?.optin ?? undefined);
-  util.defineLazyInternal(inst, "optout", (zod) => zod.innerType?._zod?.optout ?? undefined);
-  inst._zod.parse = (payload, ctx) => {
-    const inner = inst._zod.innerType;
-    return inner._zod.run(payload, ctx);
+  util.defineLazyInternal(inst, "pattern", (schema) => Schema.innerType?._schema?.pattern);
+  util.defineLazyInternal(inst, "propValues", (schema) => Schema.innerType?._schema?.propValues);
+  util.defineLazyInternal(inst, "optin", (schema) => Schema.innerType?._schema?.optin ?? undefined);
+  util.defineLazyInternal(inst, "optout", (schema) => Schema.innerType?._schema?.optout ?? undefined);
+  inst._schema.parse = (payload, ctx) => {
+    const inner = inst._schema.innerType;
+    return inner._schema.run(payload, ctx);
   };
 });
 
 ////////////////////////////////////////
 ////////////////////////////////////////
 //////////                    //////////
-//////////     $ZodCustom     //////////
+//////////     $SchemaCustom     //////////
 //////////                    //////////
 ////////////////////////////////////////
 ////////////////////////////////////////
-export interface $ZodCustomDef<O = unknown> extends $ZodTypeDef, checks.$ZodCheckDef {
+export interface $SchemaCustomDef<O = unknown> extends $SchemaTypeDef, checks.$SchemaCheckDef {
   type: "custom";
   check: "custom";
   path?: PropertyKey[] | undefined;
-  error?: errors.$ZodErrorMap | undefined;
+  error?: errors.$SchemaErrorMap | undefined;
   params?: Record<string, any> | undefined;
   fn: (arg: O) => unknown;
 }
 
-export interface $ZodCustomInternals<O = unknown, I = unknown>
-  extends $ZodTypeInternals<O, I>,
-    checks.$ZodCheckInternals<O> {
-  def: $ZodCustomDef;
-  issc: errors.$ZodIssue;
+export interface $SchemaCustomInternals<O = unknown, I = unknown>
+  extends $SchemaTypeInternals<O, I>,
+    checks.$SchemaCheckInternals<O> {
+  def: $SchemaCustomDef;
+  issc: errors.$SchemaIssue;
   isst: never;
   bag: util.LoosePartial<{
     Class: typeof util.Class;
   }>;
 }
 
-export interface $ZodCustom<O = unknown, I = unknown> extends $ZodType {
-  _zod: $ZodCustomInternals<O, I>;
+export interface $SchemaCustom<O = unknown, I = unknown> extends $SchemaType {
+  _schema: $SchemaCustomInternals<O, I>;
 }
 
-export const $ZodCustom: core.$constructor<$ZodCustom> = /*@__PURE__*/ core.$constructor("$ZodCustom", (inst, def) => {
-  checks.$ZodCheck.init(inst, def);
-  $ZodType.init(inst, def);
+export const $SchemaCustom: core.$constructor<$SchemaCustom> = /*@__PURE__*/ core.$constructor("$SchemaCustom", (inst, def) => {
+  checks.$SchemaCheck.init(inst, def);
+  $SchemaType.init(inst, def);
 
-  inst._zod.parse = (payload, _) => {
+  inst._schema.parse = (payload, _) => {
     return payload;
   };
 
-  inst._zod.check = (payload) => {
+  inst._schema.check = (payload) => {
     const input = payload.value;
     const r = def.fn(input as any);
     if (r instanceof Promise) {
@@ -5103,90 +5103,90 @@ export const $ZodCustom: core.$constructor<$ZodCustom> = /*@__PURE__*/ core.$con
   };
 });
 
-function handleRefineResult(result: unknown, payload: ParsePayload, input: unknown, inst: $ZodCustom): void {
+function handleRefineResult(result: unknown, payload: ParsePayload, input: unknown, inst: $SchemaCustom): void {
   if (!result) {
     const _iss: any = {
       code: "custom",
       input,
       inst, // incorporates params.error into issue reporting
-      path: [...(inst._zod.def.path ?? [])], // incorporates params.error into issue reporting
-      continue: !inst._zod.def.abort,
-      // params: inst._zod.def.params,
+      path: [...(inst._schema.def.path ?? [])], // incorporates params.error into issue reporting
+      continue: !inst._schema.def.abort,
+      // params: inst._schema.def.params,
     };
-    if (inst._zod.def.params) _iss.params = inst._zod.def.params;
+    if (inst._schema.def.params) _iss.params = inst._schema.def.params;
     payload.issues.push(util.issue(_iss));
   }
 }
 
-export type $ZodTypes =
-  | $ZodString
-  | $ZodNumber
-  | $ZodBigInt
-  | $ZodBoolean
-  | $ZodDate
-  | $ZodSymbol
-  | $ZodUndefined
-  | $ZodNullable
-  | $ZodNull
-  | $ZodAny
-  | $ZodUnknown
-  | $ZodNever
-  | $ZodVoid
-  | $ZodArray
-  | $ZodObject
-  | $ZodUnion
-  | $ZodIntersection
-  | $ZodTuple
-  | $ZodRecord
-  | $ZodMap
-  | $ZodSet
-  | $ZodLiteral
-  | $ZodEnum
-  | $ZodFunction
-  | $ZodPromise
-  | $ZodLazy
-  | $ZodOptional
-  | $ZodDefault
-  | $ZodPrefault
-  | $ZodTemplateLiteral
-  | $ZodCustom
-  | $ZodTransform
-  | $ZodNonOptional
-  | $ZodReadonly
-  | $ZodNaN
-  | $ZodPipe
-  | $ZodSuccess
-  | $ZodCatch
-  | $ZodFile;
+export type $SchemaTypes =
+  | $SchemaString
+  | $SchemaNumber
+  | $SchemaBigInt
+  | $SchemaBoolean
+  | $SchemaDate
+  | $SchemaSymbol
+  | $SchemaUndefined
+  | $SchemaNullable
+  | $SchemaNull
+  | $SchemaAny
+  | $SchemaUnknown
+  | $SchemaNever
+  | $SchemaVoid
+  | $SchemaArray
+  | $SchemaObject
+  | $SchemaUnion
+  | $SchemaIntersection
+  | $SchemaTuple
+  | $SchemaRecord
+  | $SchemaMap
+  | $SchemaSet
+  | $SchemaLiteral
+  | $SchemaEnum
+  | $SchemaFunction
+  | $SchemaPromise
+  | $SchemaLazy
+  | $SchemaOptional
+  | $SchemaDefault
+  | $SchemaPrefault
+  | $SchemaTemplateLiteral
+  | $SchemaCustom
+  | $SchemaTransform
+  | $SchemaNonOptional
+  | $SchemaReadonly
+  | $SchemaNaN
+  | $SchemaPipe
+  | $SchemaSuccess
+  | $SchemaCatch
+  | $SchemaFile;
 
-export type $ZodStringFormatTypes =
-  | $ZodGUID
-  | $ZodUUID
-  | $ZodEmail
-  | $ZodURL
-  | $ZodEmoji
-  | $ZodNanoID
-  | $ZodCUID
-  | $ZodCUID2
-  | $ZodULID
-  | $ZodXID
-  | $ZodKSUID
-  | $ZodISODateTime
-  | $ZodISODate
-  | $ZodISOTime
-  | $ZodISODuration
-  | $ZodIPv4
-  | $ZodIPv6
-  | $ZodMAC
-  | $ZodCIDRv4
-  | $ZodCIDRv6
-  | $ZodBase64
-  | $ZodBase64URL
-  | $ZodE164
-  | $ZodCreditCard
-  | $ZodIBAN
-  | $ZodJWT
-  | $ZodCustomStringFormat<"hex">
-  | $ZodCustomStringFormat<util.HashFormat>
-  | $ZodCustomStringFormat<"hostname">
-  | $ZodCustomStringFormat<"currency_code">;
+export type $SchemaStringFormatTypes =
+  | $SchemaGUID
+  | $SchemaUUID
+  | $SchemaEmail
+  | $SchemaURL
+  | $SchemaEmoji
+  | $SchemaNanoID
+  | $SchemaCUID
+  | $SchemaCUID2
+  | $SchemaULID
+  | $SchemaXID
+  | $SchemaKSUID
+  | $SchemaISODateTime
+  | $SchemaISODate
+  | $SchemaISOTime
+  | $SchemaISODuration
+  | $SchemaIPv4
+  | $SchemaIPv6
+  | $SchemaMAC
+  | $SchemaCIDRv4
+  | $SchemaCIDRv6
+  | $SchemaBase64
+  | $SchemaBase64URL
+  | $SchemaE164
+  | $SchemaCreditCard
+  | $SchemaIBAN
+  | $SchemaJWT
+  | $SchemaCustomStringFormat<"hex">
+  | $SchemaCustomStringFormat<util.HashFormat>
+  | $SchemaCustomStringFormat<"hostname">
+  | $SchemaCustomStringFormat<"currency_code">;

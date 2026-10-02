@@ -1,15 +1,15 @@
 import { makeData, makeSchema } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
-const { zod3, zod4 } = makeSchema((z) => z.boolean());
+const { schema3, schema4 } = makeSchema((z) => Schema.boolean());
 const DATA = makeData(10000, () => Math.random() > 0.5);
 
-const bench = metabench("z.boolean().parse", {
-  zod3() {
-    for (const _ of DATA) zod3.parse(_);
+const bench = metabench("Schema.boolean().parse", {
+  schema3() {
+    for (const _ of DATA) schema3.parse(_);
   },
-  zod4() {
-    for (const _ of DATA) zod4.parse(_);
+  schema4() {
+    for (const _ of DATA) schema4.parse(_);
   },
 });
 

@@ -1,15 +1,15 @@
-import * as zod3 from "zod3";
-import * as zodNext from "../zod/src/index.js";
+import * as schema3 from "schema3";
+import * as schemaNext from "../schema/src/index.js";
 
 // load the published build regardless of the workspace's source condition
-const zod4: typeof import("zod4") = await import(new URL("index.js", import.meta.resolve("zod4/package.json")).href);
+const schema4: typeof import("schema4") = await import(new URL("index.js", import.meta.resolve("schema4/package.json")).href);
 
-export { zod3, zod4, zodNext };
-export function makeSchema<T>(factory: (z: typeof zod4) => T) {
+export { schema3, schema4, schemaNext };
+export function makeSchema<T>(factory: (z: typeof schema4) => T) {
   return {
-    zod3: factory(zod3 as any) as T,
-    zod4: factory(zod4 as any) as T,
-    // zod4Ts: factory(zodNewTs as any),
+    schema3: factory(schema3 as any) as T,
+    schema4: factory(schema4 as any) as T,
+    // schema4Ts: factory(schemaNewTs as any),
   };
 }
 

@@ -26,7 +26,7 @@ export declare namespace StandardSchemaV1 {
      */
     readonly validate: (value: unknown) => Result<Output> | Promise<Result<Output>>;
     /**
-     * Inferred types associated with the schema.
+     * Inferred types associated with the Schema.
      */
     readonly types?: Types<Input, Output> | undefined;
   }
@@ -89,11 +89,11 @@ export declare namespace StandardSchemaV1 {
    */
   export interface Types<Input = unknown, Output = Input> {
     /**
-     * The input type of the schema.
+     * The input type of the Schema.
      */
     readonly input: Input;
     /**
-     * The output type of the schema.
+     * The output type of the Schema.
      */
     readonly output: Output;
   }

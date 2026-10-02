@@ -1,12 +1,12 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { en } from "zod/locales";
-import * as z from "zod/mini";
+import { en } from "schema/locales";
+import * as Schema from "schema/mini";
 
-z.config(en());
+Schema.config(en());
 
-const isoDateCodec = z.codec(
-  z.iso.datetime(), // Input: ISO string (validates to string)
-  z.date(), // Output: Date object
+const isoDateCodec = Schema.codec(
+  Schema.iso.datetime(), // Input: ISO string (validates to string)
+  Schema.date(), // Output: Date object
   {
     decode: (isoString) => new Date(isoString), // Forward: ISO string → Date
     encode: (date) => date.toISOString(), // Backward: Date → ISO string
@@ -14,42 +14,42 @@ const isoDateCodec = z.codec(
 );
 
 test("instanceof", () => {
-  expect(isoDateCodec instanceof z.ZodMiniCodec).toBe(true);
-  expect(isoDateCodec instanceof z.ZodMiniPipe).toBe(true);
-  expect(isoDateCodec instanceof z.ZodMiniType).toBe(true);
-  expect(isoDateCodec instanceof z.core.$ZodCodec).toBe(true);
-  expect(isoDateCodec instanceof z.core.$ZodPipe).toBe(true);
-  expect(isoDateCodec instanceof z.core.$ZodType).toBe(true);
+  expect(isoDateCodec instanceof Schema.SchemaMiniCodec).toBe(true);
+  expect(isoDateCodec instanceof Schema.SchemaMiniPipe).toBe(true);
+  expect(isoDateCodec instanceof Schema.SchemaMiniType).toBe(true);
+  expect(isoDateCodec instanceof Schema.core.$SchemaCodec).toBe(true);
+  expect(isoDateCodec instanceof Schema.core.$SchemaPipe).toBe(true);
+  expect(isoDateCodec instanceof Schema.core.$SchemaType).toBe(true);
 
-  expectTypeOf(isoDateCodec.def).toEqualTypeOf<z.core.$ZodCodecDef<z.ZodMiniISODateTime, z.ZodMiniDate<Date>>>();
+  expectTypeOf(isoDateCodec.def).toEqualTypeOf<Schema.core.$SchemaCodecDef<Schema.SchemaMiniISODateTime, Schema.SchemaMiniDate<Date>>>();
 });
 
 test("codec basic functionality", () => {
-  // ISO string -> Date codec using z.iso.datetime() for input validation
+  // ISO string -> Date codec using Schema.iso.datetime() for input validation
 
   const testIsoString = "2024-01-15T10:30:00.000Z";
   const testDate = new Date("2024-01-15T10:30:00.000Z");
 
   // Forward decoding (ISO string -> Date)
-  const decodedResult = z.decode(isoDateCodec, testIsoString);
+  const decodedResult = Schema.decode(isoDateCodec, testIsoString);
   expect(decodedResult).toBeInstanceOf(Date);
   expect(decodedResult.toISOString()).toMatchInlineSnapshot(`"2024-01-15T10:30:00.000Z"`);
 
   // Backward encoding (Date -> ISO string)
-  const encodedResult = z.encode(isoDateCodec, testDate);
+  const encodedResult = Schema.encode(isoDateCodec, testDate);
   expect(typeof encodedResult).toBe("string");
   expect(encodedResult).toMatchInlineSnapshot(`"2024-01-15T10:30:00.000Z"`);
 });
 
 test("codec round trip", () => {
-  const isoDateCodec = z.codec(z.iso.datetime(), z.date(), {
+  const isoDateCodec = Schema.codec(Schema.iso.datetime(), Schema.date(), {
     decode: (isoString) => new Date(isoString),
     encode: (date) => date.toISOString(),
   });
 
   const original = "2024-12-25T15:45:30.123Z";
-  const toDate = z.decode(isoDateCodec, original);
-  const backToString = z.encode(isoDateCodec, toDate);
+  const toDate = Schema.decode(isoDateCodec, original);
+  const backToString = Schema.encode(isoDateCodec, toDate);
 
   expect(backToString).toMatchInlineSnapshot(`"2024-12-25T15:45:30.123Z"`);
   expect(toDate).toBeInstanceOf(Date);
@@ -58,19 +58,19 @@ test("codec round trip", () => {
 
 test("codec with refinement", () => {
   const isoDateCodec = z
-    .codec(z.iso.datetime(), z.date(), {
+    .codec(Schema.iso.datetime(), Schema.date(), {
       decode: (isoString) => new Date(isoString),
       encode: (date) => date.toISOString(),
     })
-    .check(z.refine((val) => val.getFullYear() === 2024, { error: "Year must be 2024" }));
+    .check(Schema.refine((val) => val.getFullYear() === 2024, { error: "Year must be 2024" }));
 
   // Valid 2024 date
-  const validDate = z.decode(isoDateCodec, "2024-01-15T10:30:00.000Z");
+  const validDate = Schema.decode(isoDateCodec, "2024-01-15T10:30:00.000Z");
   expect(validDate.getFullYear()).toMatchInlineSnapshot(`2024`);
   expect(validDate.getTime()).toMatchInlineSnapshot(`1705314600000`);
 
   // Invalid year should fail safely
-  const invalidYearResult = z.safeDecode(isoDateCodec, "2023-01-15T10:30:00.000Z");
+  const invalidYearResult = Schema.safeDecode(isoDateCodec, "2023-01-15T10:30:00.000Z");
   expect(invalidYearResult.success).toBe(false);
   if (!invalidYearResult.success) {
     expect(invalidYearResult.error.issues).toMatchInlineSnapshot(`
@@ -86,13 +86,13 @@ test("codec with refinement", () => {
 });
 
 test("safe codec operations", () => {
-  const isoDateCodec = z.codec(z.iso.datetime(), z.date(), {
+  const isoDateCodec = Schema.codec(Schema.iso.datetime(), Schema.date(), {
     decode: (isoString) => new Date(isoString),
     encode: (date) => date.toISOString(),
   });
 
   // Safe decode with invalid input
-  const safeDecodeResult = z.safeDecode(isoDateCodec, "invalid-date");
+  const safeDecodeResult = Schema.safeDecode(isoDateCodec, "invalid-date");
   expect(safeDecodeResult.success).toBe(false);
   if (!safeDecodeResult.success) {
     expect(safeDecodeResult.error.issues).toMatchInlineSnapshot(`
@@ -110,7 +110,7 @@ test("safe codec operations", () => {
   }
 
   // Safe decode with valid input
-  const safeDecodeValid = z.safeDecode(isoDateCodec, "2024-01-15T10:30:00.000Z");
+  const safeDecodeValid = Schema.safeDecode(isoDateCodec, "2024-01-15T10:30:00.000Z");
   expect(safeDecodeValid.success).toBe(true);
   if (safeDecodeValid.success) {
     expect(safeDecodeValid.data).toBeInstanceOf(Date);
@@ -118,7 +118,7 @@ test("safe codec operations", () => {
   }
 
   // Safe encode with valid input
-  const safeEncodeResult = z.safeEncode(isoDateCodec, new Date("2024-01-01"));
+  const safeEncodeResult = Schema.safeEncode(isoDateCodec, new Date("2024-01-01"));
   expect(safeEncodeResult.success).toBe(true);
   if (safeEncodeResult.success) {
     expect(safeEncodeResult.data).toMatchInlineSnapshot(`"2024-01-01T00:00:00.000Z"`);
@@ -127,44 +127,44 @@ test("safe codec operations", () => {
 
 test("codec with different types", () => {
   // String -> Number codec
-  const stringNumberCodec = z.codec(z.string(), z.number(), {
+  const stringNumberCodec = Schema.codec(Schema.string(), Schema.number(), {
     decode: (str) => Number.parseFloat(str),
     encode: (num) => num.toString(),
   });
 
-  const decodedNumber = z.decode(stringNumberCodec, "42.5");
+  const decodedNumber = Schema.decode(stringNumberCodec, "42.5");
   expect(decodedNumber).toMatchInlineSnapshot(`42.5`);
   expect(typeof decodedNumber).toBe("number");
 
-  const encodedString = z.encode(stringNumberCodec, 42.5);
+  const encodedString = Schema.encode(stringNumberCodec, 42.5);
   expect(encodedString).toMatchInlineSnapshot(`"42.5"`);
   expect(typeof encodedString).toBe("string");
 });
 
 test("async codec operations", async () => {
-  const isoDateCodec = z.codec(z.iso.datetime(), z.date(), {
+  const isoDateCodec = Schema.codec(Schema.iso.datetime(), Schema.date(), {
     decode: (isoString) => new Date(isoString),
     encode: (date) => date.toISOString(),
   });
 
   // Async decode
-  const decodedResult = await z.decodeAsync(isoDateCodec, "2024-01-15T10:30:00.000Z");
+  const decodedResult = await Schema.decodeAsync(isoDateCodec, "2024-01-15T10:30:00.000Z");
   expect(decodedResult).toBeInstanceOf(Date);
   expect(decodedResult.getTime()).toMatchInlineSnapshot(`1705314600000`);
 
   // Async encode
-  const encodedResult = await z.encodeAsync(isoDateCodec, new Date("2024-01-15T10:30:00.000Z"));
+  const encodedResult = await Schema.encodeAsync(isoDateCodec, new Date("2024-01-15T10:30:00.000Z"));
   expect(typeof encodedResult).toBe("string");
   expect(encodedResult).toMatchInlineSnapshot(`"2024-01-15T10:30:00.000Z"`);
 
   // Safe async operations
-  const safeDecodeResult = await z.safeDecodeAsync(isoDateCodec, "2024-01-15T10:30:00.000Z");
+  const safeDecodeResult = await Schema.safeDecodeAsync(isoDateCodec, "2024-01-15T10:30:00.000Z");
   expect(safeDecodeResult.success).toBe(true);
   if (safeDecodeResult.success) {
     expect(safeDecodeResult.data.getTime()).toMatchInlineSnapshot(`1705314600000`);
   }
 
-  const safeEncodeResult = await z.safeEncodeAsync(isoDateCodec, new Date("2024-01-15T10:30:00.000Z"));
+  const safeEncodeResult = await Schema.safeEncodeAsync(isoDateCodec, new Date("2024-01-15T10:30:00.000Z"));
   expect(safeEncodeResult.success).toBe(true);
   if (safeEncodeResult.success) {
     expect(safeEncodeResult.data).toMatchInlineSnapshot(`"2024-01-15T10:30:00.000Z"`);
@@ -172,14 +172,14 @@ test("async codec operations", async () => {
 });
 
 test("codec type inference", () => {
-  const codec = z.codec(z.string(), z.number(), {
+  const codec = Schema.codec(Schema.string(), Schema.number(), {
     decode: (str) => Number.parseInt(str),
     encode: (num) => num.toString(),
   });
 
   // These should compile without type errors
-  const decoded: number = z.decode(codec, "123");
-  const encoded: string = z.encode(codec, 123);
+  const decoded: number = Schema.decode(codec, "123");
+  const encoded: string = Schema.encode(codec, 123);
 
   expect(decoded).toMatchInlineSnapshot(`123`);
   expect(encoded).toMatchInlineSnapshot(`"123"`);
@@ -189,16 +189,16 @@ test("nested codec with object containing codec property", () => {
   // Nested schema: object containing a codec as one of its properties, with refinements at all levels
   const waypointSchema = z
     .object({
-      name: z.string().check(z.minLength(1, "Waypoint name required")),
-      difficulty: z.enum(["easy", "medium", "hard"]),
+      name: Schema.string().check(Schema.minLength(1, "Waypoint name required")),
+      difficulty: Schema.enum(["easy", "medium", "hard"]),
       coordinate: z
         .codec(
           z
             .string()
-            .check(z.regex(/^-?\d+,-?\d+$/, "Must be 'x,y' format")), // Input: coordinate string
+            .check(Schema.regex(/^-?\d+,-?\d+$/, "Must be 'x,y' format")), // Input: coordinate string
           z
-            .object({ x: z.number(), y: z.number() })
-            .check(z.refine((coord) => coord.x >= 0 && coord.y >= 0, { error: "Coordinates must be non-negative" })), // Output: coordinate object
+            .object({ x: Schema.number(), y: Schema.number() })
+            .check(Schema.refine((coord) => coord.x >= 0 && coord.y >= 0, { error: "Coordinates must be non-negative" })), // Output: coordinate object
           {
             decode: (coordString: string) => {
               const [x, y] = coordString.split(",").map(Number);
@@ -207,10 +207,10 @@ test("nested codec with object containing codec property", () => {
             encode: (coord: { x: number; y: number }) => `${coord.x},${coord.y}`,
           }
         )
-        .check(z.refine((coord) => coord.x <= 1000 && coord.y <= 1000, { error: "Coordinates must be within bounds" })),
+        .check(Schema.refine((coord) => coord.x <= 1000 && coord.y <= 1000, { error: "Coordinates must be within bounds" })),
     })
     .check(
-      z.refine((waypoint) => waypoint.difficulty !== "hard" || waypoint.coordinate.x >= 100, {
+      Schema.refine((waypoint) => waypoint.difficulty !== "hard" || waypoint.coordinate.x >= 100, {
         error: "Hard waypoints must be at least 100 units from origin",
       })
     );
@@ -223,7 +223,7 @@ test("nested codec with object containing codec property", () => {
   };
 
   // Forward decoding (object with string coordinate -> object with coordinate object)
-  const decodedWaypoint = z.decode(waypointSchema, inputWaypoint);
+  const decodedWaypoint = Schema.decode(waypointSchema, inputWaypoint);
   expect(decodedWaypoint).toMatchInlineSnapshot(`
     {
       "coordinate": {
@@ -236,7 +236,7 @@ test("nested codec with object containing codec property", () => {
   `);
 
   // Backward encoding (object with coordinate object -> object with string coordinate)
-  const encodedWaypoint = z.encode(waypointSchema, decodedWaypoint);
+  const encodedWaypoint = Schema.encode(waypointSchema, decodedWaypoint);
   expect(encodedWaypoint).toMatchInlineSnapshot(`
     {
       "coordinate": "150,200",
@@ -248,7 +248,7 @@ test("nested codec with object containing codec property", () => {
   // Test refinements at all levels
 
   // String validation (empty waypoint name)
-  const emptyNameResult = z.safeDecode(waypointSchema, {
+  const emptyNameResult = Schema.safeDecode(waypointSchema, {
     name: "",
     difficulty: "easy",
     coordinate: "10,20",
@@ -272,7 +272,7 @@ test("nested codec with object containing codec property", () => {
   }
 
   // Enum validation (invalid difficulty)
-  const invalidDifficultyResult = z.safeDecode(waypointSchema, {
+  const invalidDifficultyResult = Schema.safeDecode(waypointSchema, {
     name: "Test Point",
     difficulty: "impossible" as any,
     coordinate: "10,20",
@@ -298,7 +298,7 @@ test("nested codec with object containing codec property", () => {
   }
 
   // Codec string format validation (invalid coordinate format)
-  const invalidFormatResult = z.safeDecode(waypointSchema, {
+  const invalidFormatResult = Schema.safeDecode(waypointSchema, {
     name: "Test Point",
     difficulty: "easy",
     coordinate: "invalid",
@@ -322,7 +322,7 @@ test("nested codec with object containing codec property", () => {
   }
 
   // Codec object refinement (negative coordinates)
-  const negativeCoordResult = z.safeDecode(waypointSchema, {
+  const negativeCoordResult = Schema.safeDecode(waypointSchema, {
     name: "Test Point",
     difficulty: "easy",
     coordinate: "-5,10",
@@ -343,7 +343,7 @@ test("nested codec with object containing codec property", () => {
   }
 
   // Codec-level refinement (coordinates out of bounds)
-  const outOfBoundsResult = z.safeDecode(waypointSchema, {
+  const outOfBoundsResult = Schema.safeDecode(waypointSchema, {
     name: "Test Point",
     difficulty: "easy",
     coordinate: "1500,2000",
@@ -364,7 +364,7 @@ test("nested codec with object containing codec property", () => {
   }
 
   // Object-level refinement (hard waypoint too close to origin)
-  const hardWaypointResult = z.safeDecode(waypointSchema, {
+  const hardWaypointResult = Schema.safeDecode(waypointSchema, {
     name: "Expert Point",
     difficulty: "hard",
     coordinate: "50,60", // x < 100, but hard waypoints need x >= 100
@@ -383,7 +383,7 @@ test("nested codec with object containing codec property", () => {
   }
 
   // Round trip test
-  const roundTripResult = z.encode(waypointSchema, z.decode(waypointSchema, inputWaypoint));
+  const roundTripResult = Schema.encode(waypointSchema, Schema.decode(waypointSchema, inputWaypoint));
   expect(roundTripResult).toMatchInlineSnapshot(`
     {
       "coordinate": "150,200",
@@ -394,27 +394,27 @@ test("nested codec with object containing codec property", () => {
 });
 
 test("mutating refinements", () => {
-  const A = z.codec(z.string(), z.string().check(z.trim()), {
+  const A = Schema.codec(Schema.string(), Schema.string().check(Schema.trim()), {
     decode: (val) => val,
     encode: (val) => val,
   });
 
-  expect(z.decode(A, " asdf ")).toMatchInlineSnapshot(`"asdf"`);
-  expect(z.encode(A, " asdf ")).toMatchInlineSnapshot(`"asdf"`);
+  expect(Schema.decode(A, " asdf ")).toMatchInlineSnapshot(`"asdf"`);
+  expect(Schema.encode(A, " asdf ")).toMatchInlineSnapshot(`"asdf"`);
 });
 
 test("codec type enforcement - correct encode/decode signatures", () => {
   // Test that codec functions have correct type signatures
-  const stringToNumberCodec = z.codec(z.string(), z.number(), {
+  const stringToNumberCodec = Schema.codec(Schema.string(), Schema.number(), {
     decode: (value: string) => Number(value), // core.output<A> -> core.input<B>
     encode: (value: number) => String(value), // core.input<B> -> core.output<A>
   });
 
   // These should compile without errors - correct types (async support)
-  expectTypeOf<(value: string, payload: z.core.ParsePayload<string>) => z.core.util.MaybeAsync<number>>(
+  expectTypeOf<(value: string, payload: Schema.core.ParsePayload<string>) => Schema.core.util.MaybeAsync<number>>(
     stringToNumberCodec.def.transform
   ).toBeFunction();
-  expectTypeOf<(value: number, payload: z.core.ParsePayload<number>) => z.core.util.MaybeAsync<string>>(
+  expectTypeOf<(value: number, payload: Schema.core.ParsePayload<number>) => Schema.core.util.MaybeAsync<string>>(
     stringToNumberCodec.def.reverseTransform
   ).toBeFunction();
 
@@ -426,25 +426,25 @@ test("codec type enforcement - correct encode/decode signatures", () => {
   const validEncode = (value: number) => String(value);
   expectTypeOf(validEncode).toMatchTypeOf<(value: number) => string>();
 
-  z.codec(z.string(), z.number(), {
+  Schema.codec(Schema.string(), Schema.number(), {
     // @ts-expect-error - decode should NOT accept core.input<A> as parameter
     decode: (value: never, _payload) => Number(value), // Wrong: should be string, not unknown
     encode: (value: number, _payload) => String(value),
   });
 
-  z.codec(z.string(), z.number(), {
+  Schema.codec(Schema.string(), Schema.number(), {
     decode: (value: string) => Number(value),
     // @ts-expect-error - encode should NOT accept core.output<B> as parameter
     encode: (value: never) => String(value), // Wrong: should be number, not unknown
   });
 
-  z.codec(z.string(), z.number(), {
+  Schema.codec(Schema.string(), Schema.number(), {
     // @ts-expect-error - decode return type should be core.input<B>
     decode: (value: string) => String(value), // Wrong: should return number, not string
     encode: (value: number) => String(value),
   });
 
-  z.codec(z.string(), z.number(), {
+  Schema.codec(Schema.string(), Schema.number(), {
     decode: (value: string) => Number(value),
     // @ts-expect-error - encode return type should be core.output<A>
     encode: (value: number) => Number(value), // Wrong: should return string, not number
@@ -453,7 +453,7 @@ test("codec type enforcement - correct encode/decode signatures", () => {
 
 test("async codec functionality", async () => {
   // Test that async encode/decode functions work properly
-  const asyncCodec = z.codec(z.string(), z.number(), {
+  const asyncCodec = Schema.codec(Schema.string(), Schema.number(), {
     decode: async (str) => {
       await new Promise((resolve) => setTimeout(resolve, 1)); // Simulate async work
       return Number.parseFloat(str);
@@ -465,19 +465,19 @@ test("async codec functionality", async () => {
   });
 
   // Test async decode/encode
-  const decoded = await z.decodeAsync(asyncCodec, "42.5");
+  const decoded = await Schema.decodeAsync(asyncCodec, "42.5");
   expect(decoded).toBe(42.5);
 
-  const encoded = await z.encodeAsync(asyncCodec, 42.5);
+  const encoded = await Schema.encodeAsync(asyncCodec, 42.5);
   expect(encoded).toBe("42.5");
 
   // Test that both sync and async work
-  const mixedCodec = z.codec(z.string(), z.number(), {
+  const mixedCodec = Schema.codec(Schema.string(), Schema.number(), {
     decode: async (str) => Number.parseFloat(str),
     encode: (num) => num.toString(), // sync encode
   });
 
-  const mixedResult = await z.decodeAsync(mixedCodec, "123");
+  const mixedResult = await Schema.decodeAsync(mixedCodec, "123");
   expect(mixedResult).toBe(123);
 });
 
@@ -485,9 +485,9 @@ test("codec type enforcement - complex types", () => {
   type User = { id: number; name: string };
   type UserInput = { id: string; name: string };
 
-  const userCodec = z.codec(
-    z.object({ id: z.string(), name: z.string() }),
-    z.object({ id: z.number(), name: z.string() }),
+  const userCodec = Schema.codec(
+    Schema.object({ id: Schema.string(), name: Schema.string() }),
+    Schema.object({ id: Schema.number(), name: Schema.string() }),
     {
       decode: (input: UserInput) => ({ id: Number(input.id), name: input.name }),
       encode: (user: User) => ({ id: String(user.id), name: user.name }),
@@ -495,19 +495,19 @@ test("codec type enforcement - complex types", () => {
   );
 
   // Verify correct types are inferred (async support)
-  expectTypeOf<(input: UserInput, payload: z.core.ParsePayload<UserInput>) => z.core.util.MaybeAsync<User>>(
+  expectTypeOf<(input: UserInput, payload: Schema.core.ParsePayload<UserInput>) => Schema.core.util.MaybeAsync<User>>(
     userCodec.def.transform
   ).toBeFunction();
-  expectTypeOf<(user: User, payload: z.core.ParsePayload<User>) => z.core.util.MaybeAsync<UserInput>>(
+  expectTypeOf<(user: User, payload: Schema.core.ParsePayload<User>) => Schema.core.util.MaybeAsync<UserInput>>(
     userCodec.def.reverseTransform
   ).toBeFunction();
 
-  z.codec(
-    z.object({
-      id: z.string(),
-      name: z.string(),
+  Schema.codec(
+    Schema.object({
+      id: Schema.string(),
+      name: Schema.string(),
     }),
-    z.object({ id: z.number(), name: z.string() }),
+    Schema.object({ id: Schema.number(), name: Schema.string() }),
     {
       // @ts-expect-error - decode parameter should be UserInput, not User
       decode: (input: User) => ({ id: Number(input.id), name: input.name }), // Wrong type
@@ -515,12 +515,12 @@ test("codec type enforcement - complex types", () => {
     }
   );
 
-  z.codec(
-    z.object({
-      id: z.string(),
-      name: z.string(),
+  Schema.codec(
+    Schema.object({
+      id: Schema.string(),
+      name: Schema.string(),
     }),
-    z.object({ id: z.number(), name: z.string() }),
+    Schema.object({ id: Schema.number(), name: Schema.string() }),
     {
       decode: (input: UserInput) => ({ id: Number(input.id), name: input.name }),
       // @ts-expect-error - encode parameter should be User, not UserInput
@@ -530,53 +530,53 @@ test("codec type enforcement - complex types", () => {
 });
 
 test("invertCodec", () => {
-  const inverted = z.invertCodec(isoDateCodec);
+  const inverted = Schema.invertCodec(isoDateCodec);
 
-  type InvIn = z.input<typeof inverted>;
-  type InvOut = z.output<typeof inverted>;
+  type InvIn = Schema.input<typeof inverted>;
+  type InvOut = Schema.output<typeof inverted>;
   expectTypeOf<InvIn>().toEqualTypeOf<Date>();
   expectTypeOf<InvOut>().toEqualTypeOf<string>();
 
   const testDate = new Date("2024-01-15T10:30:00.000Z");
-  expect(z.decode(inverted, testDate)).toBe("2024-01-15T10:30:00.000Z");
+  expect(Schema.decode(inverted, testDate)).toBe("2024-01-15T10:30:00.000Z");
 
-  const encoded = z.encode(inverted, "2024-01-15T10:30:00.000Z");
+  const encoded = Schema.encode(inverted, "2024-01-15T10:30:00.000Z");
   expect(encoded).toBeInstanceOf(Date);
   expect(encoded.toISOString()).toBe("2024-01-15T10:30:00.000Z");
 
-  const doubleInverted = z.invertCodec(z.invertCodec(isoDateCodec));
-  expect(z.decode(doubleInverted, "2024-01-15T10:30:00.000Z")).toBeInstanceOf(Date);
+  const doubleInverted = Schema.invertCodec(Schema.invertCodec(isoDateCodec));
+  expect(Schema.decode(doubleInverted, "2024-01-15T10:30:00.000Z")).toBeInstanceOf(Date);
 });
 
-test("z.output carries checks attached to a pipe", () => {
+test("Schema.output carries checks attached to a pipe", () => {
   const c = z
-    .codec(z.string(), z.number(), { decode: Number, encode: String })
-    .check(z.refine((n) => n > 10, { error: "gt10" }));
+    .codec(Schema.string(), Schema.number(), { decode: Number, encode: String })
+    .check(Schema.refine((n) => n > 10, { error: "gt10" }));
 
-  expect(z.output(c).parse(50)).toBe(50);
-  expect(() => z.output(c).parse(5)).toThrow("gt10");
+  expect(Schema.output(c).parse(50)).toBe(50);
+  expect(() => Schema.output(c).parse(5)).toThrow("gt10");
   // The input side drops it: the check constrains a value that side never produces.
-  expect(z.input(c).parse("5")).toBe("5");
+  expect(Schema.input(c).parse("5")).toBe("5");
 });
 
-test("z.input resolves past a transform piped into a schema", () => {
-  const p = z.pipe(
-    z.transform((v: unknown) => String(v)),
-    z.string().check(z.minLength(5))
+test("Schema.input resolves past a transform piped into a schema", () => {
+  const p = Schema.pipe(
+    Schema.transform((v: unknown) => String(v)),
+    Schema.string().check(Schema.minLength(5))
   );
 
-  expect(z.input(p).parse("abcde")).toBe("abcde");
-  expect(() => z.input(p).parse(1)).toThrow();
+  expect(Schema.input(p).parse("abcde")).toBe("abcde");
+  expect(() => Schema.input(p).parse(1)).toThrow();
 });
 
 test("a wrapper's stored value survives only on the side it belongs to", () => {
-  const c = z.codec(z.string(), z.number(), { decode: Number, encode: String });
+  const c = Schema.codec(Schema.string(), Schema.number(), { decode: Number, encode: String });
 
-  expect(z.input(z._default(c, 7)).parse(undefined)).toBe(undefined);
-  expect(z.output(z._default(c, 7)).parse(undefined)).toBe(7);
+  expect(Schema.input(Schema._default(c, 7)).parse(undefined)).toBe(undefined);
+  expect(Schema.output(Schema._default(c, 7)).parse(undefined)).toBe(7);
 
   // A wrapper over a pipe-free schema keeps both its value and its identity.
-  const plain = z._default(z.string(), "x");
-  expect(z.input(plain)).toBe(plain);
-  expect(z.input(plain).parse(undefined)).toBe("x");
+  const plain = Schema._default(Schema.string(), "x");
+  expect(Schema.input(plain)).toBe(plain);
+  expect(Schema.input(plain).parse(undefined)).toBe("x");
 });

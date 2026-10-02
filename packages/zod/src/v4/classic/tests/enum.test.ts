@@ -1,11 +1,11 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("enum from string array", () => {
-  const MyEnum = z.enum(["Red", "Green", "Blue"]);
+  const MyEnum = Schema.enum(["Red", "Green", "Blue"]);
   expect(MyEnum.enum.Red).toEqual("Red");
 
-  type MyEnum = z.infer<typeof MyEnum>;
+  type MyEnum = Schema.infer<typeof MyEnum>;
   expectTypeOf<MyEnum>().toEqualTypeOf<"Red" | "Green" | "Blue">();
 });
 
@@ -14,8 +14,8 @@ test("enum from const object", () => {
     Apple: "apple",
     Banana: "banana",
   };
-  const fruitEnum = z.nativeEnum(Fruits);
-  type fruitEnum = z.infer<typeof fruitEnum>;
+  const fruitEnum = Schema.nativeEnum(Fruits);
+  type fruitEnum = Schema.infer<typeof fruitEnum>;
   fruitEnum.parse("apple");
   fruitEnum.parse("banana");
   fruitEnum.parse(Fruits.Apple);
@@ -30,8 +30,8 @@ test("enum from native enum", () => {
     Orange = 3,
   }
   // @ts-ignore
-  const fruitEnum = z.nativeEnum(Fruits);
-  type fruitEnum = z.infer<typeof fruitEnum>;
+  const fruitEnum = Schema.nativeEnum(Fruits);
+  type fruitEnum = Schema.infer<typeof fruitEnum>;
   fruitEnum.parse("apple");
   fruitEnum.parse("banana");
   fruitEnum.parse(Fruits.Apple);
@@ -50,8 +50,8 @@ test("enum from native enum with numeric keys", () => {
     Banana: 20,
     // @ts-ignore
   } as const;
-  const fruitEnum = z.nativeEnum(FruitValues);
-  type fruitEnum = z.infer<typeof fruitEnum>;
+  const fruitEnum = Schema.nativeEnum(FruitValues);
+  type fruitEnum = Schema.infer<typeof fruitEnum>;
   fruitEnum.parse(10);
   fruitEnum.parse(20);
   fruitEnum.parse(FruitValues.Apple);
@@ -60,8 +60,8 @@ test("enum from native enum with numeric keys", () => {
 });
 
 test("issue metadata", () => {
-  const schema = z.enum(["Red", "Green", "Blue"]);
-  const result = schema.safeParse("Yellow");
+  const schema = Schema.enum(["Red", "Green", "Blue"]);
+  const result = Schema.safeParse("Yellow");
   expect(result.error!.issues[0]).toMatchInlineSnapshot(`
     {
       "code": "invalid_value",
@@ -78,15 +78,15 @@ test("issue metadata", () => {
 
 test("enum from non-const inputs", () => {
   const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"];
-  const FoodEnum = z.enum(foods);
+  const FoodEnum = Schema.enum(foods);
 
-  expectTypeOf<z.infer<typeof FoodEnum>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof FoodEnum>>().toEqualTypeOf<string>();
   expect(FoodEnum.safeParse("Pasta").success).toEqual(true);
   expect(FoodEnum.safeParse("Cucumbers").success).toEqual(false);
 });
 
 test("get options", () => {
-  expect(z.enum(["tuna", "trout"]).options).toEqual(["tuna", "trout"]);
+  expect(Schema.enum(["tuna", "trout"]).options).toEqual(["tuna", "trout"]);
 
   enum Fish {
     Tuna = 0,
@@ -94,14 +94,14 @@ test("get options", () => {
   }
 
   // numeric enums carry reverse-mapping keys; options lists only what parse accepts
-  expect(z.enum(Fish).options).toEqual([Fish.Tuna, Fish.Trout]);
-  expect(z.enum(Fish).safeParse("Tuna").success).toEqual(false);
+  expect(Schema.enum(Fish).options).toEqual([Fish.Tuna, Fish.Trout]);
+  expect(Schema.enum(Fish).safeParse("Tuna").success).toEqual(false);
 });
 
 test("readonly enum", () => {
   const HTTP_SUCCESS = ["200", "201"] as const;
-  const arg = z.enum(HTTP_SUCCESS);
-  type arg = z.infer<typeof arg>;
+  const arg = Schema.enum(HTTP_SUCCESS);
+  type arg = Schema.infer<typeof arg>;
   expectTypeOf<arg>().toEqualTypeOf<"200" | "201">();
 
   arg.parse("201");
@@ -119,11 +119,11 @@ test("error map", () => {
 });
 
 test("type signatures", () => {
-  const a = z.enum(["a", "b", "c"]);
-  const b = z.enum(a.options);
+  const a = Schema.enum(["a", "b", "c"]);
+  const b = Schema.enum(a.options);
   expectTypeOf(a).toEqualTypeOf(b);
 
-  const c = z.enum({ a: 1, b: 2 } as const);
+  const c = Schema.enum({ a: 1, b: 2 } as const);
   expectTypeOf(c.enum).toEqualTypeOf<{
     readonly a: 1;
     readonly b: 2;
@@ -134,10 +134,10 @@ test("type signatures", () => {
     Banana = "banana",
     Orange = "orange",
   }
-  const d = z.enum(Fruit);
+  const d = Schema.enum(Fruit);
   expectTypeOf(d.enum).toEqualTypeOf(Fruit);
 
-  const e = z.enum({ a: 1, b: 2 });
+  const e = Schema.enum({ a: 1, b: 2 });
   expectTypeOf(e.enum).toEqualTypeOf<{
     readonly a: 1;
     readonly b: 2;
@@ -146,43 +146,43 @@ test("type signatures", () => {
 
 test("extract", () => {
   const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"] as const;
-  const FoodEnum = z.enum(foods);
+  const FoodEnum = Schema.enum(foods);
   const ItalianEnum = FoodEnum.extract(["Pasta", "Pizza"]);
 
   expect(ItalianEnum.safeParse("Pasta").success).toEqual(true);
   expect(ItalianEnum.safeParse("Tacos").success).toEqual(false);
 
-  expectTypeOf<z.infer<typeof ItalianEnum>>().toEqualTypeOf<"Pasta" | "Pizza">();
+  expectTypeOf<Schema.infer<typeof ItalianEnum>>().toEqualTypeOf<"Pasta" | "Pizza">();
 });
 
 test("exclude", () => {
   const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"] as const;
-  const FoodEnum = z.enum(foods);
+  const FoodEnum = Schema.enum(foods);
   const UnhealthyEnum = FoodEnum.exclude(["Salad"]);
 
   expect(UnhealthyEnum.safeParse("Pasta").success).toEqual(true);
   expect(UnhealthyEnum.safeParse("Salad").success).toEqual(false);
-  expectTypeOf<z.infer<typeof UnhealthyEnum>>().toEqualTypeOf<"Pasta" | "Pizza" | "Tacos" | "Burgers">();
+  expectTypeOf<Schema.infer<typeof UnhealthyEnum>>().toEqualTypeOf<"Pasta" | "Pizza" | "Tacos" | "Burgers">();
 
   const EmptyFoodEnum = FoodEnum.exclude(foods);
-  expectTypeOf<typeof EmptyFoodEnum>().toEqualTypeOf<z.ZodEnum<{}>>();
-  expectTypeOf<z.infer<typeof EmptyFoodEnum>>().toEqualTypeOf<never>();
+  expectTypeOf<typeof EmptyFoodEnum>().toEqualTypeOf<Schema.SchemaEnum<{}>>();
+  expectTypeOf<Schema.infer<typeof EmptyFoodEnum>>().toEqualTypeOf<never>();
 });
 
 test("empty enum matches nothing", () => {
-  const Empty = z.enum([]);
-  expect(Empty._zod.pattern.test("")).toEqual(false);
-  expect(z.templateLiteral(["", Empty]).safeParse("").success).toEqual(false);
-  expect(z.templateLiteral(["", z.object({}).keyof()]).safeParse("").success).toEqual(false);
+  const Empty = Schema.enum([]);
+  expect(Empty._schema.pattern.test("")).toEqual(false);
+  expect(Schema.templateLiteral(["", Empty]).safeParse("").success).toEqual(false);
+  expect(Schema.templateLiteral(["", Schema.object({}).keyof()]).safeParse("").success).toEqual(false);
 
-  expect(z.toJSONSchema(Empty)).toMatchObject({ not: {} });
+  expect(Schema.toJSONSchema(Empty)).toMatchObject({ not: {} });
 
-  expect(z.templateLiteral(["", z.enum([""])]).safeParse("").success).toEqual(true);
+  expect(Schema.templateLiteral(["", Schema.enum([""])]).safeParse("").success).toEqual(true);
 });
 
 test("error map inheritance", () => {
   const foods = ["Pasta", "Pizza", "Tacos", "Burgers", "Salad"] as const;
-  const FoodEnum = z.enum(foods, { error: () => "This is not food!" });
+  const FoodEnum = Schema.enum(foods, { error: () => "This is not food!" });
   const ItalianEnum = FoodEnum.extract(["Pasta", "Pizza"]);
 
   const foodsError = FoodEnum.safeParse("Cucumbers");
@@ -199,18 +199,18 @@ test("error map inheritance", () => {
   }
 });
 
-test("readonly in ZodEnumDef", () => {
-  type _a = z.ZodEnum<{ readonly a: "a"; readonly b: "b" }>;
-  type _b = z.ZodEnum<{ a: "a"; b: "b" }>;
+test("readonly in SchemaEnumDef", () => {
+  type _a = Schema.SchemaEnum<{ readonly a: "a"; readonly b: "b" }>;
+  type _b = Schema.SchemaEnum<{ a: "a"; b: "b" }>;
 });
 
 test("enum error message, invalid enum elementstring", () => {
-  const result = z.enum(["Tuna", "Trout"]).safeParse("Salmon");
+  const result = Schema.enum(["Tuna", "Trout"]).safeParse("Salmon");
   expect(result.success).toEqual(false);
   expect(result.error!.issues.length).toEqual(1);
 
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_value",
         "values": [
@@ -225,12 +225,12 @@ test("enum error message, invalid enum elementstring", () => {
 });
 
 test("enum error message, invalid type", () => {
-  const result = z.enum(["Tuna", "Trout"]).safeParse(12);
+  const result = Schema.enum(["Tuna", "Trout"]).safeParse(12);
   expect(result.success).toEqual(false);
   expect(result.error!.issues.length).toEqual(1);
   // expect(result.error!.issues[0].message).toEqual('Invalid input: expected one of "Tuna"|"Trout"');
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_value",
         "values": [
@@ -249,12 +249,12 @@ test("nativeEnum default error message", () => {
     Tuna = "Tuna",
     Trout = "Trout",
   }
-  const result = z.nativeEnum(Fish).safeParse("Salmon");
+  const result = Schema.nativeEnum(Fish).safeParse("Salmon");
   expect(result.success).toEqual(false);
   expect(result.error!.issues.length).toEqual(1);
   // expect(result.error!.issues[0].message).toEqual('Invalid input: expected one of "Tuna"|"Trout"');
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_value",
         "values": [
@@ -269,26 +269,26 @@ test("nativeEnum default error message", () => {
 });
 
 test("enum with message returns the custom error message", () => {
-  const schema = z.enum(["apple", "banana"], {
+  const schema = Schema.enum(["apple", "banana"], {
     message: "the value provided is invalid",
   });
 
-  const result1 = schema.safeParse("berries");
+  const result1 = Schema.safeParse("berries");
   expect(result1.success).toEqual(false);
   if (!result1.success) {
     expect(result1.error.issues[0].message).toEqual("the value provided is invalid");
   }
 
-  const result2 = schema.safeParse(undefined);
+  const result2 = Schema.safeParse(undefined);
   expect(result2.success).toEqual(false);
   if (!result2.success) {
     expect(result2.error.issues[0].message).toEqual("the value provided is invalid");
   }
 
-  const result3 = schema.safeParse("banana");
+  const result3 = Schema.safeParse("banana");
   expect(result3.success).toEqual(true);
 
-  const result4 = schema.safeParse(null);
+  const result4 = Schema.safeParse(null);
   expect(result4.success).toEqual(false);
   if (!result4.success) {
     expect(result4.error.issues[0].message).toEqual("the value provided is invalid");
@@ -296,7 +296,7 @@ test("enum with message returns the custom error message", () => {
 });
 
 test("enum with diagonal keys", () => {
-  const schema_02 = z.enum({
+  const schema_02 = Schema.enum({
     A: 1,
     B: "A",
   });

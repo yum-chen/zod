@@ -6,13 +6,13 @@ import { type } from "arktype";
 import { Schema } from "effect";
 import * as v from "valibot";
 import * as yup from "yup";
-import * as z from "zod";
-import { INVALID, compileFn } from "zod/v4/core";
-import * as z3 from "zod3";
+import * as Schema   from "schema";
+import { INVALID, compileFn } from "schema/v4/core";
+import * as z3 from "schema3";
 
 // Cross-library throughput on the fixture and the categories from moltar/typescript-runtime-type-benchmarks.
 //
-// The categories are not interchangeable, and mixing them is the easy way to publish a wrong number. `parseSafe` must return a NEW object with unknown keys removed, at every level. `assertLoose` only answers yes or no and may ignore unknown keys entirely, so it never allocates. Upstream, zod enters both; arktype enters assertLoose only. Comparing zod's parseSafe against arktype's assertLoose measures the allocation, not the validator, so each group here is reported on its own and every entry is held to its category's contract before it is timed.
+// The categories are not interchangeable, and mixing them is the easy way to publish a wrong number. `parseSafe` must return a NEW object with unknown keys removed, at every level. `assertLoose` only answers yes or no and may ignore unknown keys entirely, so it never allocates. Upstream, schema enters both; arktype enters assertLoose only. Comparing schema's parseSafe against arktype's assertLoose measures the allocation, not the validator, so each group here is reported on its own and every entry is held to its category's contract before it is timed.
 //
 // Timing methodology is compile-matrix.ts's, for the same reasons: absolute ops/sec drifts by tens of percent between runs, so entries are measured interleaved inside one round and the best of N rounds is kept. Results escape into a sink or V8 deletes the call, and inputs arrive through an array load or the call is loop-invariant and gets hoisted out of the loop.
 
@@ -47,45 +47,45 @@ const add = (name: string, category: Category, run: (input: unknown) => unknown)
   entries.push({ name, category, run });
 
 const SHAPE = {
-  number: z.number(),
-  negNumber: z.number(),
-  maxNumber: z.number(),
-  string: z.string(),
-  longString: z.string(),
-  boolean: z.boolean(),
-  deeplyNested: z.object({ foo: z.string(), num: z.number(), bool: z.boolean() }),
+  number: Schema.number(),
+  negNumber: Schema.number(),
+  maxNumber: Schema.number(),
+  string: Schema.string(),
+  longString: Schema.string(),
+  boolean: Schema.boolean(),
+  deeplyNested: Schema.object({ foo: Schema.string(), num: Schema.number(), bool: Schema.boolean() }),
 };
 
-// --- zod ---
-const zodSchema = z.object(SHAPE);
-const zodCompiled = z.compile(zodSchema);
-add("zod 4 (compiled)", "parseSafe", (d) => zodCompiled.parse(d));
-add("zod 4", "parseSafe", (d) => zodSchema.parse(d));
+// --- schema ---
+const schemaSchema = Schema.object(SHAPE);
+const schemaCompiled = Schema.compile(schemaSchema);
+add("schema 4 (compiled)", "parseSafe", (d) => schemaCompiled.parse(d));
+add("schema 4", "parseSafe", (d) => schemaSchema.parse(d));
 
-const zodLoose = z.looseObject({
+const schemaLoose = Schema.looseObject({
   ...SHAPE,
-  deeplyNested: z.looseObject({ foo: z.string(), num: z.number(), bool: z.boolean() }),
+  deeplyNested: Schema.looseObject({ foo: Schema.string(), num: Schema.number(), bool: Schema.boolean() }),
 });
-const zodLooseCompiled = z.compile(zodLoose);
-add("zod 4 (compiled)", "assertLoose", (d) => z.validate(zodLooseCompiled, d));
-add("zod 4", "assertLoose", (d) => z.validate(zodLoose, d));
+const schemaLooseCompiled = Schema.compile(schemaLoose);
+add("schema 4 (compiled)", "assertLoose", (d) => Schema.validate(schemaLooseCompiled, d));
+add("schema 4", "assertLoose", (d) => Schema.validate(schemaLoose, d));
 
-// --- zod 3 ---
-const zod3Leaves = { foo: z3.string(), num: z3.number(), bool: z3.boolean() };
-const zod3Shape = {
+// --- schema 3 ---
+const schema3Leaves = { foo: z3.string(), num: z3.number(), bool: z3.boolean() };
+const schema3Shape = {
   number: z3.number(),
   negNumber: z3.number(),
   maxNumber: z3.number(),
   string: z3.string(),
   longString: z3.string(),
   boolean: z3.boolean(),
-  deeplyNested: z3.object(zod3Leaves),
+  deeplyNested: z3.object(schema3Leaves),
 };
-const zod3Schema = z3.object(zod3Shape);
-add("zod 3", "parseSafe", (d) => zod3Schema.parse(d));
-const zod3Loose = z3.object({ ...zod3Shape, deeplyNested: z3.object(zod3Leaves).passthrough() }).passthrough();
-add("zod 3", "assertLoose", (d) => {
-  zod3Loose.parse(d);
+const schema3Schema = z3.object(schema3Shape);
+add("schema 3", "parseSafe", (d) => schema3Schema.parse(d));
+const schema3Loose = z3.object({ ...schema3Shape, deeplyNested: z3.object(schema3Leaves).passthrough() }).passthrough();
+add("schema 3", "assertLoose", (d) => {
+  schema3Loose.parse(d);
   return true;
 });
 
@@ -296,13 +296,13 @@ for (const e of entries) {
   });
 }
 
-// guard: the compiled zod rows must be running generated code, not silently measuring the fallback
+// guard: the compiled schema rows must be running generated code, not silently measuring the fallback
 for (const [label, sch] of [
-  ["parseSafe", zodSchema],
-  ["assertLoose", zodLoose],
+  ["parseSafe", schemaSchema],
+  ["assertLoose", schemaLoose],
 ] as const) {
   if (compileFn(sch as any)(DIRTY) === INVALID) {
-    problems.push(`zod ${label}: the fast path rejected the fixture, so the compiled row measures the fallback`);
+    problems.push(`schema ${label}: the fast path rejected the fixture, so the compiled row measures the fallback`);
   }
 }
 

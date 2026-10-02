@@ -1,10 +1,10 @@
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 import { metabench } from "./metabench.js";
 
-const schema = z.object({
-  string: z.string(),
-  boolean: z.boolean(),
-  number: z.number(),
+const schema = Schema.object({
+  string: Schema.string(),
+  boolean: Schema.boolean(),
+  number: Schema.number(),
 });
 
 const DATA = Array.from({ length: 1000 }, () =>
@@ -16,14 +16,14 @@ const DATA = Array.from({ length: 1000 }, () =>
 );
 
 // console.log(z3Schema.parse(DATA[0]));
-console.log(schema.safeParse(DATA[0]));
+console.log(Schema.safeParse(DATA[0]));
 // console.log(v.parse(valibotSchema, DATA[0]));
 
 const bench = metabench("safeparse vs parse — fail", {
   parse() {
     for (const d of DATA) {
       try {
-        const _result = schema.parse(d);
+        const _result = Schema.parse(d);
       } catch (_e) {
         _e;
       }
@@ -31,7 +31,7 @@ const bench = metabench("safeparse vs parse — fail", {
   },
   safeparse() {
     for (const d of DATA) {
-      const result = schema.safeParse(d);
+      const result = Schema.safeParse(d);
       result.error;
     }
   },

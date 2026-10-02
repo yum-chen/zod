@@ -9,7 +9,7 @@ import { afterAll, beforeAll, expect, test } from "vitest";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // The built package is what carries the `sideEffects: false` stub package.json
-// files, so these bundle against `packages/zod`'s output rather than src. A bare
+// files, so these bundle against `packages/schema`'s output rather than src. A bare
 // `config(en())` at module scope in `classic/external.ts` is dropped by every
 // bundler that honors the flag, which silently degraded every message to
 // "Invalid input" from 4.4.1 onward — see #5953, #5725, #4891.
@@ -18,8 +18,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // a missing or stale build would otherwise answer with an opaque ENOENT or — worse
 // for a regression guard — a confident false green. Hence the freshness check.
 
-const zodRoot = path.resolve(__dirname, "../zod");
-const builtEntry = path.join(zodRoot, "v4/index.js");
+const schemaRoot = path.resolve(__dirname, "../schema");
+const builtEntry = path.join(schemaRoot, "v4/index.js");
 
 function newestMtime(dir: string): number {
   let newest = 0;
@@ -32,12 +32,12 @@ function newestMtime(dir: string): number {
 
 beforeAll(() => {
   if (!existsSync(builtEntry)) throw new Error(`${builtEntry} is missing. Run \`nub run build\` first.`);
-  if (newestMtime(path.join(zodRoot, "src")) > statSync(builtEntry).mtimeMs) {
-    throw new Error(`${builtEntry} is older than packages/zod/src. Run \`nub run build\` first.`);
+  if (newestMtime(path.join(schemaRoot, "src")) > statSync(builtEntry).mtimeMs) {
+    throw new Error(`${builtEntry} is older than packages/schema/src. Run \`nub run build\` first.`);
   }
 });
 
-const tmp = mkdtempSync(path.join(tmpdir(), "zod-treeshake-"));
+const tmp = mkdtempSync(path.join(tmpdir(), "schema-treeshake-"));
 afterAll(() => rmSync(tmp, { recursive: true, force: true }));
 
 function entry(code: string): Plugin {
@@ -66,17 +66,17 @@ async function bundleAndRun(code: string): Promise<Record<string, string>> {
 
 test("a tree-shaken bundle keeps the default English locale", async () => {
   const { message } = await bundleAndRun(
-    `import * as z from "zod/v4";
-     export const message = z.enum(["km", "mi"]).safeParse("feet").error.issues[0].message;`
+    `import * as Schema from "schema/v4";
+     export const message = Schema.enum(["km", "mi"]).safeParse("feet").error.issues[0].message;`
   );
   expect(message).toBe('Invalid option: expected one of "km"|"mi"');
 });
 
 test("an explicitly configured locale still wins in a tree-shaken bundle", async () => {
   const { message } = await bundleAndRun(
-    `import * as z from "zod/v4";
-     z.config(z.locales.fr());
-     export const message = z.enum(["km", "mi"]).safeParse("feet").error.issues[0].message;`
+    `import * as Schema from "schema/v4";
+     Schema.config(Schema.locales.fr());
+     export const message = Schema.enum(["km", "mi"]).safeParse("feet").error.issues[0].message;`
   );
   expect(message).toBe('Option invalide : une valeur parmi "km"|"mi" attendue');
 });

@@ -40,7 +40,7 @@ function collect(): void {
 
 function takeSnapshot(tag: string): string {
   collect();
-  const file = path.join(os.tmpdir(), `zod-mem-${tag}-${process.pid}.heapsnapshot`);
+  const file = path.join(os.tmpdir(), `schema-mem-${tag}-${process.pid}.heapsnapshot`);
   v8.writeHeapSnapshot(file);
   return file;
 }

@@ -1,16 +1,16 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { z } from "zod/v4";
+import { Schema } from "schema/v4";
 
 test("nonoptional", () => {
-  const schema = z.string().nonoptional();
-  expectTypeOf<typeof schema._input>().toEqualTypeOf<string>();
-  expectTypeOf<typeof schema._output>().toEqualTypeOf<string>();
+  const schema = Schema.string().nonoptional();
+  expectTypeOf<typeof Schema._input>().toEqualTypeOf<string>();
+  expectTypeOf<typeof Schema._output>().toEqualTypeOf<string>();
 
-  const result = schema.safeParse(undefined);
+  const result = Schema.safeParse(undefined);
   expect(result.success).toBe(false);
   expect(result).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -24,15 +24,15 @@ test("nonoptional", () => {
 });
 
 test("nonoptional with default", () => {
-  const schema = z.string().optional().nonoptional();
-  expectTypeOf<typeof schema._input>().toEqualTypeOf<string>();
-  expectTypeOf<typeof schema._output>().toEqualTypeOf<string>();
+  const schema = Schema.string().optional().nonoptional();
+  expectTypeOf<typeof Schema._input>().toEqualTypeOf<string>();
+  expectTypeOf<typeof Schema._output>().toEqualTypeOf<string>();
 
-  const result = schema.safeParse(undefined);
+  const result = Schema.safeParse(undefined);
   expect(result.success).toBe(false);
   expect(result).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_type",
         "expected": "nonoptional",
@@ -46,18 +46,18 @@ test("nonoptional with default", () => {
 });
 
 test("nonoptional in object", () => {
-  const schema = z.object({ hi: z.string().optional().nonoptional() });
+  const schema = Schema.object({ hi: Schema.string().optional().nonoptional() });
 
-  expectTypeOf<typeof schema._input>().toEqualTypeOf<{ hi: string }>();
-  expectTypeOf<typeof schema._output>().toEqualTypeOf<{ hi: string }>();
-  const r1 = schema.safeParse({ hi: "asdf" });
+  expectTypeOf<typeof Schema._input>().toEqualTypeOf<{ hi: string }>();
+  expectTypeOf<typeof Schema._output>().toEqualTypeOf<{ hi: string }>();
+  const r1 = Schema.safeParse({ hi: "asdf" });
   expect(r1.success).toEqual(true);
 
-  const r2 = schema.safeParse({ hi: undefined });
-  // expect(schema.safeParse({ hi: undefined }).success).toEqual(false);
+  const r2 = Schema.safeParse({ hi: undefined });
+  // expect(Schema.safeParse({ hi: undefined }).success).toEqual(false);
   expect(r2.success).toEqual(false);
   expect(r2.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_type",
         "expected": "nonoptional",
@@ -69,10 +69,10 @@ test("nonoptional in object", () => {
     ]]
   `);
 
-  const r3 = schema.safeParse({});
+  const r3 = Schema.safeParse({});
   expect(r3.success).toEqual(false);
   expect(r3.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_type",
         "expected": "nonoptional",
@@ -86,10 +86,10 @@ test("nonoptional in object", () => {
 });
 
 test("encoding", () => {
-  const schema = z.string().optional().nonoptional();
-  expect(z.encode(schema, "hello")).toEqual("hello");
-  expect(() => z.encode(schema, undefined as any)).toThrowErrorMatchingInlineSnapshot(`
-    [ZodError: [
+  const schema = Schema.string().optional().nonoptional();
+  expect(Schema.encode(schema, "hello")).toEqual("hello");
+  expect(() => Schema.encode(schema, undefined as any)).toThrowErrorMatchingInlineSnapshot(`
+    [SchemaError: [
       {
         "code": "invalid_type",
         "expected": "nonoptional",

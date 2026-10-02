@@ -3,7 +3,7 @@ import { metabench } from "./metabench.js";
 
 const ZOD_FAILURE = "_~key~~";
 
-class ZodFailure {
+class SchemaFailure {
   [ZOD_FAILURE] = true;
   tag = ZOD_FAILURE;
 
@@ -12,13 +12,13 @@ class ZodFailure {
 
 const DATA = makeData(1000, () => {
   const random = Math.random();
-  if (random > 0.75) return new ZodFailure("test");
+  if (random > 0.75) return new SchemaFailure("test");
   if (random > 0.5) return { name: "Colin" };
   if (random > 0.25) return "hello";
   return Promise.resolve("hello");
 });
 
-const instanceofClass = (x: any) => x instanceof ZodFailure; // 0.64!
+const instanceofClass = (x: any) => x instanceof SchemaFailure; // 0.64!
 const instanceofPromise = (x: any) => x instanceof Promise; // 0.64!
 const keyin = (x: any) => typeof x === "object" && x && ZOD_FAILURE in x;
 // const typeofObject = (x: any) => typeof x === "object";

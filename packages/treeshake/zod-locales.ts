@@ -1,5 +1,5 @@
-import * as z from "zod/mini"
+import * as Schema from "schema/mini"
 
-z.config(z.locales.en());
+Schema.config(Schema.locales.en());
 
-z.string().parse(12);
+Schema.string().parse(12);

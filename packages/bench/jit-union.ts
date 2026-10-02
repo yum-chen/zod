@@ -1,7 +1,7 @@
 import { makeData, randomPick, randomString } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
-import * as z4 from "zod/mini";
+import * as z4 from "schema/mini";
 
 const z4fields = {
   data1: z4.string(),
@@ -63,7 +63,7 @@ const DATA = makeData(100, () => ({
 const args = { jitless: true };
 console.dir(z4Union.parse(DATA[0]), { depth: null });
 console.dir(z4Union.parse(DATA[0], args), { depth: null });
-const bench = metabench("z.discriminatedUnion().parse", {
+const bench = metabench("Schema.discriminatedUnion().parse", {
   v4_jit() {
     for (const item of DATA) {
       z4Union.parse(item);

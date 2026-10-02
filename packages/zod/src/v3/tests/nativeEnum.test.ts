@@ -1,7 +1,7 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
 test("nativeEnum test with consts", () => {
@@ -9,8 +9,8 @@ test("nativeEnum test with consts", () => {
     Apple: "apple",
     Banana: "banana",
   };
-  const fruitEnum = z.nativeEnum(Fruits);
-  type fruitEnum = z.infer<typeof fruitEnum>;
+  const fruitEnum = Schema.nativeEnum(Fruits);
+  type fruitEnum = Schema.infer<typeof fruitEnum>;
   fruitEnum.parse("apple");
   fruitEnum.parse("banana");
   fruitEnum.parse(Fruits.Apple);
@@ -24,8 +24,8 @@ test("nativeEnum test with real enum", () => {
     Banana = "banana",
   }
   // @ts-ignore
-  const fruitEnum = z.nativeEnum(Fruits);
-  type fruitEnum = z.infer<typeof fruitEnum>;
+  const fruitEnum = Schema.nativeEnum(Fruits);
+  type fruitEnum = Schema.infer<typeof fruitEnum>;
   fruitEnum.parse("apple");
   fruitEnum.parse("banana");
   fruitEnum.parse(Fruits.Apple);
@@ -39,8 +39,8 @@ test("nativeEnum test with const with numeric keys", () => {
     Banana: 20,
     // @ts-ignore
   } as const;
-  const fruitEnum = z.nativeEnum(FruitValues);
-  type fruitEnum = z.infer<typeof fruitEnum>;
+  const fruitEnum = Schema.nativeEnum(FruitValues);
+  type fruitEnum = Schema.infer<typeof fruitEnum>;
   fruitEnum.parse(10);
   fruitEnum.parse(20);
   fruitEnum.parse(FruitValues.Apple);
@@ -55,8 +55,8 @@ test("from enum", () => {
     Banana = "banana",
   }
 
-  const FruitEnum = z.nativeEnum(Fruits as any);
-  type _FruitEnum = z.infer<typeof FruitEnum>;
+  const FruitEnum = Schema.nativeEnum(Fruits as any);
+  type _FruitEnum = Schema.infer<typeof FruitEnum>;
   FruitEnum.parse(Fruits.Cantaloupe);
   FruitEnum.parse(Fruits.Apple);
   FruitEnum.parse("apple");
@@ -74,8 +74,8 @@ test("from const", () => {
     // @ts-ignore
   } as const;
 
-  const GreekEnum = z.nativeEnum(Greek);
-  type _GreekEnum = z.infer<typeof GreekEnum>;
+  const GreekEnum = Schema.nativeEnum(Greek);
+  type _GreekEnum = Schema.infer<typeof GreekEnum>;
   GreekEnum.parse("a");
   GreekEnum.parse("b");
   GreekEnum.parse(3);

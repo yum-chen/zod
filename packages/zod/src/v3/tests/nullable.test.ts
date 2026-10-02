@@ -1,42 +1,42 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-function checkErrors(a: z.ZodTypeAny, bad: any) {
+function checkErrors(a: Schema.SchemaTypeAny, bad: any) {
   let expected: any;
   try {
     a.parse(bad);
   } catch (error) {
-    expected = (error as z.ZodError).formErrors;
+    expected = (error as Schema  .SchemaError).formErrors;
   }
   try {
     a.nullable().parse(bad);
   } catch (error) {
-    expect((error as z.ZodError).formErrors).toEqual(expected);
+    expect((error as Schema  .SchemaError).formErrors).toEqual(expected);
   }
 }
 
 test("Should have error messages appropriate for the underlying type", () => {
-  checkErrors(z.string().min(2), 1);
-  z.string().min(2).nullable().parse(null);
-  checkErrors(z.number().gte(2), 1);
-  z.number().gte(2).nullable().parse(null);
-  checkErrors(z.boolean(), "");
-  z.boolean().nullable().parse(null);
-  checkErrors(z.null(), null);
-  z.null().nullable().parse(null);
-  checkErrors(z.null(), {});
-  z.null().nullable().parse(null);
-  checkErrors(z.object({}), 1);
-  z.object({}).nullable().parse(null);
-  checkErrors(z.tuple([]), 1);
-  z.tuple([]).nullable().parse(null);
-  checkErrors(z.unknown(), 1);
-  z.unknown().nullable().parse(null);
+  checkErrors(Schema.string().min(2), 1);
+  Schema.string().min(2).nullable().parse(null);
+  checkErrors(Schema.number().gte(2), 1);
+  Schema.number().gte(2).nullable().parse(null);
+  checkErrors(Schema.boolean(), "");
+  Schema.boolean().nullable().parse(null);
+  checkErrors(Schema.null(), null);
+  Schema.null().nullable().parse(null);
+  checkErrors(Schema.null(), {});
+  Schema.null().nullable().parse(null);
+  checkErrors(Schema.object({}), 1);
+  Schema.object({}).nullable().parse(null);
+  checkErrors(Schema.tuple([]), 1);
+  Schema.tuple([]).nullable().parse(null);
+  checkErrors(Schema.unknown(), 1);
+  Schema.unknown().nullable().parse(null);
 });
 
 test("unwrap", () => {
-  const unwrapped = z.string().nullable().unwrap();
-  expect(unwrapped).toBeInstanceOf(z.ZodString);
+  const unwrapped = Schema.string().nullable().unwrap();
+  expect(unwrapped).toBeInstanceOf(Schema.SchemaString);
 });

@@ -14,7 +14,7 @@
     "ecosystem",
     "library-authors",
     "---Packages---",
-    "packages/zod",
+    "packages/schema",
     "packages/mini",
     "packages/core"
   ]

@@ -4,17 +4,17 @@ test("placeholder test", () => {
   expect(2).toBe(2);
 });
 // test("overload types", () => {
-//   const schema = z.string().json();
-//   util.assertEqual<typeof schema, z.ZodString>(true);
-//   const schema2 = z.string().json(z.number());
-//   util.assertEqual<typeof schema2, z.ZodPipe<z.ZodTransform<any, string>, z.ZodNumber>>(true);
+//   const schema = Schema.string().json();
+//   util.assertEqual<typeof schema, Schema.SchemaString>(true);
+//   const schema2 = Schema.string().json(Schema.number());
+//   util.assertEqual<typeof schema2, Schema.SchemaPipe<Schema.SchemaTransform<any, string>, Schema.SchemaNumber>>(true);
 //   const r2 = schema2.parse("12");
 //   util.assertEqual<number, typeof r2>(true);
 // });
 // test("parse string to json", async () => {
-//   const Env = z.object({
-//     myJsonConfig: z.string().jsonString(z.object({ foo: z.number() })),
-//     someOtherValue: z.string(),
+//   const Env = Schema.object({
+//     myJsonConfig: Schema.string().jsonString(Schema.object({ foo: Schema.number() })),
+//     someOtherValue: Schema.string(),
 //   });
 
 //   expect(
@@ -34,7 +34,7 @@ test("placeholder test", () => {
 //   expect(JSON.parse(JSON.stringify(invalidValues))).toEqual({
 //     success: false,
 //     error: {
-//       name: "ZodError",
+//       name: "SchemaError",
 //       issues: [
 //         {
 //           code: "invalid_type",
@@ -63,7 +63,7 @@ test("placeholder test", () => {
 //   expect(JSON.parse(JSON.stringify(invalidJsonSyntax))).toMatchObject({
 //     success: false,
 //     error: {
-//       name: "ZodError",
+//       name: "SchemaError",
 //       issues: [
 //         {
 //           code: "invalid_string",
@@ -71,10 +71,10 @@ test("placeholder test", () => {
 //             _def: {
 //               catchall: {
 //                 _def: {
-//                   typeName: "ZodNever",
+//                   typeName: "SchemaNever",
 //                 },
 //               },
-//               typeName: "ZodObject",
+//               typeName: "SchemaObject",
 //               unknownKeys: "strip",
 //             },
 //           },
@@ -96,14 +96,14 @@ test("placeholder test", () => {
 // });
 
 // test("no argument", () => {
-//   const schema = z.string().json();
-//   util.assertEqual<typeof schema, z.ZodString>(true);
-//   z.string().json().parse(`{}`);
-//   z.string().json().parse(`null`);
-//   z.string().json().parse(`12`);
-//   z.string().json().parse(`{ "test": "test"}`);
-//   expect(() => z.string().json().parse(`asdf`)).toThrow();
-//   expect(() => z.string().json().parse(`{ "test": undefined }`)).toThrow();
-//   expect(() => z.string().json().parse(`{ "test": 12n }`)).toThrow();
-//   expect(() => z.string().json().parse(`{ test: "test" }`)).toThrow();
+//   const schema = Schema.string().json();
+//   util.assertEqual<typeof schema, Schema.SchemaString>(true);
+//   Schema.string().json().parse(`{}`);
+//   Schema.string().json().parse(`null`);
+//   Schema.string().json().parse(`12`);
+//   Schema.string().json().parse(`{ "test": "test"}`);
+//   expect(() => Schema.string().json().parse(`asdf`)).toThrow();
+//   expect(() => Schema.string().json().parse(`{ "test": undefined }`)).toThrow();
+//   expect(() => Schema.string().json().parse(`{ "test": 12n }`)).toThrow();
+//   expect(() => Schema.string().json().parse(`{ test: "test" }`)).toThrow();
 // });

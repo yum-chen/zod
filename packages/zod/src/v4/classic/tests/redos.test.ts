@@ -1,8 +1,8 @@
 import { checkSync } from "recheck";
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const { regexes } = z.core;
+const { regexes } = Schema.core;
 
 /** Every pattern `core/regexes.ts` ships, with the parameterized ones materialized across their argument space. */
 function allPatterns(): [string, RegExp][] {
@@ -51,15 +51,15 @@ test("no built-in pattern is ReDoS-vulnerable", () => {
 
 test("emoji rejects a backtracking payload in linear time", () => {
   // U+1F9B0-U+1F9B3 are the only code points in both \p{Extended_Pictographic} and \p{Emoji_Component}. A failing match over them used to backtrack exponentially: 26 of them took ~1.9s, and each additional character roughly doubled it.
-  const schema = z.emoji();
+  const schema = Schema.emoji();
   const payload = `${"🦰".repeat(26)} `;
 
   // Warm up first, then take the best of three: a cold first call is dominated by JIT and can cost hundreds of times the steady-state match on a loaded machine.
-  expect(schema.safeParse(payload).success).toBe(false);
+  expect(Schema.safeParse(payload).success).toBe(false);
   let best = Number.POSITIVE_INFINITY;
   for (let i = 0; i < 3; i++) {
     const start = performance.now();
-    schema.safeParse(payload);
+    Schema.safeParse(payload);
     best = Math.min(best, performance.now() - start);
   }
 

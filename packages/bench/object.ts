@@ -1,6 +1,6 @@
 import * as v from "valibot";
-import * as z4 from "zod/v4";
-import * as z3 from "zod3";
+import * as z4 from "schema/v4";
+import * as z3 from "schema3";
 import { metabench } from "./metabench.js";
 
 const z3Schema = z3.object({
@@ -33,11 +33,11 @@ console.log(z3Schema.parse(DATA[0]));
 console.log(z4Schema.parse(DATA[0]));
 console.log(v.parse(valibotSchema, DATA[0]));
 
-const bench = metabench("z.object().parse", {
-  zod3() {
+const bench = metabench("Schema.object().parse", {
+  schema3() {
     for (const d of DATA) z3Schema.parse(d);
   },
-  zod4() {
+  schema4() {
     for (const d of DATA) z4Schema.parse(d);
   },
   valibot() {

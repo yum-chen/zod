@@ -2,7 +2,7 @@
  * Ranks open issues and PRs by a synthesized engagement signal.
  *
  *   nub run dev scripts/triage-signal.ts
- *   nub run dev scripts/triage-signal.ts --repo colinhacks/zod --top 40
+ *   nub run dev scripts/triage-signal.ts --repo colinhacks/schema --top 40
  *
  * Auth comes from the `gh` CLI (`gh auth token`).
  */
@@ -28,7 +28,7 @@ function parseArgs(argv: string[]): Args {
     return i === -1 ? undefined : argv[i + 1];
   };
   return {
-    repo: get("--repo") ?? "colinhacks/zod",
+    repo: get("--repo") ?? "colinhacks/schema",
     top: Number(get("--top") ?? 40),
     outDir: get("--out") ?? ".triage",
     page: Number(get("--page") ?? 50),
@@ -254,7 +254,7 @@ async function graphql(query: string, variables: Record<string, unknown>): Promi
     headers: {
       authorization: `bearer ${ghToken()}`,
       "content-type": "application/json",
-      "user-agent": "zod-triage-signal",
+      "user-agent": "schema-triage-signal",
     },
     body: JSON.stringify({ query, variables }),
   });
@@ -364,7 +364,7 @@ function score(item: Item, now: number): Scored {
 /* -------------------------------------------------------------------------- */
 
 const STOPWORDS = new Set(
-  "a an the and or of to in for on with when is are be do does not no fix fixes fixed feat chore docs test tests refactor perf ci bug issue support add adds added allow allows make makes use using update updates from into via zod v3 v4 correctly properly".split(
+  "a an the and or of to in for on with when is are be do does not no fix fixes fixed feat chore docs test tests refactor perf ci bug issue support add adds added allow allows make makes use using update updates from into via schema v3 v4 correctly properly".split(
     " "
   )
 );

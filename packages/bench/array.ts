@@ -1,19 +1,19 @@
 import { makeData, makeSchema, randomString } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
-const { zod3, zod4 } = makeSchema((z) => z.array(z.string()));
+const { schema3, schema4 } = makeSchema((z) => Schema.array(Schema.string()));
 const DATA = makeData(1000, () => Array.from({ length: 3 }, () => randomString(10)));
 
 // make sure they're working
-console.log(zod3.parse(DATA[0]));
-console.log(zod4.parse(DATA[0]));
+console.log(schema3.parse(DATA[0]));
+console.log(schema4.parse(DATA[0]));
 
-const bench = metabench("z.array() parsing", {
-  zod3() {
-    for (const _ of DATA) zod3.parse(_);
+const bench = metabench("Schema.array() parsing", {
+  schema3() {
+    for (const _ of DATA) schema3.parse(_);
   },
-  zod4() {
-    for (const _ of DATA) zod4.parse(_);
+  schema4() {
+    for (const _ of DATA) schema4.parse(_);
   },
 });
 

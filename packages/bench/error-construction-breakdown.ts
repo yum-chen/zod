@@ -1,7 +1,7 @@
-// Where the time goes when a caller reads `.error` on a failing safeParse: finalizeIssue per issue, the ZodError construction, and the plain Error baseline. Fixed iterations, gc between samples, min of 7 interleaved rounds.
-import * as z from "zod";
-import * as core from "../zod/src/v4/core/index.js";
-import * as util from "../zod/src/v4/core/util.js";
+// Where the time goes when a caller reads `.error` on a failing safeParse: finalizeIssue per issue, the SchemaError construction, and the plain Error baseline. Fixed iterations, gc between samples, min of 7 interleaved rounds.
+import * as Schema   from "schema";
+import * as core from "../schema/src/v4/core/index.js";
+import * as util from "../schema/src/v4/core/util.js";
 
 declare global {
   var gc: undefined | (() => void);
@@ -11,8 +11,8 @@ if (!globalThis.gc) {
   process.exit(1);
 }
 
-const inst = z.string();
-const raw = () => ({ code: "invalid_type", expected: "string", input: 42, inst }) as unknown as core.$ZodRawIssue;
+const inst = Schema.string();
+const raw = () => ({ code: "invalid_type", expected: "string", input: 42, inst }) as unknown as core.$SchemaRawIssue;
 const ctx = { async: false } as core.ParseContextInternal;
 const finalized = util.finalizeIssue(raw(), ctx, core.config());
 const finalizedList = [finalized];
@@ -28,15 +28,15 @@ function sample(fn: () => unknown, iters: number): number {
 // candidate finalizeIssue bodies, same output: object rest (main before #6567) vs a for-in copy loop; the shipped body walks Object.keys so inherited keys stay out
 const SKIP = new Set(["inst", "schema", "continue", "input"]);
 function finalizeLoop(iss: any, c: any, cfg: any): any {
-  const traits: Set<string> | undefined = iss.inst?._zod?.traits;
-  if (traits?.has("$ZodType")) {
-    if (traits.has("$ZodCheck")) iss.schema ??= iss.inst;
+  const traits: Set<string> | undefined = iss.inst?._schema?.traits;
+  if (traits?.has("$SchemaType")) {
+    if (traits.has("$SchemaCheck")) iss.schema ??= iss.inst;
     else iss.schema = iss.inst;
   }
-  const schemaError = iss.schema !== iss.inst ? iss.schema?._zod.def?.error : undefined;
+  const schemaError = iss.schema !== iss.inst ? iss.schema?._schema.def?.error : undefined;
   const message = iss.message
     ? iss.message
-    : (util.unwrapMessage(iss.inst?._zod.def?.error?.(iss)) ??
+    : (util.unwrapMessage(iss.inst?._schema.def?.error?.(iss)) ??
       util.unwrapMessage(schemaError?.(iss)) ??
       util.unwrapMessage(c?.error?.(iss)) ??
       util.unwrapMessage(cfg.customError?.(iss)) ??
@@ -64,10 +64,10 @@ const variants: Array<[string, () => unknown]> = [
   ["finalizeIssue(one raw issue)", () => util.finalizeIssue(raw(), ctx, core.config())],
   ["config() alone", () => core.config()],
   ["new Error('x')", () => new Error("x")],
-  ["new core.$ZodRealError([issue])", () => new core.$ZodRealError(finalizedList)],
-  ["new z.ZodError([issue]) (classic)", () => new z.ZodError(finalizedList)],
-  ["new z.ZodError + read .issues", () => new z.ZodError(finalizedList).issues],
-  ["new z.ZodError + read .message", () => new z.ZodError(finalizedList).message.length],
+  ["new core.$SchemaRealError([issue])", () => new core.$SchemaRealError(finalizedList)],
+  ["new Schema.SchemaError([issue]) (classic)", () => new Schema.SchemaError(finalizedList)],
+  ["new Schema.SchemaError + read .issues", () => new Schema.SchemaError(finalizedList).issues],
+  ["new Schema.SchemaError + read .message", () => new Schema.SchemaError(finalizedList).message.length],
   ["safeParse(42).error.issues.length", () => (inst.safeParse(42) as any).error.issues.length],
 ];
 const ITERS = 300_000;

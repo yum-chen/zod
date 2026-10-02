@@ -1,9 +1,9 @@
 Take this simple `Point` schema:
 
 ```ts
-const Point = z.object({
-  x: z.number(),
-  y: z.number()
+const Point = Schema.object({
+  x: Schema.number(),
+  y: Schema.number()
 });
 ```
 
@@ -21,9 +21,9 @@ isPoint({ x: 1, y: 2 }); // true
 isPoint({ x: "1" });     // false
 ```
 
-For the large majority of inputs, the generated function validates the data with the fastest logic JavaScript can express: straight-line `typeof` checks and property reads, with no interpreter in between. When it can't handle an input, Zod falls back to the standard parser.
+For the large majority of inputs, the generated function validates the data with the fastest logic JavaScript can express: straight-line `typeof` checks and property reads, with no interpreter in between. When it can't handle an input, Schema falls back to the standard parser.
 
-This is the function Zod generates for the `Player` schema above:
+This is the function Schema generates for the `Player` schema above:
 
 ```js
 if (typeof input !== "object" || input === null || Array.isArray(input)) return INVALID;
@@ -39,4 +39,4 @@ return v3;
 
 Armed with the power of `new Function()`, this happens in-process at runtime. There is no need to integrate with your build system.
 
-<Callout>The compiled schema is purely additive on top of the existing schema. It tacks on the pre-compiled fast path for checking valid inputs. When invalid data is detected, it returns the `INVALID` symbol to signal that parsing should fall back to the uncompiled parser. This structurally prevents subtle deviations in error reporting between compiled and uncompiled variants.</Callout>
+<Callout>The compiled schema is purely additive on top of the existing Schema. It tacks on the pre-compiled fast path for checking valid inputs. When invalid data is detected, it returns the `INVALID` symbol to signal that parsing should fall back to the uncompiled parser. This structurally prevents subtle deviations in error reporting between compiled and uncompiled variants.</Callout>

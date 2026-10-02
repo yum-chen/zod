@@ -1,40 +1,40 @@
-import * as z from "zod";
-import { ZodCompileUnsupportedError, compile } from "zod/v4/core";
+import * as Schema   from "schema";
+import { SchemaCompileUnsupportedError, compile } from "schema/v4/core";
 
-// z.validate(schema, input) vs schema.safeParse(input).success, across schema shapes, on valid and invalid input.
+// Schema.validate(schema, input) vs Schema.safeParse(input).success, across schema shapes, on valid and invalid input.
 //
-// Three tables. The first two answer what a caller holding one schema gains by asking for a boolean instead of a result: the same pair of calls on a plain schema, and on that schema passed through z.compile(). The third is the cross-mode upgrade — compiled validate against plain safeParse — which is what a caller adopting both at once gains.
+// Three tables. The first two answer what a caller holding one schema gains by asking for a boolean instead of a result: the same pair of calls on a plain schema, and on that schema passed through Schema.compile(). The third is the cross-mode upgrade — compiled validate against plain safeParse — which is what a caller adopting both at once gains.
 //
-// Methodology follows compile-matrix.ts: absolute ops/sec drifts by tens of percent between runs, so all four calls are measured *interleaved* inside one round and the best of N rounds is kept. That is what makes the cross-mode ratio legitimate; measuring the plain schema to completion and then the compiled one would put whatever drifted between those two blocks straight onto it. safeParse allocates a result object per call while validate allocates nothing, so a time-boxed loop would sample whatever the collector is doing — the harness uses a fixed iteration count with gc() between samples instead. The failing result's ZodError is not part of that: failure() builds it lazily behind a getter, so reading only .success never constructs one.
+// Methodology follows compile-matrix.ts: absolute ops/sec drifts by tens of percent between runs, so all four calls are measured *interleaved* inside one round and the best of N rounds is kept. That is what makes the cross-mode ratio legitimate; measuring the plain schema to completion and then the compiled one would put whatever drifted between those two blocks straight onto it. safeParse allocates a result object per call while validate allocates nothing, so a time-boxed loop would sample whatever the collector is doing — the harness uses a fixed iteration count with gc() between samples instead. The failing result's SchemaError is not part of that: failure() builds it lazily behind a getter, so reading only .success never constructs one.
 
 interface Case {
   name: string;
-  schema: z.ZodType;
+  schema: Schema.SchemaType;
   valid: unknown;
   invalid: unknown;
 }
 
 const cases: Case[] = [];
-const add = (name: string, schema: z.ZodType, valid: unknown, invalid: unknown) =>
+const add = (name: string, schema: Schema.SchemaType, valid: unknown, invalid: unknown) =>
   cases.push({ name, schema, valid, invalid });
 
-add("z.string()", z.string(), "hello world", 42);
-add("z.number()", z.number(), 42.5, "42.5");
-add("z.boolean()", z.boolean(), true, "true");
-add("z.string().email()", z.email(), "user@example.com", "not-an-email");
+add("Schema.string()", Schema.string(), "hello world", 42);
+add("Schema.number()", Schema.number(), 42.5, "42.5");
+add("Schema.boolean()", Schema.boolean(), true, "true");
+add("Schema.string().email()", Schema.email(), "user@example.com", "not-an-email");
 
 const flat5 = { a: "x", b: 1, c: true, d: "y", e: 2 };
 add(
-  "z.object(), 5 keys",
-  z.object({ a: z.string(), b: z.number(), c: z.boolean(), d: z.string(), e: z.number() }),
+  "Schema.object(), 5 keys",
+  Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean(), d: Schema.string(), e: Schema.number() }),
   flat5,
   { ...flat5, c: "not a boolean" }
 );
 
 const wide20 = Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, "v"]));
 add(
-  "z.object(), 20 keys",
-  z.object(Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, z.string()]))) as z.ZodType,
+  "Schema.object(), 20 keys",
+  Schema.object(Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, Schema.string()]))) as Schema  .SchemaType,
   wide20,
   { ...wide20, k9: 9 }
 );
@@ -50,44 +50,44 @@ const moltarValid = {
 };
 add(
   "nested object",
-  z.object({
-    number: z.number(),
-    negNumber: z.number(),
-    maxNumber: z.number(),
-    string: z.string(),
-    longString: z.string(),
-    boolean: z.boolean(),
-    deeplyNested: z.object({ foo: z.string(), num: z.number(), bool: z.boolean() }),
+  Schema.object({
+    number: Schema.number(),
+    negNumber: Schema.number(),
+    maxNumber: Schema.number(),
+    string: Schema.string(),
+    longString: Schema.string(),
+    boolean: Schema.boolean(),
+    deeplyNested: Schema.object({ foo: Schema.string(), num: Schema.number(), bool: Schema.boolean() }),
   }),
   moltarValid,
   { ...moltarValid, deeplyNested: { ...moltarValid.deeplyNested, num: "1" } }
 );
 
 add(
-  "z.array(z.string()), 10",
-  z.array(z.string()),
+  "Schema.array(Schema.string()), 10",
+  Schema.array(Schema.string()),
   Array.from({ length: 10 }, (_, i) => `s${i}`),
   Array.from({ length: 10 }, (_, i) => (i === 6 ? 6 : `s${i}`))
 );
 add(
-  "z.array(z.object()), 10",
-  z.array(z.object({ id: z.number(), name: z.string() })),
+  "Schema.array(Schema.object()), 10",
+  Schema.array(Schema.object({ id: Schema.number(), name: Schema.string() })),
   Array.from({ length: 10 }, (_, i) => ({ id: i, name: `n${i}` })),
   Array.from({ length: 10 }, (_, i) => ({ id: i, name: i === 6 ? 6 : `n${i}` }))
 );
-add("z.tuple() of 3", z.tuple([z.string(), z.number(), z.boolean()]), ["a", 1, true], ["a", 1, "true"]);
+add("Schema.tuple() of 3", Schema.tuple([Schema.string(), Schema.number(), Schema.boolean()]), ["a", 1, true], ["a", 1, "true"]);
 add(
-  "z.union() of 3 objects",
-  z.union([z.object({ a: z.string() }), z.object({ b: z.number() }), z.object({ c: z.boolean() })]),
+  "Schema.union() of 3 objects",
+  Schema.union([Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() }), Schema.object({ c: Schema.boolean() })]),
   { c: true },
   { c: "true" }
 );
 add(
-  "z.discriminatedUnion() of 3",
-  z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("k0"), v: z.number() }),
-    z.object({ kind: z.literal("k1"), v: z.number() }),
-    z.object({ kind: z.literal("k2"), v: z.number() }),
+  "Schema.discriminatedUnion() of 3",
+  Schema.discriminatedUnion("kind", [
+    Schema.object({ kind: Schema.literal("k0"), v: Schema.number() }),
+    Schema.object({ kind: Schema.literal("k1"), v: Schema.number() }),
+    Schema.object({ kind: Schema.literal("k2"), v: Schema.number() }),
   ]),
   { kind: "k2", v: 1 },
   { kind: "k2", v: "1" }
@@ -134,17 +134,17 @@ interface Pair {
 }
 
 // all four calls alternate inside a round and share one iteration count, so every ratio the harness prints is paired
-function measure(plain: z.ZodType, compiled: z.ZodType | null, input: unknown): Pair {
+function measure(plain: Schema.SchemaType, compiled: Schema.SchemaType | null, input: unknown): Pair {
   // Feed the input through an array load. Passed as a constant the whole call is loop-invariant and V8 hoists it out of the timing loop.
   const pool = Array.from({ length: 64 }, () => input);
   let idx = 0;
-  const safeParseOn = (s: z.ZodType) => () => {
+  const safeParseOn = (s: Schema.SchemaType) => () => {
     const r = s.safeParse(pool[idx++ & 63]);
     sink += r.success ? 1 : 0;
     escaped = r;
   };
-  const validateOn = (s: z.ZodType) => () => {
-    const ok = z.validate(s, pool[idx++ & 63]);
+  const validateOn = (s: Schema.SchemaType) => () => {
+    const ok = Schema.validate(s, pool[idx++ & 63]);
     sink += ok ? 1 : 0;
     escaped = ok;
   };
@@ -180,15 +180,15 @@ const problems: string[] = [];
 interface Target {
   name: string;
   compiled: boolean;
-  schema: z.ZodType;
+  schema: Schema.SchemaType;
   valid: unknown;
   invalid: unknown;
 }
 
 interface CasePair {
   name: string;
-  plain: z.ZodType;
-  compiled: z.ZodType | null;
+  plain: Schema.SchemaType;
+  compiled: Schema.SchemaType | null;
   valid: unknown;
   invalid: unknown;
 }
@@ -196,23 +196,23 @@ interface CasePair {
 const targets: Target[] = [];
 const pairs: CasePair[] = [];
 for (const c of cases) {
-  if (c.schema.safeParse(c.valid).success !== true) problems.push(`${c.name}: "valid" input does not parse`);
-  if (c.schema.safeParse(c.invalid).success !== false) problems.push(`${c.name}: "invalid" input parses`);
-  if (z.validate(c.schema, c.valid) !== true) problems.push(`${c.name}: validate rejects valid input`);
-  if (z.validate(c.schema, c.invalid) !== false) problems.push(`${c.name}: validate accepts invalid input`);
+  if (c.Schema.safeParse(c.valid).success !== true) problems.push(`${c.name}: "valid" input does not parse`);
+  if (c.Schema.safeParse(c.invalid).success !== false) problems.push(`${c.name}: "invalid" input parses`);
+  if (Schema.validate(c.schema, c.valid) !== true) problems.push(`${c.name}: validate rejects valid input`);
+  if (Schema.validate(c.schema, c.invalid) !== false) problems.push(`${c.name}: validate accepts invalid input`);
   targets.push({ name: c.name, compiled: false, schema: c.schema, valid: c.valid, invalid: c.invalid });
 
   // strict: a silent uncompiled fallback would publish a "compiled" row that is really a second uncompiled measurement
-  let compiled: z.ZodType | null = null;
+  let compiled: Schema.SchemaType | null = null;
   try {
     compiled = compile(c.schema, { strict: true });
   } catch (err) {
     problems.push(
-      `${c.name}: did not compile (${err instanceof ZodCompileUnsupportedError ? "unsupported" : (err as Error).name})`
+      `${c.name}: did not compile (${err instanceof SchemaCompileUnsupportedError ? "unsupported" : (err as Error).name})`
     );
   }
   if (compiled) {
-    if (z.validate(compiled, c.valid) !== true || z.validate(compiled, c.invalid) !== false)
+    if (Schema.validate(compiled, c.valid) !== true || Schema.validate(compiled, c.invalid) !== false)
       problems.push(`${c.name}: compiled validate disagrees with the runtime`);
     targets.push({ name: c.name, compiled: true, schema: compiled, valid: c.valid, invalid: c.invalid });
   }
@@ -223,8 +223,8 @@ for (const c of cases) {
 for (let i = 0; i < 200; i++) {
   for (const t of targets) {
     for (const input of [t.valid, t.invalid]) {
-      sink += t.schema.safeParse(input).success ? 1 : 0;
-      sink += z.validate(t.schema, input) ? 1 : 0;
+      sink += t.Schema.safeParse(input).success ? 1 : 0;
+      sink += Schema.validate(t.schema, input) ? 1 : 0;
     }
   }
 }
@@ -246,7 +246,7 @@ for (const mode of [false, true]) {
   if (!subset.length) continue;
   console.log();
   console.log(
-    `${mode ? "compiled with z.compile()" : "plain schemas"} — z.validate vs safeParse().success, best of ${ROUNDS} interleaved rounds${HAS_GC ? "" : " (no gc: run with --expose-gc)"}`
+    `${mode ? "compiled with Schema.compile()" : "plain schemas"} — Schema.validate vs safeParse().success, best of ${ROUNDS} interleaved rounds${HAS_GC ? "" : " (no gc: run with --expose-gc)"}`
   );
   console.log();
   console.log(
@@ -281,7 +281,7 @@ for (const mode of [false, true]) {
   if (cross.length) {
     console.log();
     console.log(
-      `compiled z.validate vs plain safeParse().success — the cross-mode upgrade, best of ${ROUNDS} interleaved rounds`
+      `compiled Schema.validate vs plain safeParse().success — the cross-mode upgrade, best of ${ROUNDS} interleaved rounds`
     );
     console.log();
     console.log(`${pad("schema", 26)}${padL("plain sp", 11)}${padL("comp v", 10)}${padL("x", 8)}`);

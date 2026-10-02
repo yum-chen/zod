@@ -1,11 +1,11 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 describe("basic refinement functionality", () => {
   test("should create a new schema instance when refining", () => {
-    const obj1 = z.object({
-      first: z.string(),
-      second: z.string(),
+    const obj1 = Schema.object({
+      first: Schema.string(),
+      second: Schema.string(),
     });
     const obj2 = obj1.partial().strict();
     const obj3 = obj2.refine((data) => data.first || data.second, "Either first or second should be filled in.");
@@ -17,37 +17,37 @@ describe("basic refinement functionality", () => {
   test("should validate according to refinement logic", () => {
     const schema = z
       .object({
-        first: z.string(),
-        second: z.string(),
+        first: Schema.string(),
+        second: Schema.string(),
       })
       .partial()
       .strict()
       .refine((data) => data.first || data.second, "Either first or second should be filled in.");
 
     // Should fail on empty object
-    expect(() => schema.parse({})).toThrow();
+    expect(() => Schema.parse({})).toThrow();
 
     // Should pass with first property
-    expect(schema.parse({ first: "a" })).toEqual({ first: "a" });
+    expect(Schema.parse({ first: "a" })).toEqual({ first: "a" });
 
     // Should pass with second property
-    expect(schema.parse({ second: "a" })).toEqual({ second: "a" });
+    expect(Schema.parse({ second: "a" })).toEqual({ second: "a" });
 
     // Should pass with both properties
-    expect(schema.parse({ first: "a", second: "a" })).toEqual({ first: "a", second: "a" });
+    expect(Schema.parse({ first: "a", second: "a" })).toEqual({ first: "a", second: "a" });
   });
 
   test("should validate strict mode correctly", () => {
     const schema = z
       .object({
-        first: z.string(),
-        second: z.string(),
+        first: Schema.string(),
+        second: Schema.string(),
       })
       .partial()
       .strict();
 
     // Should throw on extra properties
-    expect(() => schema.parse({ third: "adsf" })).toThrow();
+    expect(() => Schema.parse({ third: "adsf" })).toThrow();
   });
 });
 
@@ -55,9 +55,9 @@ describe("refinement with custom error messages", () => {
   test("should use custom error message when validation fails", () => {
     const validationSchema = z
       .object({
-        email: z.string().email(),
-        password: z.string(),
-        confirmPassword: z.string(),
+        email: Schema.string().email(),
+        password: Schema.string(),
+        confirmPassword: Schema.string(),
       })
       .refine((data) => data.password === data.confirmPassword, "Both password and confirmation must match");
 
@@ -78,9 +78,9 @@ describe("async refinements", () => {
   test("should support async refinement functions", async () => {
     const validationSchema = z
       .object({
-        email: z.string().email(),
-        password: z.string(),
-        confirmPassword: z.string(),
+        email: Schema.string().email(),
+        password: Schema.string(),
+        confirmPassword: Schema.string(),
       })
       .refine(
         (data) => Promise.resolve().then(() => data.password === data.confirmPassword),
@@ -122,7 +122,7 @@ describe("early termination options", () => {
       })
       .refine((_) => false);
 
-    const result = schema.safeParse("");
+    const result = Schema.safeParse("");
     expect(result.success).toEqual(false);
     if (!result.success) {
       expect(result.error.issues.length).toEqual(1);
@@ -144,7 +144,7 @@ describe("early termination options", () => {
       })
       .refine((_) => false);
 
-    const result = schema.safeParse("");
+    const result = Schema.safeParse("");
     expect(result.success).toEqual(false);
     if (!result.success) {
       expect(result.error.issues.length).toEqual(1);
@@ -158,7 +158,7 @@ describe("early termination options", () => {
       .refine((_) => false, { abort: true })
       .refine((_) => false);
 
-    const result = schema.safeParse("");
+    const result = Schema.safeParse("");
     expect(result.success).toEqual(false);
     if (!result.success) {
       expect(result.error.issues.length).toEqual(1);
@@ -169,7 +169,7 @@ describe("early termination options", () => {
 describe("custom error paths", () => {
   test("should use custom path in error message", () => {
     const result = z
-      .object({ password: z.string(), confirm: z.string() })
+      .object({ password: Schema.string(), confirm: Schema.string() })
       .refine((data) => data.confirm === data.password, { path: ["confirm"] })
       .safeParse({ password: "asdf", confirm: "qewr" });
 
@@ -182,7 +182,7 @@ describe("custom error paths", () => {
 
 describe("superRefine functionality", () => {
   test("should support multiple validation rules", () => {
-    const Strings = z.array(z.string()).superRefine((val, ctx) => {
+    const Strings = Schema.array(Schema.string()).superRefine((val, ctx) => {
       if (val.length > 3) {
         ctx.addIssue({
           input: val,
@@ -219,7 +219,7 @@ describe("superRefine functionality", () => {
   });
 
   test("should support async superRefine", async () => {
-    const Strings = z.array(z.string()).superRefine(async (val, ctx) => {
+    const Strings = Schema.array(Schema.string()).superRefine(async (val, ctx) => {
       if (val.length > 3) {
         ctx.addIssue({
           input: val,
@@ -263,7 +263,7 @@ describe("superRefine functionality", () => {
 
     expect(defaultContinue.safeParse("test")).toMatchInlineSnapshot(`
       {
-        "error": [ZodError: [
+        "error": [SchemaError: [
         {
           "code": "custom",
           "message": "First issue",
@@ -289,7 +289,7 @@ describe("superRefine functionality", () => {
 
     expect(explicitContinueFalse.safeParse("test")).toMatchInlineSnapshot(`
       {
-        "error": [ZodError: [
+        "error": [SchemaError: [
         {
           "code": "custom",
           "message": "First issue",
@@ -301,14 +301,14 @@ describe("superRefine functionality", () => {
     `);
 
     // Multiple issues in same refinement - both always added regardless of continue
-    const multipleInSame = z.string().superRefine((_, ctx) => {
+    const multipleInSame = Schema.string().superRefine((_, ctx) => {
       ctx.addIssue({ code: "custom", message: "First", continue: false });
       ctx.addIssue({ code: "custom", message: "Second" });
     });
 
     expect(multipleInSame.safeParse("test")).toMatchInlineSnapshot(`
       {
-        "error": [ZodError: [
+        "error": [SchemaError: [
         {
           "code": "custom",
           "message": "First",
@@ -326,11 +326,11 @@ describe("superRefine functionality", () => {
   });
 
   test("should accept string as shorthand for custom error message", () => {
-    const schema = z.string().superRefine((_, ctx) => {
+    const schema = Schema.string().superRefine((_, ctx) => {
       ctx.addIssue("bad stuff");
     });
 
-    const result = schema.safeParse("asdf");
+    const result = Schema.safeParse("asdf");
     expect(result.success).toEqual(false);
     if (!result.success) {
       expect(result.error.issues).toHaveLength(1);
@@ -339,13 +339,13 @@ describe("superRefine functionality", () => {
   });
 
   test("should preserve explicit nullish issue input", () => {
-    const schema = z.string().superRefine((_, ctx) => {
+    const schema = Schema.string().superRefine((_, ctx) => {
       ctx.addIssue({ code: "custom", message: "default" });
       ctx.addIssue({ code: "custom", message: "null", input: null });
       ctx.addIssue({ code: "custom", message: "undefined", input: undefined });
     });
 
-    const result = schema.safeParse("sensitive", { reportInput: true });
+    const result = Schema.safeParse("sensitive", { reportInput: true });
     expect(result.success).toEqual(false);
     if (!result.success) {
       expect(result.error.issues).toHaveLength(3);
@@ -357,7 +357,7 @@ describe("superRefine functionality", () => {
   });
 
   test("should keep issue input aligned with the issue path", () => {
-    const nested = z.object({ a: z.string().nullable() }).superRefine((val, ctx) => {
+    const nested = Schema.object({ a: Schema.string().nullable() }).superRefine((val, ctx) => {
       if (val.a === null) ctx.addIssue({ code: "custom", path: ["a"], input: val.a, message: "no null" });
     });
 
@@ -369,8 +369,8 @@ describe("superRefine functionality", () => {
     }
 
     // Forwarding a nested parse's issues must not overwrite their input with the outer payload.
-    const inner = z.object({ x: z.string() });
-    const forwarding = z.unknown().superRefine((val, ctx) => {
+    const inner = Schema.object({ x: Schema.string() });
+    const forwarding = Schema.unknown().superRefine((val, ctx) => {
       const result = inner.safeParse(val, { reportInput: true });
       if (!result.success) {
         for (const iss of result.error.issues) {
@@ -389,11 +389,11 @@ describe("superRefine functionality", () => {
   });
 
   test("should surface an explicit undefined input to the error map", () => {
-    const schema = z.object({ a: z.string().optional() }).superRefine((val, ctx) => {
+    const schema = Schema.object({ a: Schema.string().optional() }).superRefine((val, ctx) => {
       if (!val.a) ctx.addIssue({ code: "custom", path: ["a"], input: val.a });
     });
 
-    const result = schema.safeParse({}, { error: (iss) => (iss.input === undefined ? "Required" : "Invalid") });
+    const result = Schema.safeParse({}, { error: (iss) => (iss.input === undefined ? "Required" : "Invalid") });
     expect(result.success).toEqual(false);
     if (!result.success) expect(result.error.issues[0].message).toEqual("Required");
   });
@@ -421,7 +421,7 @@ describe("superRefine functionality", () => {
         }
       });
 
-    const result = schema.safeParse("");
+    const result = Schema.safeParse("");
     expect(result.success).toEqual(false);
     if (!result.success) {
       expect(result.error.issues.length).toEqual(1);
@@ -434,8 +434,8 @@ describe("chained refinements", () => {
   test("should collect all validation errors when appropriate", () => {
     const objectSchema = z
       .object({
-        length: z.number(),
-        size: z.number(),
+        length: Schema.number(),
+        size: Schema.number(),
       })
       .refine(({ length }) => length > 5, {
         path: ["length"],
@@ -476,9 +476,9 @@ describe("chained refinements", () => {
   });
 
   test("should run superRefine validation even when base schema validation fails when 'when' is defined and returns true", () => {
-    const baseSchema = z.object({
-      foo: z.number(),
-      bar: z.number(),
+    const baseSchema = Schema.object({
+      foo: Schema.number(),
+      bar: Schema.number(),
     });
 
     const schema = baseSchema.superRefine(
@@ -495,7 +495,7 @@ describe("chained refinements", () => {
       }
     );
 
-    const result = schema.safeParse({
+    const result = Schema.safeParse({
       foo: 11,
     });
     expect(result.success).toEqual(false);
@@ -508,9 +508,9 @@ describe("chained refinements", () => {
   });
 
   test("should not run superRefine validation when 'when' is defined and returns false", () => {
-    const baseSchema = z.object({
-      foo: z.number(),
-      bar: z.number(),
+    const baseSchema = Schema.object({
+      foo: Schema.number(),
+      bar: Schema.number(),
     });
 
     const schema = baseSchema.superRefine(
@@ -527,7 +527,7 @@ describe("chained refinements", () => {
       }
     );
 
-    const result = schema.safeParse({
+    const result = Schema.safeParse({
       foo: 11,
     });
     expect(result.success).toEqual(false);
@@ -541,17 +541,17 @@ describe("chained refinements", () => {
 
 describe("type refinement with type guards", () => {
   test("type guard narrows output type", () => {
-    const schema = z.string().refine((s): s is "a" => s === "a");
+    const schema = Schema.string().refine((s): s is "a" => s === "a");
 
-    expectTypeOf<z.input<typeof schema>>().toEqualTypeOf<string>();
-    expectTypeOf<z.output<typeof schema>>().toEqualTypeOf<"a">();
+    expectTypeOf<Schema.input<typeof schema>>().toEqualTypeOf<string>();
+    expectTypeOf<Schema.output<typeof schema>>().toEqualTypeOf<"a">();
   });
 
   test("non-type-guard refine does not narrow", () => {
-    const schema = z.string().refine((s) => s.length > 0);
+    const schema = Schema.string().refine((s) => s.length > 0);
 
-    expectTypeOf<z.input<typeof schema>>().toEqualTypeOf<string>();
-    expectTypeOf<z.output<typeof schema>>().toEqualTypeOf<string>();
+    expectTypeOf<Schema.input<typeof schema>>().toEqualTypeOf<string>();
+    expectTypeOf<Schema.output<typeof schema>>().toEqualTypeOf<string>();
   });
 
   // TODO: Implement type narrowing for superRefine
@@ -559,8 +559,8 @@ describe("type refinement with type guards", () => {
   //   type NarrowType = { type: string; age: number };
   //   const schema = z
   //     .object({
-  //       type: z.string(),
-  //       age: z.number(),
+  //       type: Schema.string(),
+  //       age: Schema.number(),
   //     })
   //     .nullable()
   //     .superRefine((arg, ctx): arg is NarrowType => {
@@ -576,19 +576,19 @@ describe("type refinement with type guards", () => {
   //       return true;
   //     });
   //
-  //   expectTypeOf<z.infer<typeof schema>>().toEqualTypeOf<NarrowType>();
+  //   expectTypeOf<Schema.infer<typeof schema>>().toEqualTypeOf<NarrowType>();
   //
-  //   expect(schema.safeParse({ type: "test", age: 0 }).success).toEqual(true);
-  //   expect(schema.safeParse(null).success).toEqual(false);
+  //   expect(Schema.safeParse({ type: "test", age: 0 }).success).toEqual(true);
+  //   expect(Schema.safeParse(null).success).toEqual(false);
   // });
 });
 
 test("when", () => {
   const schema = z
     .strictObject({
-      password: z.string().min(8),
-      confirmPassword: z.string(),
-      other: z.string(),
+      password: Schema.string().min(8),
+      confirmPassword: Schema.string(),
+      other: Schema.string(),
     })
     .refine(
       (data) => {
@@ -609,9 +609,9 @@ test("when", () => {
       }
     );
 
-  expect(schema.safeParse(undefined)).toMatchInlineSnapshot(`
+  expect(Schema.safeParse(undefined)).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "object",
         "code": "invalid_type",
@@ -622,9 +622,9 @@ test("when", () => {
       "success": false,
     }
   `);
-  expect(schema.safeParse(null)).toMatchInlineSnapshot(`
+  expect(Schema.safeParse(null)).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "object",
         "code": "invalid_type",
@@ -636,14 +636,14 @@ test("when", () => {
     }
   `);
   expect(
-    schema.safeParse({
+    Schema.safeParse({
       password: "asdf",
       confirmPassword: "asdfg",
       other: "qwer",
     })
   ).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "string",
         "code": "too_small",
@@ -660,14 +660,14 @@ test("when", () => {
   `);
 
   expect(
-    schema.safeParse({
+    Schema.safeParse({
       password: "asdf",
       confirmPassword: "asdfg",
       other: 1234,
     })
   ).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "string",
         "code": "too_small",

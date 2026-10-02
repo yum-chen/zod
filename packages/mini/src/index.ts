@@ -1,1 +1,1 @@
-export * from "zod/mini";
+export * from "schema/mini";

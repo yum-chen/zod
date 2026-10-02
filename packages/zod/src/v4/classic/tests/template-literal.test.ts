@@ -1,91 +1,91 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const empty = z.templateLiteral([]);
-const hello = z.templateLiteral(["hello"]);
-const world = z.templateLiteral(["", z.literal("world")]);
-const one = z.templateLiteral([1]);
-const two = z.templateLiteral(["", z.literal(2)]);
-const onePointOne = z.templateLiteral([z.literal(1.1)]);
-const truee = z.templateLiteral([true]);
-const anotherTrue = z.templateLiteral(["", z.literal(true)]);
-const falsee = z.templateLiteral([false]);
-const anotherFalse = z.templateLiteral(["", z.literal(false)]);
-const nulll = z.templateLiteral([null]);
-const anotherNull = z.templateLiteral(["", z.null()]);
-const undefinedd = z.templateLiteral([undefined]);
-const anotherUndefined = z.templateLiteral(["", z.undefined()]);
-const anyString = z.templateLiteral(["", z.string()]);
-const lazyString = z.templateLiteral(["", z.lazy(() => z.string())]);
-const anyNumber = z.templateLiteral(["", z.number()]);
-const anyInt = z.templateLiteral(["", z.number().int()]);
-// const anyFiniteNumber = z.templateLiteral(["", z.number().finite()]);
-// const anyNegativeNumber = z.templateLiteral(["", z.number().negative()]);
-// const anyPositiveNumber = z.templateLiteral(["", z.number().positive()]);
-// const zeroButInADumbWay = z.templateLiteral(["", z.number().nonnegative().nonpositive()]);
-// const finiteButInADumbWay = z.templateLiteral(["", z.number().min(5).max(10)]);
-const bool = z.templateLiteral(["", z.boolean()]);
-const bigone = z.templateLiteral(["", z.literal(BigInt(1))]);
-const anyBigint = z.templateLiteral(["", z.bigint()]);
-const nullableYo = z.templateLiteral(["", z.nullable(z.literal("yo"))]);
-const nullableString = z.templateLiteral(["", z.nullable(z.string())]);
-const optionalYeah = z.templateLiteral(["", z.literal("yeah").optional()]);
+const empty = Schema.templateLiteral([]);
+const hello = Schema.templateLiteral(["hello"]);
+const world = Schema.templateLiteral(["", Schema.literal("world")]);
+const one = Schema.templateLiteral([1]);
+const two = Schema.templateLiteral(["", Schema.literal(2)]);
+const onePointOne = Schema.templateLiteral([Schema.literal(1.1)]);
+const truee = Schema.templateLiteral([true]);
+const anotherTrue = Schema.templateLiteral(["", Schema.literal(true)]);
+const falsee = Schema.templateLiteral([false]);
+const anotherFalse = Schema.templateLiteral(["", Schema.literal(false)]);
+const nulll = Schema.templateLiteral([null]);
+const anotherNull = Schema.templateLiteral(["", Schema.null()]);
+const undefinedd = Schema.templateLiteral([undefined]);
+const anotherUndefined = Schema.templateLiteral(["", Schema.undefined()]);
+const anyString = Schema.templateLiteral(["", Schema.string()]);
+const lazyString = Schema.templateLiteral(["", Schema.lazy(() => Schema.string())]);
+const anyNumber = Schema.templateLiteral(["", Schema.number()]);
+const anyInt = Schema.templateLiteral(["", Schema.number().int()]);
+// const anyFiniteNumber = Schema.templateLiteral(["", Schema.number().finite()]);
+// const anyNegativeNumber = Schema.templateLiteral(["", Schema.number().negative()]);
+// const anyPositiveNumber = Schema.templateLiteral(["", Schema.number().positive()]);
+// const zeroButInADumbWay = Schema.templateLiteral(["", Schema.number().nonnegative().nonpositive()]);
+// const finiteButInADumbWay = Schema.templateLiteral(["", Schema.number().min(5).max(10)]);
+const bool = Schema.templateLiteral(["", Schema.boolean()]);
+const bigone = Schema.templateLiteral(["", Schema.literal(BigInt(1))]);
+const anyBigint = Schema.templateLiteral(["", Schema.bigint()]);
+const nullableYo = Schema.templateLiteral(["", Schema.nullable(Schema.literal("yo"))]);
+const nullableString = Schema.templateLiteral(["", Schema.nullable(Schema.string())]);
+const optionalYeah = Schema.templateLiteral(["", Schema.literal("yeah").optional()]);
 
-const optionalString = z.templateLiteral(["", z.string().optional()]);
-const optionalNumber = z.templateLiteral(["", z.number().optional()]);
-const nullishBruh = z.templateLiteral(["", z.literal("bruh").nullish()]);
-const nullishString = z.templateLiteral(["", z.string().nullish()]);
-const cuid = z.templateLiteral(["", z.string().cuid()]);
-const cuidZZZ = z.templateLiteral(["", z.string().cuid(), "ZZZ"]);
-const cuid2 = z.templateLiteral(["", z.string().cuid2()]);
-const datetime = z.templateLiteral(["", z.string().datetime()]);
-const email = z.templateLiteral(["", z.string().email()]);
-// const ip = z.templateLiteral(["", z.string().ip()]);
-const ipv4 = z.templateLiteral(["", z.string().ipv4()]);
-const ipv6 = z.templateLiteral(["", z.string().ipv6()]);
-const mac = z.templateLiteral(["", z.mac()]);
-const ulid = z.templateLiteral(["", z.string().ulid()]);
-const uuid = z.templateLiteral(["", z.string().uuid()]);
-const stringAToZ = z.templateLiteral(["", z.string().regex(/^[a-z]+$/)]);
-const stringStartsWith = z.templateLiteral(["", z.string().startsWith("hello")]);
-const stringEndsWith = z.templateLiteral(["", z.string().endsWith("world")]);
-const stringMax5 = z.templateLiteral(["", z.string().max(5)]);
-const stringMin5 = z.templateLiteral(["", z.string().min(5)]);
-const stringLen5 = z.templateLiteral(["", z.string().length(5)]);
-const stringMin5Max10 = z.templateLiteral(["", z.string().min(5).max(10)]);
-const stringStartsWithMax5 = z.templateLiteral(["", z.string().startsWith("hello").max(5)]);
-const brandedString = z.templateLiteral(["", z.string().min(1).brand("myBrand")]);
-// const anything = z.templateLiteral(["", z.any()]);
+const optionalString = Schema.templateLiteral(["", Schema.string().optional()]);
+const optionalNumber = Schema.templateLiteral(["", Schema.number().optional()]);
+const nullishBruh = Schema.templateLiteral(["", Schema.literal("bruh").nullish()]);
+const nullishString = Schema.templateLiteral(["", Schema.string().nullish()]);
+const cuid = Schema.templateLiteral(["", Schema.string().cuid()]);
+const cuidZZZ = Schema.templateLiteral(["", Schema.string().cuid(), "ZZZ"]);
+const cuid2 = Schema.templateLiteral(["", Schema.string().cuid2()]);
+const datetime = Schema.templateLiteral(["", Schema.string().datetime()]);
+const email = Schema.templateLiteral(["", Schema.string().email()]);
+// const ip = Schema.templateLiteral(["", Schema.string().ip()]);
+const ipv4 = Schema.templateLiteral(["", Schema.string().ipv4()]);
+const ipv6 = Schema.templateLiteral(["", Schema.string().ipv6()]);
+const mac = Schema.templateLiteral(["", Schema.mac()]);
+const ulid = Schema.templateLiteral(["", Schema.string().ulid()]);
+const uuid = Schema.templateLiteral(["", Schema.string().uuid()]);
+const stringAToZ = Schema.templateLiteral(["", Schema.string().regex(/^[a-z]+$/)]);
+const stringStartsWith = Schema.templateLiteral(["", Schema.string().startsWith("hello")]);
+const stringEndsWith = Schema.templateLiteral(["", Schema.string().endsWith("world")]);
+const stringMax5 = Schema.templateLiteral(["", Schema.string().max(5)]);
+const stringMin5 = Schema.templateLiteral(["", Schema.string().min(5)]);
+const stringLen5 = Schema.templateLiteral(["", Schema.string().length(5)]);
+const stringMin5Max10 = Schema.templateLiteral(["", Schema.string().min(5).max(10)]);
+const stringStartsWithMax5 = Schema.templateLiteral(["", Schema.string().startsWith("hello").max(5)]);
+const brandedString = Schema.templateLiteral(["", Schema.string().min(1).brand("myBrand")]);
+// const anything = Schema.templateLiteral(["", Schema.any()]);
 
-const url = z.templateLiteral(["https://", z.string().regex(/\w+/), ".", z.enum(["com", "net"])]);
+const url = Schema.templateLiteral(["https://", Schema.string().regex(/\w+/), ".", Schema.enum(["com", "net"])]);
 
-const measurement = z.templateLiteral([
+const measurement = Schema.templateLiteral([
   "",
-  z.number().finite(),
-  z.enum(["px", "em", "rem", "vh", "vw", "vmin", "vmax"]).optional(),
+  Schema.number().finite(),
+  Schema.enum(["px", "em", "rem", "vh", "vw", "vmin", "vmax"]).optional(),
 ]);
-const decimalEnum = z.templateLiteral(["", z.enum({ A: 1.2 })]);
+const decimalEnum = Schema.templateLiteral(["", Schema.enum({ A: 1.2 })]);
 // String(1e21) is "1e+21" — the `+` needs escaping too, or the pattern rejects its own enum value
-const exponentEnum = z.templateLiteral(["", z.enum({ A: 1e21 })]);
+const exponentEnum = Schema.templateLiteral(["", Schema.enum({ A: 1e21 })]);
 
-const connectionString = z.templateLiteral([
+const connectionString = Schema.templateLiteral([
   "mongodb://",
   z
     .templateLiteral([
       "",
-      z.string().regex(/\w+/).describe("username"),
+      Schema.string().regex(/\w+/).describe("username"),
       ":",
-      z.string().regex(/\w+/).describe("password"),
+      Schema.string().regex(/\w+/).describe("password"),
       "@",
     ])
     .optional(),
-  z.string().regex(/\w+/).describe("host"),
+  Schema.string().regex(/\w+/).describe("host"),
   ":",
-  z.number().finite().int().positive().describe("port"),
+  Schema.number().finite().int().positive().describe("port"),
   z
     .templateLiteral([
       "/",
-      z.string().regex(/\w+/).optional().describe("defaultauthdb"),
+      Schema.string().regex(/\w+/).optional().describe("defaultauthdb"),
       z
         .templateLiteral([
           "?",
@@ -101,64 +101,64 @@ const connectionString = z.templateLiteral([
 ]);
 
 test("template literal type inference", () => {
-  expectTypeOf<z.infer<typeof empty>>().toEqualTypeOf<``>();
-  expectTypeOf<z.infer<typeof hello>>().toEqualTypeOf<`hello`>();
-  expectTypeOf<z.infer<typeof world>>().toEqualTypeOf<`world`>();
-  expectTypeOf<z.infer<typeof one>>().toEqualTypeOf<`1`>();
-  expectTypeOf<z.infer<typeof two>>().toEqualTypeOf<`2`>();
-  expectTypeOf<z.infer<typeof truee>>().toEqualTypeOf<`true`>();
-  expectTypeOf<z.infer<typeof anotherTrue>>().toEqualTypeOf<`true`>();
-  expectTypeOf<z.infer<typeof falsee>>().toEqualTypeOf<`false`>();
-  expectTypeOf<z.infer<typeof anotherFalse>>().toEqualTypeOf<`false`>();
-  expectTypeOf<z.infer<typeof nulll>>().toEqualTypeOf<`null`>();
-  expectTypeOf<z.infer<typeof anotherNull>>().toEqualTypeOf<`null`>();
-  expectTypeOf<z.infer<typeof undefinedd>>().toEqualTypeOf<``>();
-  expectTypeOf<z.infer<typeof anotherUndefined>>().toEqualTypeOf<``>();
-  expectTypeOf<z.infer<typeof anyString>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof lazyString>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof anyNumber>>().toEqualTypeOf<`${number}`>();
-  expectTypeOf<z.infer<typeof anyInt>>().toEqualTypeOf<`${number}`>();
-  // expectTypeOf<z.infer<typeof anyFiniteNumber>>().toEqualTypeOf<`${number}`>();
-  // expectTypeOf<z.infer<typeof anyNegativeNumber>>().toEqualTypeOf<`${number}`>();
-  // expectTypeOf<z.infer<typeof anyPositiveNumber>>().toEqualTypeOf<`${number}`>();
-  // expectTypeOf<z.infer<typeof zeroButInADumbWay>>().toEqualTypeOf<`${number}`>();
-  // expectTypeOf<z.infer<typeof finiteButInADumbWay>>().toEqualTypeOf<`${number}`>();
-  expectTypeOf<z.infer<typeof bool>>().toEqualTypeOf<`true` | `false`>();
-  expectTypeOf<z.infer<typeof bigone>>().toEqualTypeOf<`${bigint}`>();
-  expectTypeOf<z.infer<typeof anyBigint>>().toEqualTypeOf<`${bigint}`>();
-  expectTypeOf<z.infer<typeof nullableYo>>().toEqualTypeOf<`yo` | `null`>();
-  expectTypeOf<z.infer<typeof nullableString>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof optionalYeah>>().toEqualTypeOf<`yeah` | ``>();
-  expectTypeOf<z.infer<typeof optionalString>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof optionalNumber>>().toEqualTypeOf<`${number}` | ``>();
-  expectTypeOf<z.infer<typeof nullishBruh>>().toEqualTypeOf<`bruh` | `null` | ``>();
-  expectTypeOf<z.infer<typeof nullishString>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof cuid>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof cuidZZZ>>().toEqualTypeOf<`${string}ZZZ`>();
-  expectTypeOf<z.infer<typeof cuid2>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof datetime>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof email>>().toEqualTypeOf<string>();
-  // expectTypeOf<z.infer<typeof ip>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof ipv4>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof ipv6>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof mac>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof ulid>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof uuid>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringAToZ>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringStartsWith>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringEndsWith>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringMax5>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringMin5>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringLen5>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringMin5Max10>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof stringStartsWithMax5>>().toEqualTypeOf<string>();
-  expectTypeOf<z.infer<typeof brandedString>>().toEqualTypeOf<`${string & z.core.$brand<"myBrand">}`>();
+  expectTypeOf<Schema.infer<typeof empty>>().toEqualTypeOf<``>();
+  expectTypeOf<Schema.infer<typeof hello>>().toEqualTypeOf<`hello`>();
+  expectTypeOf<Schema.infer<typeof world>>().toEqualTypeOf<`world`>();
+  expectTypeOf<Schema.infer<typeof one>>().toEqualTypeOf<`1`>();
+  expectTypeOf<Schema.infer<typeof two>>().toEqualTypeOf<`2`>();
+  expectTypeOf<Schema.infer<typeof truee>>().toEqualTypeOf<`true`>();
+  expectTypeOf<Schema.infer<typeof anotherTrue>>().toEqualTypeOf<`true`>();
+  expectTypeOf<Schema.infer<typeof falsee>>().toEqualTypeOf<`false`>();
+  expectTypeOf<Schema.infer<typeof anotherFalse>>().toEqualTypeOf<`false`>();
+  expectTypeOf<Schema.infer<typeof nulll>>().toEqualTypeOf<`null`>();
+  expectTypeOf<Schema.infer<typeof anotherNull>>().toEqualTypeOf<`null`>();
+  expectTypeOf<Schema.infer<typeof undefinedd>>().toEqualTypeOf<``>();
+  expectTypeOf<Schema.infer<typeof anotherUndefined>>().toEqualTypeOf<``>();
+  expectTypeOf<Schema.infer<typeof anyString>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof lazyString>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof anyNumber>>().toEqualTypeOf<`${number}`>();
+  expectTypeOf<Schema.infer<typeof anyInt>>().toEqualTypeOf<`${number}`>();
+  // expectTypeOf<Schema.infer<typeof anyFiniteNumber>>().toEqualTypeOf<`${number}`>();
+  // expectTypeOf<Schema.infer<typeof anyNegativeNumber>>().toEqualTypeOf<`${number}`>();
+  // expectTypeOf<Schema.infer<typeof anyPositiveNumber>>().toEqualTypeOf<`${number}`>();
+  // expectTypeOf<Schema.infer<typeof zeroButInADumbWay>>().toEqualTypeOf<`${number}`>();
+  // expectTypeOf<Schema.infer<typeof finiteButInADumbWay>>().toEqualTypeOf<`${number}`>();
+  expectTypeOf<Schema.infer<typeof bool>>().toEqualTypeOf<`true` | `false`>();
+  expectTypeOf<Schema.infer<typeof bigone>>().toEqualTypeOf<`${bigint}`>();
+  expectTypeOf<Schema.infer<typeof anyBigint>>().toEqualTypeOf<`${bigint}`>();
+  expectTypeOf<Schema.infer<typeof nullableYo>>().toEqualTypeOf<`yo` | `null`>();
+  expectTypeOf<Schema.infer<typeof nullableString>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof optionalYeah>>().toEqualTypeOf<`yeah` | ``>();
+  expectTypeOf<Schema.infer<typeof optionalString>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof optionalNumber>>().toEqualTypeOf<`${number}` | ``>();
+  expectTypeOf<Schema.infer<typeof nullishBruh>>().toEqualTypeOf<`bruh` | `null` | ``>();
+  expectTypeOf<Schema.infer<typeof nullishString>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof cuid>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof cuidZZZ>>().toEqualTypeOf<`${string}ZZZ`>();
+  expectTypeOf<Schema.infer<typeof cuid2>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof datetime>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof email>>().toEqualTypeOf<string>();
+  // expectTypeOf<Schema.infer<typeof ip>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof ipv4>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof ipv6>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof mac>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof ulid>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof uuid>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringAToZ>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringStartsWith>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringEndsWith>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringMax5>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringMin5>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringLen5>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringMin5Max10>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof stringStartsWithMax5>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.infer<typeof brandedString>>().toEqualTypeOf<`${string & Schema.core.$brand<"myBrand">}`>();
 
-  // expectTypeOf<z.infer<typeof anything>>().toEqualTypeOf<`${any}`>();
+  // expectTypeOf<Schema.infer<typeof anything>>().toEqualTypeOf<`${any}`>();
 
-  expectTypeOf<z.infer<typeof url>>().toEqualTypeOf<`https://${string}.com` | `https://${string}.net`>();
+  expectTypeOf<Schema.infer<typeof url>>().toEqualTypeOf<`https://${string}.com` | `https://${string}.net`>();
 
-  expectTypeOf<z.infer<typeof measurement>>().toEqualTypeOf<
+  expectTypeOf<Schema.infer<typeof measurement>>().toEqualTypeOf<
     | `${number}`
     | `${number}px`
     | `${number}em`
@@ -169,7 +169,7 @@ test("template literal type inference", () => {
     | `${number}vmax`
   >();
 
-  expectTypeOf<z.infer<typeof connectionString>>().toEqualTypeOf<
+  expectTypeOf<Schema.infer<typeof connectionString>>().toEqualTypeOf<
     | `mongodb://${string}:${number}`
     | `mongodb://${string}:${number}/${string}`
     | `mongodb://${string}:${number}/${string}?${string}`
@@ -182,113 +182,113 @@ test("template literal type inference", () => {
 test("template literal unsupported args", () => {
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.object({})])
+    Schema.templateLiteral([Schema.object({})])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.array(z.object({}))])
+    Schema.templateLiteral([Schema.array(Schema.object({}))])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.union([z.object({}), z.string()])])
+    Schema.templateLiteral([Schema.union([Schema.object({}), Schema.string()])])
   ).toThrow();
   // @ts-expect-error
-  expect(() => z.templateLiteral([z.date()])).toThrow();
+  expect(() => Schema.templateLiteral([Schema.date()])).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.custom<object>((_) => true)])
+    Schema.templateLiteral([Schema.custom<object>((_) => true)])
   ).toThrow();
   expect(() =>
-    z.templateLiteral([
+    Schema.templateLiteral([
       // @ts-expect-error
-      z.discriminatedUnion("discriminator", [z.object({}), z.object({})]),
+      Schema.discriminatedUnion("discriminator", [Schema.object({}), Schema.object({})]),
     ])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.function()])
+    Schema.templateLiteral([Schema.function()])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.instanceof(class MyClass {})])
+    Schema.templateLiteral([Schema.instanceof(class MyClass {})])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.intersection(z.object({}), z.object({}))])
+    Schema.templateLiteral([Schema.intersection(Schema.object({}), Schema.object({}))])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.map(z.string(), z.string())])
+    Schema.templateLiteral([Schema.map(Schema.string(), Schema.string())])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.nullable(z.object({}))])
+    Schema.templateLiteral([Schema.nullable(Schema.object({}))])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.optional(z.object({}))])
+    Schema.templateLiteral([Schema.optional(Schema.object({}))])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.promise()])
+    Schema.templateLiteral([Schema.promise()])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.record(z.unknown())])
+    Schema.templateLiteral([Schema.record(Schema.unknown())])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.set(z.string())])
+    Schema.templateLiteral([Schema.set(Schema.string())])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.symbol()])
+    Schema.templateLiteral([Schema.symbol()])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.tuple([z.string()])])
+    Schema.templateLiteral([Schema.tuple([Schema.string()])])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.unknown()])
+    Schema.templateLiteral([Schema.unknown()])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.void()])
+    Schema.templateLiteral([Schema.void()])
   ).toThrow();
 
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.never()])
+    Schema.templateLiteral([Schema.never()])
   ).toThrow();
   // @ts-expect-error
-  expect(() => z.templateLiteral([z.nan()])).toThrow();
+  expect(() => Schema.templateLiteral([Schema.nan()])).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.pipe(z.string(), z.string())])
+    Schema.templateLiteral([Schema.pipe(Schema.string(), Schema.string())])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.preprocess(() => true, z.boolean())])
+    Schema.templateLiteral([Schema.preprocess(() => true, Schema.boolean())])
   ).toThrow();
   expect(() =>
     // @ts-expect-error
-    z.templateLiteral([z.object({}).brand("brand")])
+    Schema.templateLiteral([Schema.object({}).brand("brand")])
   ).toThrow();
 
   // these constraints aren't enforced but they shouldn't throw
-  z.templateLiteral([z.number().multipleOf(2)]);
-  z.templateLiteral([z.string().emoji()]);
-  z.templateLiteral([z.string().url()]);
-  z.templateLiteral([z.string().url()]);
-  z.templateLiteral([z.string().trim()]);
-  z.templateLiteral([z.string().includes("train")]);
-  z.templateLiteral([z.string().toLowerCase()]);
-  z.templateLiteral([z.string().toUpperCase()]);
+  Schema.templateLiteral([Schema.number().multipleOf(2)]);
+  Schema.templateLiteral([Schema.string().emoji()]);
+  Schema.templateLiteral([Schema.string().url()]);
+  Schema.templateLiteral([Schema.string().url()]);
+  Schema.templateLiteral([Schema.string().trim()]);
+  Schema.templateLiteral([Schema.string().includes("train")]);
+  Schema.templateLiteral([Schema.string().toLowerCase()]);
+  Schema.templateLiteral([Schema.string().toUpperCase()]);
 });
 
 test("template literal parsing - success - basic cases", () => {
-  expect(() => z.templateLiteral([]).parse(7)).toThrow();
+  expect(() => Schema.templateLiteral([]).parse(7)).toThrow();
 
   empty.parse("");
   hello.parse("hello");
@@ -526,76 +526,76 @@ test("template literal parsing - failure - basic cases", () => {
 });
 
 test("regexes", () => {
-  expect(empty._zod.pattern.source).toMatchInlineSnapshot(`"^$"`);
-  expect(hello._zod.pattern.source).toMatchInlineSnapshot(`"^hello$"`);
-  expect(world._zod.pattern.source).toMatchInlineSnapshot(`"^(world)$"`);
-  expect(one._zod.pattern.source).toMatchInlineSnapshot(`"^1$"`);
-  expect(two._zod.pattern.source).toMatchInlineSnapshot(`"^(2)$"`);
-  expect(truee._zod.pattern.source).toMatchInlineSnapshot(`"^true$"`);
-  expect(anotherTrue._zod.pattern.source).toMatchInlineSnapshot(`"^(true)$"`);
-  expect(falsee._zod.pattern.source).toMatchInlineSnapshot(`"^false$"`);
-  expect(anotherFalse._zod.pattern.source).toMatchInlineSnapshot(`"^(false)$"`);
-  expect(nulll._zod.pattern.source).toMatchInlineSnapshot(`"^null$"`);
-  expect(anotherNull._zod.pattern.source).toMatchInlineSnapshot(`"^null$"`);
-  expect(undefinedd._zod.pattern.source).toMatchInlineSnapshot(`"^undefined$"`);
-  expect(anotherUndefined._zod.pattern.source).toMatchInlineSnapshot(`"^undefined$"`);
-  expect(anyString._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{0,}$"`);
-  expect(lazyString._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{0,}$"`);
-  expect(anyNumber._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
-  expect(anyInt._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+$"`);
-  // expect(anyFiniteNumber._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
-  // expect(anyNegativeNumber._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
-  // expect(anyPositiveNumber._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
-  // expect(zeroButInADumbWay._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
-  // expect(finiteButInADumbWay._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
-  expect(bool._zod.pattern.source).toMatchInlineSnapshot(`"^(?:true|false)$"`);
-  expect(bigone._zod.pattern.source).toMatchInlineSnapshot(`"^(1)$"`);
-  expect(anyBigint._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+n?$"`);
-  expect(nullableYo._zod.pattern.source).toMatchInlineSnapshot(`"^((yo)|null)$"`);
-  expect(nullableString._zod.pattern.source).toMatchInlineSnapshot(`"^([\\s\\S]{0,}|null)$"`);
-  expect(optionalYeah._zod.pattern.source).toMatchInlineSnapshot(`"^((yeah))?$"`);
-  expect(optionalString._zod.pattern.source).toMatchInlineSnapshot(`"^([\\s\\S]{0,})?$"`);
-  expect(optionalNumber._zod.pattern.source).toMatchInlineSnapshot(`"^(-?\\d+(?:\\.\\d+)?)?$"`);
-  expect(nullishBruh._zod.pattern.source).toMatchInlineSnapshot(`"^(((bruh)|null))?$"`);
-  expect(nullishString._zod.pattern.source).toMatchInlineSnapshot(`"^(([\\s\\S]{0,}|null))?$"`);
-  expect(cuid._zod.pattern.source).toMatchInlineSnapshot(`"^[cC][0-9a-z]{6,}$"`);
-  expect(cuidZZZ._zod.pattern.source).toMatchInlineSnapshot(`"^[cC][0-9a-z]{6,}ZZZ$"`);
-  expect(cuid2._zod.pattern.source).toMatchInlineSnapshot(`"^[0-9a-z]+$"`);
-  expect(datetime._zod.pattern.source).toMatchInlineSnapshot(
+  expect(empty._schema.pattern.source).toMatchInlineSnapshot(`"^$"`);
+  expect(hello._schema.pattern.source).toMatchInlineSnapshot(`"^hello$"`);
+  expect(world._schema.pattern.source).toMatchInlineSnapshot(`"^(world)$"`);
+  expect(one._schema.pattern.source).toMatchInlineSnapshot(`"^1$"`);
+  expect(two._schema.pattern.source).toMatchInlineSnapshot(`"^(2)$"`);
+  expect(truee._schema.pattern.source).toMatchInlineSnapshot(`"^true$"`);
+  expect(anotherTrue._schema.pattern.source).toMatchInlineSnapshot(`"^(true)$"`);
+  expect(falsee._schema.pattern.source).toMatchInlineSnapshot(`"^false$"`);
+  expect(anotherFalse._schema.pattern.source).toMatchInlineSnapshot(`"^(false)$"`);
+  expect(nulll._schema.pattern.source).toMatchInlineSnapshot(`"^null$"`);
+  expect(anotherNull._schema.pattern.source).toMatchInlineSnapshot(`"^null$"`);
+  expect(undefinedd._schema.pattern.source).toMatchInlineSnapshot(`"^undefined$"`);
+  expect(anotherUndefined._schema.pattern.source).toMatchInlineSnapshot(`"^undefined$"`);
+  expect(anyString._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{0,}$"`);
+  expect(lazyString._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{0,}$"`);
+  expect(anyNumber._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
+  expect(anyInt._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+$"`);
+  // expect(anyFiniteNumber._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
+  // expect(anyNegativeNumber._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
+  // expect(anyPositiveNumber._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
+  // expect(zeroButInADumbWay._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
+  // expect(finiteButInADumbWay._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?$"`);
+  expect(bool._schema.pattern.source).toMatchInlineSnapshot(`"^(?:true|false)$"`);
+  expect(bigone._schema.pattern.source).toMatchInlineSnapshot(`"^(1)$"`);
+  expect(anyBigint._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+n?$"`);
+  expect(nullableYo._schema.pattern.source).toMatchInlineSnapshot(`"^((yo)|null)$"`);
+  expect(nullableString._schema.pattern.source).toMatchInlineSnapshot(`"^([\\s\\S]{0,}|null)$"`);
+  expect(optionalYeah._schema.pattern.source).toMatchInlineSnapshot(`"^((yeah))?$"`);
+  expect(optionalString._schema.pattern.source).toMatchInlineSnapshot(`"^([\\s\\S]{0,})?$"`);
+  expect(optionalNumber._schema.pattern.source).toMatchInlineSnapshot(`"^(-?\\d+(?:\\.\\d+)?)?$"`);
+  expect(nullishBruh._schema.pattern.source).toMatchInlineSnapshot(`"^(((bruh)|null))?$"`);
+  expect(nullishString._schema.pattern.source).toMatchInlineSnapshot(`"^(([\\s\\S]{0,}|null))?$"`);
+  expect(cuid._schema.pattern.source).toMatchInlineSnapshot(`"^[cC][0-9a-z]{6,}$"`);
+  expect(cuidZZZ._schema.pattern.source).toMatchInlineSnapshot(`"^[cC][0-9a-z]{6,}ZZZ$"`);
+  expect(cuid2._schema.pattern.source).toMatchInlineSnapshot(`"^[0-9a-z]+$"`);
+  expect(datetime._schema.pattern.source).toMatchInlineSnapshot(
     `"^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"`
   );
-  expect(email._zod.pattern.source).toMatchInlineSnapshot(
+  expect(email._schema.pattern.source).toMatchInlineSnapshot(
     `"^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"`
   );
-  // expect(ip._zod.pattern.source).toMatchInlineSnapshot(
+  // expect(ip._schema.pattern.source).toMatchInlineSnapshot(
   //   `"^(^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$)|(^(([a-fA-F0-9]{1,4}:){7}|::([a-fA-F0-9]{1,4}:){0,6}|([a-fA-F0-9]{1,4}:){1}:([a-fA-F0-9]{1,4}:){0,5}|([a-fA-F0-9]{1,4}:){2}:([a-fA-F0-9]{1,4}:){0,4}|([a-fA-F0-9]{1,4}:){3}:([a-fA-F0-9]{1,4}:){0,3}|([a-fA-F0-9]{1,4}:){4}:([a-fA-F0-9]{1,4}:){0,2}|([a-fA-F0-9]{1,4}:){5}:([a-fA-F0-9]{1,4}:){0,1})([a-fA-F0-9]{1,4}|(((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2}))\\.){3}((25[0-5])|(2[0-4][0-9])|(1[0-9]{2})|([0-9]{1,2})))$)$"`
   // );
-  expect(ipv4._zod.pattern.source).toMatchInlineSnapshot(
+  expect(ipv4._schema.pattern.source).toMatchInlineSnapshot(
     `"^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$"`
   );
-  expect(ipv6._zod.pattern.source).toMatchInlineSnapshot(
+  expect(ipv6._schema.pattern.source).toMatchInlineSnapshot(
     `"^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$"`
   );
-  expect(mac._zod.pattern.source).toMatchInlineSnapshot(
+  expect(mac._schema.pattern.source).toMatchInlineSnapshot(
     `"^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$|^(?:[0-9a-f]{2}:){5}[0-9a-f]{2}$"`
   );
-  expect(ulid._zod.pattern.source).toMatchInlineSnapshot(`"^[0-7][0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{25}$"`);
-  expect(uuid._zod.pattern.source).toMatchInlineSnapshot(
+  expect(ulid._schema.pattern.source).toMatchInlineSnapshot(`"^[0-7][0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{25}$"`);
+  expect(uuid._schema.pattern.source).toMatchInlineSnapshot(
     `"^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"`
   );
-  expect(stringAToZ._zod.pattern.source).toMatchInlineSnapshot(`"^[a-z]+$"`);
-  expect(stringStartsWith._zod.pattern.source).toMatchInlineSnapshot(`"^hello.*$"`);
-  expect(stringEndsWith._zod.pattern.source).toMatchInlineSnapshot(`"^.*world$"`);
-  expect(stringMax5._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{0,5}$"`);
-  expect(stringMin5._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{5,}$"`);
-  expect(stringLen5._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{5,5}$"`);
-  expect(stringMin5Max10._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{5,10}$"`);
-  expect(brandedString._zod.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{1,}$"`);
-  expect(url._zod.pattern.source).toMatchInlineSnapshot(`"^https:\\/\\/\\w+\\.(com|net)$"`);
-  expect(measurement._zod.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?((px|em|rem|vh|vw|vmin|vmax))?$"`);
-  expect(decimalEnum._zod.pattern.source).toMatchInlineSnapshot(`"^(1\\.2)$"`);
-  expect(exponentEnum._zod.pattern.source).toMatchInlineSnapshot(`"^(1e\\+21)$"`);
-  expect(connectionString._zod.pattern.source).toMatchInlineSnapshot(
+  expect(stringAToZ._schema.pattern.source).toMatchInlineSnapshot(`"^[a-z]+$"`);
+  expect(stringStartsWith._schema.pattern.source).toMatchInlineSnapshot(`"^hello.*$"`);
+  expect(stringEndsWith._schema.pattern.source).toMatchInlineSnapshot(`"^.*world$"`);
+  expect(stringMax5._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{0,5}$"`);
+  expect(stringMin5._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{5,}$"`);
+  expect(stringLen5._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{5,5}$"`);
+  expect(stringMin5Max10._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{5,10}$"`);
+  expect(brandedString._schema.pattern.source).toMatchInlineSnapshot(`"^[\\s\\S]{1,}$"`);
+  expect(url._schema.pattern.source).toMatchInlineSnapshot(`"^https:\\/\\/\\w+\\.(com|net)$"`);
+  expect(measurement._schema.pattern.source).toMatchInlineSnapshot(`"^-?\\d+(?:\\.\\d+)?((px|em|rem|vh|vw|vmin|vmax))?$"`);
+  expect(decimalEnum._schema.pattern.source).toMatchInlineSnapshot(`"^(1\\.2)$"`);
+  expect(exponentEnum._schema.pattern.source).toMatchInlineSnapshot(`"^(1e\\+21)$"`);
+  expect(connectionString._schema.pattern.source).toMatchInlineSnapshot(
     `"^mongodb:\\/\\/(\\w+:\\w+@)?\\w+:-?\\d+(\\/(\\w+)?(\\?(\\w+=\\w+(&\\w+=\\w+)*)?)?)?$"`
   );
 });
@@ -708,7 +708,7 @@ test("template literal parsing - failure - complex cases", () => {
 test("template literal parsing - failure - issue format", () => {
   expect(anotherNull.safeParse("1null")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "template_literal",
@@ -722,7 +722,7 @@ test("template literal parsing - failure - issue format", () => {
   `);
   expect(cuidZZZ.safeParse("1cjld2cyuq0000t3rmniod1foyZZZ")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "template_literal",
@@ -736,7 +736,7 @@ test("template literal parsing - failure - issue format", () => {
   `);
   expect(stringMin5Max10.safeParse("1234")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "template_literal",
@@ -750,7 +750,7 @@ test("template literal parsing - failure - issue format", () => {
   `);
   expect(connectionString.safeParse("mongodb://host:1234/defaultauthdb?authSourceadmin")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "template_literal",
@@ -765,7 +765,7 @@ test("template literal parsing - failure - issue format", () => {
 
   expect(stringStartsWithMax5.safeParse("1hell")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "template_literal",
@@ -781,32 +781,32 @@ test("template literal parsing - failure - issue format", () => {
 
 test("part patterns fold checks through wrappers and unions", () => {
   // a constrained string keeps its bounds under a wrapper and inside a union
-  const wrapped = z.templateLiteral(["a-", z.string().min(2).max(3).optional()]);
+  const wrapped = Schema.templateLiteral(["a-", Schema.string().min(2).max(3).optional()]);
   expect(wrapped.safeParse("a-").success).toBe(true);
   expect(wrapped.safeParse("a-xy").success).toBe(true);
   expect(wrapped.safeParse("a-x").success).toBe(false);
   expect(wrapped.safeParse("a-wxyz").success).toBe(false);
 
-  const union = z.templateLiteral(["", z.union([z.string().regex(/^[a-c]+$/), z.number().int()])]);
+  const union = Schema.templateLiteral(["", Schema.union([Schema.string().regex(/^[a-c]+$/), Schema.number().int()])]);
   expect(union.safeParse("abc").success).toBe(true);
   expect(union.safeParse("12").success).toBe(true);
   expect(union.safeParse("xyz").success).toBe(false);
   expect(union.safeParse("1.5").success).toBe(false);
 
   // an empty length range matches nothing rather than building an invalid quantifier
-  const empty = z.templateLiteral(["", z.string().min(8).length(5)]);
+  const empty = Schema.templateLiteral(["", Schema.string().min(8).length(5)]);
   expect(empty.safeParse("abcde").success).toBe(false);
 
   // lazy resolves its inner schema on the internals, not the def
-  const lazy = z.templateLiteral(["", z.lazy(() => z.string().min(2)).optional()]);
+  const lazy = Schema.templateLiteral(["", Schema.lazy(() => Schema.string().min(2)).optional()]);
   expect(lazy.safeParse("x").success).toBe(false);
   expect(lazy.safeParse("xy").success).toBe(true);
 });
 
 test("an embedded email does not constrain the other parts", () => {
-  const schema = z.templateLiteral([z.email(), "|", z.string()]);
-  expect(schema.safeParse("a@b.cc|a..b").success).toBe(true);
-  expect(schema.safeParse("a@b.cc|xy").success).toBe(true);
-  expect(schema.safeParse("a..b@b.cc|xy").success).toBe(false);
-  expect(schema.safeParse(".a@b.cc|xy").success).toBe(false);
+  const schema = Schema.templateLiteral([Schema.email(), "|", Schema.string()]);
+  expect(Schema.safeParse("a@b.cc|a..b").success).toBe(true);
+  expect(Schema.safeParse("a@b.cc|xy").success).toBe(true);
+  expect(Schema.safeParse("a..b@b.cc|xy").success).toBe(false);
+  expect(Schema.safeParse(".a@b.cc|xy").success).toBe(false);
 });

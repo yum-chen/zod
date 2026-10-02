@@ -11,15 +11,15 @@ export declare namespace StandardTypedV1 {
     readonly version: 1;
     /** The vendor name of the schema library. */
     readonly vendor: string;
-    /** Inferred types associated with the schema. */
+    /** Inferred types associated with the Schema. */
     readonly types?: Types<Input, Output> | undefined;
   }
 
   /** The Standard types interface. */
   export interface Types<Input = unknown, Output = Input> {
-    /** The input type of the schema. */
+    /** The input type of the Schema. */
     readonly input: Input;
-    /** The output type of the schema. */
+    /** The output type of the Schema. */
     readonly output: Output;
   }
 

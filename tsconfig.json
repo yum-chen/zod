@@ -2,7 +2,7 @@
   "extends": "./.configs/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
-    "customConditions": ["@zod/source"],
+    "customConditions": ["@schema/source"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "types": []

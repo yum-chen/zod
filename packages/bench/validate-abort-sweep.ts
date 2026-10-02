@@ -1,28 +1,28 @@
-import * as z from "zod";
+import * as Schema   from "schema";
 
 // What early abort buys the runtime parse path, as a function of schema size and of where the first failure sits.
 //
-// The two sides differ by ONE bit: the same build, the same schema, the same call site, parsed with `abortEarly: false` and `abortEarly: true`. Both context objects carry both keys so they share a hidden class and the only difference measured is the guard itself. That is why this runs in one process rather than loading two revisions — a second copy of zod would make every leaf parse call site polymorphic.
+// The two sides differ by ONE bit: the same build, the same schema, the same call site, parsed with `abortEarly: false` and `abortEarly: true`. Both context objects carry both keys so they share a hidden class and the only difference measured is the guard itself. That is why this runs in one process rather than loading two revisions — a second copy of schema would make every leaf parse call site polymorphic.
 //
 // Methodology follows validate-vs-safeparse.ts: fixed iteration count with gc() between samples, the two sides interleaved inside each round, best of N rounds kept. Inputs come from a rotating pool so the call is not loop-invariant, and both the boolean and the issue count are consumed into a sink.
 
 interface Case {
   name: string;
   group: string;
-  schema: z.ZodType;
+  schema: Schema.SchemaType;
   valid: unknown;
   invalid: unknown;
 }
 
 const cases: Case[] = [];
-const add = (group: string, name: string, schema: z.ZodType, valid: unknown, invalid: unknown) =>
+const add = (group: string, name: string, schema: Schema.SchemaType, valid: unknown, invalid: unknown) =>
   cases.push({ group, name, schema, valid, invalid });
 
 // ---- key-count sweep, one wrong key at three positions ---------------------
 const objShape = (n: number) => {
-  const shape: Record<string, z.ZodType> = {};
-  for (let i = 0; i < n; i++) shape[`k${i}`] = z.string();
-  return z.object(shape) as z.ZodType;
+  const shape: Record<string, Schema.SchemaType> = {};
+  for (let i = 0; i < n; i++) shape[`k${i}`] = Schema.string();
+  return Schema.object(shape) as Schema  .SchemaType;
 };
 const objInput = (n: number) => {
   const o: Record<string, unknown> = {};
@@ -51,30 +51,30 @@ for (const n of [1, 5, 20, 80]) {
   add(
     "array, wrong element at middle",
     `${n} items`,
-    z.array(z.string()),
+    Schema.array(Schema.string()),
     valid,
     valid.map((s, i) => (i === mid ? i : s))
   );
 }
 
 // ---- nested shapes ---------------------------------------------------------
-const rowSchema = z.object({ id: z.number(), name: z.string(), active: z.boolean() });
+const rowSchema = Schema.object({ id: Schema.number(), name: Schema.string(), active: Schema.boolean() });
 for (const n of [5, 20, 80]) {
   const valid = Array.from({ length: n }, (_, i) => ({ id: i, name: `n${i}`, active: true }));
   const mid = Math.floor(n / 2);
   add(
     "array of objects, wrong field at middle row",
     `${n} rows`,
-    z.array(rowSchema),
+    Schema.array(rowSchema),
     valid,
     valid.map((r, i) => (i === mid ? { ...r, name: 0 } : r))
   );
 }
 
-const deep = (depth: number): z.ZodType =>
+const deep = (depth: number): Schema.SchemaType =>
   depth === 0
-    ? z.object({ leaf: z.string(), a: z.string(), b: z.string() })
-    : z.object({ next: deep(depth - 1), a: z.string(), b: z.string() });
+    ? Schema.object({ leaf: Schema.string(), a: Schema.string(), b: Schema.string() })
+    : Schema.object({ next: deep(depth - 1), a: Schema.string(), b: Schema.string() });
 const deepInput = (depth: number, badAt: number): any =>
   depth === 0
     ? { leaf: badAt === 0 ? 1 : "x", a: "x", b: "x" }
@@ -85,28 +85,28 @@ add("nested objects, bad leaf", "depth 8", deep(8), deepInput(8, -1), deepInput(
 add(
   "tuple + rest, wrong at middle",
   "40 rest",
-  z.tuple([z.string()], z.number()),
+  Schema.tuple([Schema.string()], Schema.number()),
   ["a", ...Array.from({ length: 40 }, (_, i) => i)],
   ["a", ...Array.from({ length: 40 }, (_, i) => (i === 20 ? "no" : i))]
 );
 add(
   "set, wrong at middle",
   "40 items",
-  z.set(z.string()),
+  Schema.set(Schema.string()),
   new Set(Array.from({ length: 40 }, (_, i) => `s${i}`)),
   new Set<any>(Array.from({ length: 40 }, (_, i) => (i === 20 ? i : `s${i}`)))
 );
 add(
   "map, wrong at middle",
   "40 entries",
-  z.map(z.string(), z.number()),
+  Schema.map(Schema.string(), Schema.number()),
   new Map(Array.from({ length: 40 }, (_, i) => [`k${i}`, i] as [string, number])),
   new Map<any, any>(Array.from({ length: 40 }, (_, i) => [`k${i}`, i === 20 ? "no" : i]))
 );
 add(
   "record, wrong at middle (no guard by design)",
   "40 keys",
-  z.record(z.string(), z.number()),
+  Schema.record(Schema.string(), Schema.number()),
   Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`k${i}`, i])),
   Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`k${i}`, i === 20 ? "no" : i]))
 );
@@ -149,23 +149,23 @@ interface Measurement {
   issuesOn: number;
 }
 
-function measure(schema: z.ZodType, input: unknown): Measurement {
+function measure(schema: Schema.SchemaType, input: unknown): Measurement {
   const pool = Array.from({ length: 64 }, () => input);
   let idx = 0;
-  // _zod.run is read at call time: the object JIT replaces it on first use, so a reference captured up front would measure the stale interpreted path.
+  // _schema.run is read at call time: the object JIT replaces it on first use, so a reference captured up front would measure the stale interpreted path.
   const off = () => {
-    const r = (schema as any)._zod.run({ value: pool[idx++ & 63], issues: [] }, CTX_OFF);
+    const r = (schema as any)._schema.run({ value: pool[idx++ & 63], issues: [] }, CTX_OFF);
     sink += r.issues.length + (r.issues.length === 0 ? 1 : 0);
     escaped = r;
   };
   const on = () => {
-    const r = (schema as any)._zod.run({ value: pool[idx++ & 63], issues: [] }, CTX_ON);
+    const r = (schema as any)._schema.run({ value: pool[idx++ & 63], issues: [] }, CTX_ON);
     sink += r.issues.length + (r.issues.length === 0 ? 1 : 0);
     escaped = r;
   };
 
-  const issuesOff = (schema as any)._zod.run({ value: input, issues: [] }, CTX_OFF).issues.length;
-  const issuesOn = (schema as any)._zod.run({ value: input, issues: [] }, CTX_ON).issues.length;
+  const issuesOff = (schema as any)._schema.run({ value: input, issues: [] }, CTX_OFF).issues.length;
+  const issuesOn = (schema as any)._schema.run({ value: input, issues: [] }, CTX_ON).issues.length;
 
   const iters = calibrate(off);
   for (let i = 0; i < 5; i++) {
@@ -191,18 +191,18 @@ interface Row {
 
 const problems: string[] = [];
 for (const c of cases) {
-  if (c.schema.safeParse(c.valid).success !== true) problems.push(`${c.group} ${c.name}: "valid" does not parse`);
-  if (c.schema.safeParse(c.invalid).success !== false) problems.push(`${c.group} ${c.name}: "invalid" parses`);
-  if (z.validate(c.schema, c.valid) !== true) problems.push(`${c.group} ${c.name}: validate rejects valid`);
-  if (z.validate(c.schema, c.invalid) !== false) problems.push(`${c.group} ${c.name}: validate accepts invalid`);
+  if (c.Schema.safeParse(c.valid).success !== true) problems.push(`${c.group} ${c.name}: "valid" does not parse`);
+  if (c.Schema.safeParse(c.invalid).success !== false) problems.push(`${c.group} ${c.name}: "invalid" parses`);
+  if (Schema.validate(c.schema, c.valid) !== true) problems.push(`${c.group} ${c.name}: validate rejects valid`);
+  if (Schema.validate(c.schema, c.invalid) !== false) problems.push(`${c.group} ${c.name}: validate accepts invalid`);
 }
 
 // Warm every case before timing any, so each is measured against the same polluted-inline-cache state.
 for (let i = 0; i < 200; i++) {
   for (const c of cases) {
     for (const input of [c.valid, c.invalid]) {
-      sink += (c.schema as any)._zod.run({ value: input, issues: [] }, CTX_OFF).issues.length;
-      sink += (c.schema as any)._zod.run({ value: input, issues: [] }, CTX_ON).issues.length;
+      sink += (c.schema as any)._schema.run({ value: input, issues: [] }, CTX_OFF).issues.length;
+      sink += (c.schema as any)._schema.run({ value: input, issues: [] }, CTX_ON).issues.length;
     }
   }
 }

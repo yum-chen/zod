@@ -1,13 +1,13 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
-const stringSchema = z.string();
+import * as Schema from "schema/v3";
+const stringSchema = Schema.string();
 
 test("safeparse fail", () => {
   const safe = stringSchema.safeParse(12);
   expect(safe.success).toEqual(false);
-  expect(safe.error).toBeInstanceOf(z.ZodError);
+  expect(safe.error).toBeInstanceOf(Schema.SchemaError);
 });
 
 test("safeparse pass", () => {

@@ -129,10 +129,10 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 
   const title = stripBackticks((page.data?.title as string | undefined) ?? params.slug);
   const description = (page.data?.description as string | undefined) ?? undefined;
-  const url = `https://zod.dev/blog/${params.slug}`;
+  const url = `https://Schema.dev/blog/${params.slug}`;
   // same generated card the docs pages use
   const image = {
-    url: `/og.png?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description ?? "")}&path=${encodeURIComponent(`zod.dev/blog/${params.slug}`)}`,
+    url: `/og.png?title=${encodeURIComponent(title)}&description=${encodeURIComponent(description ?? "")}&path=${encodeURIComponent(`Schema.dev/blog/${params.slug}`)}`,
     width: 1200,
     height: 630,
     alt: title,
@@ -141,7 +141,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   return {
     title,
     description,
-    openGraph: { type: "article", title, description, siteName: "Zod", url, images: [image] },
+    openGraph: { type: "article", title, description, siteName: "Schema", url, images: [image] },
     twitter: { card: "summary_large_image", title, description, images: [image], creator: "@colinhacks", site: "@colinhacks" },
   };
 }

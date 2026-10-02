@@ -1,40 +1,40 @@
 import { randomBytes } from "node:crypto";
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const minFive = z.string().min(5, "min5");
-const maxFive = z.string().max(5, "max5");
-const justFive = z.string().length(5);
-const nonempty = z.string().min(1, "nonempty");
-const includes = z.string().includes("includes");
-const includesFromIndex2 = z.string().includes("includes", { position: 2 });
-const startsWith = z.string().startsWith("startsWith");
-const endsWith = z.string().endsWith("endsWith");
+const minFive = Schema.string().min(5, "min5");
+const maxFive = Schema.string().max(5, "max5");
+const justFive = Schema.string().length(5);
+const nonempty = Schema.string().min(1, "nonempty");
+const includes = Schema.string().includes("includes");
+const includesFromIndex2 = Schema.string().includes("includes", { position: 2 });
+const startsWith = Schema.string().startsWith("startsWith");
+const endsWith = Schema.string().endsWith("endsWith");
 
 test("string factory checks", async () => {
-  const schema = z.string({ checks: [z.minLength(1), z.maxLength(3)] as const });
-  const chained = z.string().min(1).max(3);
-  expectTypeOf<z.output<typeof schema>>().toEqualTypeOf<string>();
+  const schema = Schema.string({ checks: [Schema.minLength(1), Schema.maxLength(3)] as const });
+  const chained = Schema.string().min(1).max(3);
+  expectTypeOf<Schema.output<typeof schema>>().toEqualTypeOf<string>();
   for (const value of ["", "ab", "abcd", 1, undefined]) {
-    expect(z.validate(schema, value)).toBe(z.validate(chained, value));
-    expect(schema.safeParse(value)).toEqual(chained.safeParse(value));
+    expect(Schema.validate(schema, value)).toBe(Schema.validate(chained, value));
+    expect(Schema.safeParse(value)).toEqual(chained.safeParse(value));
   }
-  expect(z.toJSONSchema(schema)).toEqual(z.toJSONSchema(chained));
-  expect(schema.minLength).toBe(1);
-  expect(schema.maxLength).toBe(3);
-  expect(schema._zod.parent).toBeUndefined();
-  expect([...schema._zod.traits]).toEqual([...chained._zod.traits]);
-  const extended = schema.max(2);
-  expect(extended._zod.parent).toBe(schema);
-  expect(z.validate(schema, "abc")).toBe(true);
-  expect(z.validate(extended, "abc")).toBe(false);
-  const coerce = z.coerce.string({ checks: [z.minLength(2)] });
+  expect(Schema.toJSONSchema(schema)).toEqual(Schema.toJSONSchema(chained));
+  expect(Schema.minLength).toBe(1);
+  expect(Schema.maxLength).toBe(3);
+  expect(Schema._schema.parent).toBeUndefined();
+  expect([...Schema._schema.traits]).toEqual([...chained._schema.traits]);
+  const extended = Schema.max(2);
+  expect(extended._schema.parent).toBe(schema);
+  expect(Schema.validate(schema, "abc")).toBe(true);
+  expect(Schema.validate(extended, "abc")).toBe(false);
+  const coerce = Schema.coerce.string({ checks: [Schema.minLength(2)] });
   expect(coerce.parse(12)).toBe("12");
-  expect(z.validate(coerce, 1)).toBe(false);
-  const asyncSchema = z.string({
+  expect(Schema.validate(coerce, 1)).toBe(false);
+  const asyncSchema = Schema.string({
     checks: [
-      z.check<string>(async (ctx) => {
+      Schema.check<string>(async (ctx) => {
         if (ctx.value !== "ok") ctx.issues.push({ code: "custom", input: ctx.value });
       }),
     ],
@@ -42,12 +42,12 @@ test("string factory checks", async () => {
   expect(await asyncSchema.safeParseAsync("ok")).toEqual({ success: true, data: "ok" });
   expect((await asyncSchema.safeParseAsync("bad")).success).toBe(false);
   // @ts-expect-error numeric checks cannot validate strings
-  z.string({ checks: [z.gte(1)] });
+  Schema.string({ checks: [Schema.gte(1)] });
 });
 
 test("factory checks snapshot caller arrays", () => {
-  for (const factory of [z.string, z.coerce.string]) {
-    for (const initial of [[], [z.minLength(1)]]) {
+  for (const factory of [Schema.string, Schema.coerce.string]) {
+    for (const initial of [[], [Schema.minLength(1)]]) {
       const schema = factory({ checks: initial });
       let reads = 0;
       const getterSchema = factory({
@@ -57,14 +57,14 @@ test("factory checks snapshot caller arrays", () => {
         },
       });
       expect(reads).toBe(1);
-      expect(z.validate(getterSchema, "long")).toBe(true);
-      const before = z.toJSONSchema(schema);
-      initial.push(z.minLength(10));
-      expect(schema._zod.def.checks).not.toBe(initial);
-      expect(z.validate(schema, "long")).toBe(true);
-      expect(z.validate(z.compile(schema), "long")).toBe(true);
-      expect(z.toJSONSchema(schema)).toEqual(before);
-      expect(z.validate(schema.check(z.minLength(2)), "long")).toBe(true);
+      expect(Schema.validate(getterSchema, "long")).toBe(true);
+      const before = Schema.toJSONSchema(schema);
+      initial.push(Schema.minLength(10));
+      expect(Schema._schema.def.checks).not.toBe(initial);
+      expect(Schema.validate(schema, "long")).toBe(true);
+      expect(Schema.validate(Schema.compile(schema), "long")).toBe(true);
+      expect(Schema.toJSONSchema(schema)).toEqual(before);
+      expect(Schema.validate(Schema.check(Schema.minLength(2)), "long")).toBe(true);
     }
   }
 });
@@ -93,12 +93,12 @@ test("includes", () => {
 });
 
 test("includes with string error message", () => {
-  const schema = z.string().includes("test", "must contain test");
-  schema.parse("this is a test");
+  const schema = Schema.string().includes("test", "must contain test");
+  Schema.parse("this is a test");
 
-  expect(schema.safeParse("this is invalid")).toMatchInlineSnapshot(`
+  expect(Schema.safeParse("this is invalid")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "string",
         "code": "invalid_format",
@@ -234,7 +234,7 @@ test("email validations", () => {
     `test@.com`,
     `aaaaaaaaaaaaaaalongemailthatcausesregexDoSvulnerability@test.c`,
   ];
-  const emailSchema = z.string().email();
+  const emailSchema = Schema.string().email();
 
   expect(
     validEmails.every((email) => {
@@ -263,7 +263,7 @@ test("base64 validations", () => {
   ];
 
   for (const str of validBase64Strings) {
-    expect(str + z.string().base64().safeParse(str).success).toBe(`${str}true`);
+    expect(str + Schema.string().base64().safeParse(str).success).toBe(`${str}true`);
   }
 
   const invalidBase64Strings = [
@@ -285,12 +285,12 @@ test("base64 validations", () => {
   ];
 
   for (const str of invalidBase64Strings) {
-    expect(str + z.string().base64().safeParse(str).success).toBe(`${str}false`);
+    expect(str + Schema.string().base64().safeParse(str).success).toBe(`${str}false`);
   }
 });
 
 test("base64url validations", () => {
-  const base64url = z.string().base64url();
+  const base64url = Schema.string().base64url();
 
   const validBase64URLStrings = [
     "SGVsbG8gV29ybGQ", // "Hello World"
@@ -346,18 +346,18 @@ test("base64url validations", () => {
 
 test("big base64 and base64url", () => {
   const bigbase64 = randomBytes(1024 * 1024 * 10).toString("base64");
-  z.base64().parse(bigbase64);
+  Schema.base64().parse(bigbase64);
   const bigbase64url = randomBytes(1024 * 1024 * 10).toString("base64url");
-  z.base64url().parse(bigbase64url);
+  Schema.base64url().parse(bigbase64url);
 
   // template literals compose def.pattern and test it on every parse; the quantified block forms overflowed the regex stack here
-  expect(z.templateLiteral(["id-", z.base64()]).safeParse(`id-${bigbase64}`).success).toBe(true);
-  expect(z.templateLiteral(["id-", z.base64url()]).safeParse(`id-${bigbase64url}`).success).toBe(true);
+  expect(Schema.templateLiteral(["id-", Schema.base64()]).safeParse(`id-${bigbase64}`).success).toBe(true);
+  expect(Schema.templateLiteral(["id-", Schema.base64url()]).safeParse(`id-${bigbase64url}`).success).toBe(true);
 });
 
 test("template literal composes base64 without alternation leaks", () => {
   // the ^$| alternation in regexes.base64 used to leak: "AAAA" matched with the prefix dropped and "id-AAAA" was rejected
-  const tl = z.templateLiteral(["id-", z.base64()]);
+  const tl = Schema.templateLiteral(["id-", Schema.base64()]);
   expect(tl.safeParse("id-AAAA").success).toBe(true);
   expect(tl.safeParse("id-").success).toBe(true);
   expect(tl.safeParse("AAAA").success).toBe(false);
@@ -371,13 +371,13 @@ function makeJwt(header: object, payload: object) {
 }
 
 test("jwt token", () => {
-  const jwt = z.string().jwt();
+  const jwt = Schema.string().jwt();
   expect(() => jwt.parse("invalid")).toThrow();
   expect(() => jwt.parse("invalid.invalid")).toThrow();
   expect(() => jwt.parse("invalid.invalid.invalid")).toThrow();
 
   // Valid JWTs
-  const es256jwt = z.string().jwt({ alg: "ES256" });
+  const es256jwt = Schema.string().jwt({ alg: "ES256" });
   const d1 = makeJwt({ typ: "JWT", alg: "ES256" }, {});
   jwt.parse(d1);
   es256jwt.parse(d1);
@@ -400,7 +400,7 @@ test("jwt token", () => {
 });
 
 test("url validations", () => {
-  const url = z.string().url();
+  const url = Schema.string().url();
   url.parse("http://google.com");
   url.parse("https://google.com/asdf?asdf=ljk3lk4&asdf=234#asdf");
   url.parse("https://anonymous:flabada@developer.mozilla.org/en-US/docs/Web/API/URL/password");
@@ -418,7 +418,7 @@ test("url validations", () => {
 });
 
 test("url preserves original input", () => {
-  const url = z.string().url();
+  const url = Schema.string().url();
 
   // Test the specific case from the user report
   const input = "https://example.com?key=NUXOmHqWNVTapJkJJHw8BfD155AuqhH_qju_5fNmQ4ZHV7u8";
@@ -441,7 +441,7 @@ test("url preserves original input", () => {
 });
 
 test("url trims whitespace", () => {
-  const url = z.string().url();
+  const url = Schema.string().url();
 
   // Test trimming whitespace from URLs
   expect(url.parse("  https://example.com  ")).toBe("https://example.com");
@@ -456,45 +456,45 @@ test("url trims whitespace", () => {
 
 test("url returns the string the parser validated", () => {
   // The URL parser deletes ASCII tab, LF and CR instead of failing, so `new URL()` reports on a string that is not the one it was given. The host is the consequential case: this validated example.com and used to hand back a URL naming a different host.
-  expect(z.url().parse("https://exa\nmple.com")).toBe("https://example.com");
-  expect(z.url().parse("https://exa\tmple.com")).toBe("https://example.com");
-  expect(z.url().parse("https://exa\rmple.com")).toBe("https://example.com");
-  expect(z.httpUrl().parse("https://exa\nmple.com")).toBe("https://example.com");
-  expect(z.url({ hostname: /^a\.com$/ }).parse("https://a\n.com")).toBe("https://a.com");
-  expect(z.url().parse("https://example.com/a\nb?c=\td#e")).toBe("https://example.com/ab?c=d#e");
+  expect(Schema.url().parse("https://exa\nmple.com")).toBe("https://example.com");
+  expect(Schema.url().parse("https://exa\tmple.com")).toBe("https://example.com");
+  expect(Schema.url().parse("https://exa\rmple.com")).toBe("https://example.com");
+  expect(Schema.httpUrl().parse("https://exa\nmple.com")).toBe("https://example.com");
+  expect(Schema.url({ hostname: /^a\.com$/ }).parse("https://a\n.com")).toBe("https://a.com");
+  expect(Schema.url().parse("https://example.com/a\nb?c=\td#e")).toBe("https://example.com/ab?c=d#e");
 
   // Nothing that parsed before stops parsing, and normalize still wins where it applies.
-  expect(z.url().parse("https://example.com/path")).toBe("https://example.com/path");
-  expect(z.url({ normalize: true }).parse("https://exa\nmple.com")).toBe("https://example.com/");
+  expect(Schema.url().parse("https://example.com/path")).toBe("https://example.com/path");
+  expect(Schema.url({ normalize: true }).parse("https://exa\nmple.com")).toBe("https://example.com/");
 });
 
 test("ipv6 and cidrv6 reject anything outside the address alphabet", () => {
   // `new URL("http://[...]")` parses an authority rather than an address, so a delimiter re-splits it and the parser validates something else entirely.
-  expect(z.ipv6().safeParse("::@1\\").success).toBe(false); // used to validate against the host 0.0.0.1
-  expect(z.ipv6().safeParse("::]/1").success).toBe(false);
-  expect(z.ipv6().safeParse("@[::1").success).toBe(false);
-  expect(z.cidrv6().safeParse("::@1\\/64").success).toBe(false);
+  expect(Schema.ipv6().safeParse("::@1\\").success).toBe(false); // used to validate against the host 0.0.0.1
+  expect(Schema.ipv6().safeParse("::]/1").success).toBe(false);
+  expect(Schema.ipv6().safeParse("@[::1").success).toBe(false);
+  expect(Schema.cidrv6().safeParse("::@1\\/64").success).toBe(false);
 
   for (const c of ["\t", "\n", "\r"]) {
-    expect(z.ipv6().safeParse(`2001:db8::${c}1`).success).toBe(false);
-    expect(z.ipv6().safeParse(`::1${c}`).success).toBe(false);
-    expect(z.cidrv6().safeParse(`::1${c}/64`).success).toBe(false);
+    expect(Schema.ipv6().safeParse(`2001:db8::${c}1`).success).toBe(false);
+    expect(Schema.ipv6().safeParse(`::1${c}`).success).toBe(false);
+    expect(Schema.cidrv6().safeParse(`::1${c}/64`).success).toBe(false);
   }
 
   // A rejection has to surface as an issue, not just success: false.
-  const result = z.ipv6().safeParse("::1\n");
+  const result = Schema.ipv6().safeParse("::1\n");
   expect(result.success).toBe(false);
   expect(result.error!.issues[0]).toMatchObject({ code: "invalid_format", format: "ipv6" });
 
-  expect(z.ipv6().parse("2001:db8::1")).toBe("2001:db8::1");
-  expect(z.ipv6().parse("::ffff:192.0.2.1")).toBe("::ffff:192.0.2.1");
-  expect(z.ipv6().parse("2001:DB8::1")).toBe("2001:DB8::1");
-  expect(z.cidrv6().parse("::ffff:192.0.2.1/96")).toBe("::ffff:192.0.2.1/96");
+  expect(Schema.ipv6().parse("2001:db8::1")).toBe("2001:db8::1");
+  expect(Schema.ipv6().parse("::ffff:192.0.2.1")).toBe("::ffff:192.0.2.1");
+  expect(Schema.ipv6().parse("2001:DB8::1")).toBe("2001:DB8::1");
+  expect(Schema.cidrv6().parse("::ffff:192.0.2.1/96")).toBe("::ffff:192.0.2.1/96");
 });
 
 test("url normalize flag", () => {
-  const normalizeUrl = z.url({ normalize: true });
-  const preserveUrl = z.url(); // normalize: false/undefined by default
+  const normalizeUrl = Schema.url({ normalize: true });
+  const preserveUrl = Schema.url(); // normalize: false/undefined by default
 
   // Test that normalize flag causes URL normalization
   expect(normalizeUrl.parse("https://example.com?key=value")).toBe("https://example.com/?key=value");
@@ -518,7 +518,7 @@ test("url normalize flag", () => {
 });
 
 test("url normalize with hostname and protocol constraints", () => {
-  const constrainedNormalizeUrl = z.url({
+  const constrainedNormalizeUrl = Schema.url({
     normalize: true,
     protocol: /^https$/,
     hostname: /^example\.com$/,
@@ -533,9 +533,9 @@ test("url normalize with hostname and protocol constraints", () => {
 });
 
 test("httpurl", () => {
-  const httpUrl = z.url({
+  const httpUrl = Schema.url({
     protocol: /^https?$/,
-    hostname: z.regexes.domain,
+    hostname: Schema.regexes.domain,
     // /^(?=.{1,253}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}$/
   });
 
@@ -590,24 +590,24 @@ test("httpurl", () => {
 
 test("url error overrides", () => {
   try {
-    z.string().url().parse("https");
+    Schema.string().url().parse("https");
   } catch (err) {
-    expect((err as z.ZodError).issues[0].message).toEqual("Invalid URL");
+    expect((err as Schema  .SchemaError).issues[0].message).toEqual("Invalid URL");
   }
   try {
-    z.string().url("badurl").parse("https");
+    Schema.string().url("badurl").parse("https");
   } catch (err) {
-    expect((err as z.ZodError).issues[0].message).toEqual("badurl");
+    expect((err as Schema  .SchemaError).issues[0].message).toEqual("badurl");
   }
   try {
-    z.string().url({ message: "badurl" }).parse("https");
+    Schema.string().url({ message: "badurl" }).parse("https");
   } catch (err) {
-    expect((err as z.ZodError).issues[0].message).toEqual("badurl");
+    expect((err as Schema  .SchemaError).issues[0].message).toEqual("badurl");
   }
 });
 
 test("emoji validations", () => {
-  const emoji = z.string().emoji();
+  const emoji = Schema.string().emoji();
 
   emoji.parse("🦰🦱🦲🦳"); // both Extended_Pictographic and Emoji_Component
   emoji.parse("👋👋👋👋");
@@ -637,7 +637,7 @@ test("emoji validations", () => {
 });
 
 test("nanoid", () => {
-  const nanoid = z.string().nanoid("custom error");
+  const nanoid = Schema.string().nanoid("custom error");
   nanoid.parse("lfNZluvAxMkf7Q8C5H-QS");
   nanoid.parse("mIU_4PJWikaU8fMbmkouz");
   nanoid.parse("Hb9ZUtUa2JDm_dD-47EGv");
@@ -647,7 +647,7 @@ test("nanoid", () => {
 
   expect(result.error!.issues[0].message).toEqual("custom error");
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "invalid_format",
@@ -661,14 +661,14 @@ test("nanoid", () => {
 });
 
 test("bad nanoid", () => {
-  const nanoid = z.string().nanoid("custom error");
+  const nanoid = Schema.string().nanoid("custom error");
   nanoid.parse("ySh_984wpDUu7IQRrLXAp");
   const result = nanoid.safeParse("invalid nanoid");
   expect(result).toMatchObject({ success: false });
 
   expect(result.error!.issues[0].message).toEqual("custom error");
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "invalid_format",
@@ -682,7 +682,7 @@ test("bad nanoid", () => {
 });
 
 test("good uuid", () => {
-  const uuid = z.string().uuid("custom error");
+  const uuid = Schema.string().uuid("custom error");
   const goodUuids = [
     "9491d710-3185-1e06-bea0-6a2f275345e0",
     "9491d710-3185-2e06-bea0-6a2f275345e0",
@@ -703,7 +703,7 @@ test("good uuid", () => {
 });
 
 test(`bad uuid`, () => {
-  const uuid = z.string().uuid("custom error");
+  const uuid = Schema.string().uuid("custom error");
   for (const badUuid of [
     "9491d710-3185-0e06-bea0-6a2f275345e0",
     "9491d710-3185-5e06-0ea0-6a2f275345e0",
@@ -720,7 +720,7 @@ test(`bad uuid`, () => {
 });
 
 test("good guid", () => {
-  const guid = z.string().guid("custom error");
+  const guid = Schema.string().guid("custom error");
   for (const goodGuid of [
     "9491d710-3185-4e06-bea0-6a2f275345e0",
     "d89e7b01-7598-ed11-9d7a-0022489382fd", // new sequential id
@@ -735,7 +735,7 @@ test("good guid", () => {
 });
 
 test("bad guid", () => {
-  const guid = z.string().guid("custom error");
+  const guid = Schema.string().guid("custom error");
   for (const badGuid of ["9491d710-3185-4e06-bea0-6a2f275345e0X"]) {
     const result = guid.safeParse(badGuid);
     expect(result).toMatchObject({ success: false });
@@ -744,34 +744,34 @@ test("bad guid", () => {
 });
 
 test("nanoid custom length", () => {
-  const nanoid64 = z.nanoid({ length: 64 });
+  const nanoid64 = Schema.nanoid({ length: 64 });
   nanoid64.parse("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_");
   expect(nanoid64.safeParse("lfNZluvAxMkf7Q8C5H-QS")).toMatchObject({ success: false });
 
   // the deprecated method and the default length both still work
-  expect(z.string().nanoid({ length: 10 }).safeParse("IRFa-VaY2b")).toMatchObject({ success: true });
-  expect(z.nanoid().safeParse("lfNZluvAxMkf7Q8C5H-QS")).toMatchObject({ success: true });
+  expect(Schema.string().nanoid({ length: 10 }).safeParse("IRFa-VaY2b")).toMatchObject({ success: true });
+  expect(Schema.nanoid().safeParse("lfNZluvAxMkf7Q8C5H-QS")).toMatchObject({ success: true });
 
-  expect(z.nanoid({ length: 64, error: "custom error" }).safeParse("abc").error!.issues[0].message).toEqual(
+  expect(Schema.nanoid({ length: 64, error: "custom error" }).safeParse("abc").error!.issues[0].message).toEqual(
     "custom error"
   );
 });
 
 test("nanoid rejects a length that is not a positive integer", () => {
-  expect(() => z.nanoid({ length: 0 })).toThrow("Invalid nanoid length: 0");
-  expect(() => z.nanoid({ length: -1 })).toThrow("Invalid nanoid length: -1");
-  expect(() => z.nanoid({ length: 1.5 })).toThrow("Invalid nanoid length: 1.5");
+  expect(() => Schema.nanoid({ length: 0 })).toThrow("Invalid nanoid length: 0");
+  expect(() => Schema.nanoid({ length: -1 })).toThrow("Invalid nanoid length: -1");
+  expect(() => Schema.nanoid({ length: 1.5 })).toThrow("Invalid nanoid length: 1.5");
 });
 
 test("cuid", () => {
-  const cuid = z.string().cuid();
+  const cuid = Schema.string().cuid();
   cuid.parse("ckopqwooh000001la8mbi2im9");
   const result = cuid.safeParse("cifjhdsfhsd-invalid-cuid");
   expect(result).toMatchObject({ success: false });
 
   expect(result.error!.issues[0].message).toEqual("Invalid cuid");
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "invalid_format",
@@ -799,7 +799,7 @@ test("cuid", () => {
 });
 
 test("cuid2", () => {
-  const cuid2 = z.string().cuid2();
+  const cuid2 = Schema.string().cuid2();
   const validStrings = [
     "a", // short string
     "tz4a98xxat96iws9zmbrgj3a", // normal string
@@ -822,7 +822,7 @@ test("cuid2", () => {
 });
 
 test("ulid", () => {
-  const ulid = z.string().ulid();
+  const ulid = Schema.string().ulid();
   ulid.parse("01ARZ3NDEKTSV4RRFFQ69G5FAV");
   const result = ulid.safeParse("invalidulid");
   expect(result).toMatchObject({ success: false });
@@ -840,7 +840,7 @@ test("ulid", () => {
 
   expect(result.error!.issues[0].message).toEqual("Invalid ULID");
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "invalid_format",
@@ -854,14 +854,14 @@ test("ulid", () => {
 });
 
 test("xid", () => {
-  const xid = z.string().xid();
+  const xid = Schema.string().xid();
   xid.parse("9m4e2mr0ui3e8a215n4g");
   const result = xid.safeParse("invalidxid");
   expect(result).toMatchObject({ success: false });
 
   expect(result.error!.issues[0].message).toEqual("Invalid XID");
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "invalid_format",
@@ -875,7 +875,7 @@ test("xid", () => {
 });
 
 test("ksuid", () => {
-  const ksuid = z.string().ksuid();
+  const ksuid = Schema.string().ksuid();
   ksuid.parse("0o0t9hkGxgFLtd3lmJ4TSTeY0Vb");
   const result = ksuid.safeParse("invalidksuid");
   expect(result).toMatchObject({ success: false });
@@ -896,10 +896,10 @@ test("ksuid", () => {
 });
 
 test("regex", () => {
-  z.string()
+  Schema.string()
     .regex(/^moo+$/)
     .parse("mooooo");
-  expect(() => z.string().uuid().parse("purr")).toThrow();
+  expect(() => Schema.string().uuid().parse("purr")).toThrow();
 });
 
 test("regexp error message", () => {
@@ -920,7 +920,7 @@ test("regexp error message", () => {
     ]
   `);
 
-  expect(() => z.string().uuid().parse("purr")).toThrow();
+  expect(() => Schema.string().uuid().parse("purr")).toThrow();
 });
 
 test("regexp error custom message", () => {
@@ -941,75 +941,75 @@ test("regexp error custom message", () => {
     ]
   `);
 
-  expect(() => z.string().uuid().parse("purr")).toThrow();
+  expect(() => Schema.string().uuid().parse("purr")).toThrow();
 });
 
 test("regex lastIndex reset", () => {
-  const schema = z.string().regex(/^\d+$/g);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
+  const schema = Schema.string().regex(/^\d+$/g);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
 });
 
 test("format", () => {
-  expect(z.string().email().format).toEqual("email");
-  expect(z.string().url().format).toEqual("url");
-  expect(z.string().jwt().format).toEqual("jwt");
-  expect(z.string().emoji().format).toEqual("emoji");
-  expect(z.string().guid().format).toEqual("guid");
-  expect(z.string().uuid().format).toEqual("uuid");
-  expect(z.string().uuidv4().format).toEqual("uuid");
-  expect(z.string().uuidv6().format).toEqual("uuid");
-  expect(z.string().uuidv7().format).toEqual("uuid");
-  expect(z.string().nanoid().format).toEqual("nanoid");
-  expect(z.string().guid().format).toEqual("guid");
-  expect(z.string().cuid().format).toEqual("cuid");
-  expect(z.string().cuid2().format).toEqual("cuid2");
-  expect(z.string().ulid().format).toEqual("ulid");
-  expect(z.string().base64().format).toEqual("base64");
-  // expect(z.string().jsonString().format).toEqual("json_string");
-  // expect(z.string().json().format).toEqual("json_string");
-  expect(z.string().xid().format).toEqual("xid");
-  expect(z.string().ksuid().format).toEqual("ksuid");
-  // expect(z.string().ip().format).toEqual("ip");
-  expect(z.string().ipv4().format).toEqual("ipv4");
-  expect(z.string().ipv6().format).toEqual("ipv6");
-  expect(z.string().e164().format).toEqual("e164");
-  expect(z.string().datetime().format).toEqual("datetime");
-  expect(z.string().date().format).toEqual("date");
-  expect(z.string().time().format).toEqual("time");
-  expect(z.string().duration().format).toEqual("duration");
+  expect(Schema.string().email().format).toEqual("email");
+  expect(Schema.string().url().format).toEqual("url");
+  expect(Schema.string().jwt().format).toEqual("jwt");
+  expect(Schema.string().emoji().format).toEqual("emoji");
+  expect(Schema.string().guid().format).toEqual("guid");
+  expect(Schema.string().uuid().format).toEqual("uuid");
+  expect(Schema.string().uuidv4().format).toEqual("uuid");
+  expect(Schema.string().uuidv6().format).toEqual("uuid");
+  expect(Schema.string().uuidv7().format).toEqual("uuid");
+  expect(Schema.string().nanoid().format).toEqual("nanoid");
+  expect(Schema.string().guid().format).toEqual("guid");
+  expect(Schema.string().cuid().format).toEqual("cuid");
+  expect(Schema.string().cuid2().format).toEqual("cuid2");
+  expect(Schema.string().ulid().format).toEqual("ulid");
+  expect(Schema.string().base64().format).toEqual("base64");
+  // expect(Schema.string().jsonString().format).toEqual("json_string");
+  // expect(Schema.string().json().format).toEqual("json_string");
+  expect(Schema.string().xid().format).toEqual("xid");
+  expect(Schema.string().ksuid().format).toEqual("ksuid");
+  // expect(Schema.string().ip().format).toEqual("ip");
+  expect(Schema.string().ipv4().format).toEqual("ipv4");
+  expect(Schema.string().ipv6().format).toEqual("ipv6");
+  expect(Schema.string().e164().format).toEqual("e164");
+  expect(Schema.string().datetime().format).toEqual("datetime");
+  expect(Schema.string().date().format).toEqual("date");
+  expect(Schema.string().time().format).toEqual("time");
+  expect(Schema.string().duration().format).toEqual("duration");
 
-  expect(z.mac().format).toEqual("mac");
+  expect(Schema.mac().format).toEqual("mac");
 });
 
 test("min max getters", () => {
-  expect(z.string().min(5).minLength).toEqual(5);
-  expect(z.string().min(5).min(10).minLength).toEqual(10);
-  expect(z.string().minLength).toEqual(null);
+  expect(Schema.string().min(5).minLength).toEqual(5);
+  expect(Schema.string().min(5).min(10).minLength).toEqual(10);
+  expect(Schema.string().minLength).toEqual(null);
 
-  expect(z.string().max(5).maxLength).toEqual(5);
-  expect(z.string().max(5).max(1).maxLength).toEqual(1);
-  expect(z.string().max(5).max(10).maxLength).toEqual(5);
-  expect(z.string().maxLength).toEqual(null);
+  expect(Schema.string().max(5).maxLength).toEqual(5);
+  expect(Schema.string().max(5).max(1).maxLength).toEqual(1);
+  expect(Schema.string().max(5).max(10).maxLength).toEqual(5);
+  expect(Schema.string().maxLength).toEqual(null);
 });
 
 test("boundary cases with zero length", () => {
   // Test length(0) - only empty string should pass
-  const lengthZero = z.string().length(0);
+  const lengthZero = Schema.string().length(0);
   expect(lengthZero.parse("")).toEqual("");
   expect(() => lengthZero.parse("a")).toThrow();
 
   // Test min(0) - all strings including empty should pass
-  const minZero = z.string().min(0);
+  const minZero = Schema.string().min(0);
   expect(minZero.parse("")).toEqual("");
   expect(minZero.parse("a")).toEqual("a");
   expect(minZero.parse("hello")).toEqual("hello");
 
   // Test max(0) - only empty string should pass
-  const maxZero = z.string().max(0);
+  const maxZero = Schema.string().max(0);
   expect(maxZero.parse("")).toEqual("");
   expect(() => maxZero.parse("a")).toThrow();
   expect(() => maxZero.parse("hello")).toThrow();
@@ -1018,26 +1018,26 @@ test("boundary cases with zero length", () => {
 test("length checks count Unicode code points, not UTF-16 code units", () => {
   // "\u{1F600}" is one code point but two UTF-16 code units
   const five = "\u{1F600}\u{1F600}\u{1F600}\u{1F600}\u{1F600}";
-  expect(z.string().max(5).safeParse(five).success).toBe(true);
+  expect(Schema.string().max(5).safeParse(five).success).toBe(true);
   expect(
     z
       .string()
       .max(5)
       .safeParse(five + "\u{1F600}").success
   ).toBe(false);
-  expect(z.string().min(5).safeParse(five).success).toBe(true);
-  expect(z.string().min(5).safeParse("\u{1F600}\u{1F600}\u{1F600}\u{1F600}").success).toBe(false);
-  expect(z.string().length(5).safeParse(five).success).toBe(true);
-  expect(z.string().length(1).safeParse("\u{1F600}").success).toBe(true);
-  expect(z.string().nonempty().safeParse("\u{1F600}").success).toBe(true);
+  expect(Schema.string().min(5).safeParse(five).success).toBe(true);
+  expect(Schema.string().min(5).safeParse("\u{1F600}\u{1F600}\u{1F600}\u{1F600}").success).toBe(false);
+  expect(Schema.string().length(5).safeParse(five).success).toBe(true);
+  expect(Schema.string().length(1).safeParse("\u{1F600}").success).toBe(true);
+  expect(Schema.string().nonempty().safeParse("\u{1F600}").success).toBe(true);
 
   // code points, not graphemes: a combining mark and a ZWJ sequence each stay several
-  expect(z.string().length(2).safeParse("e\u0301").success).toBe(true);
-  expect(z.string().length(3).safeParse("\u{1F9D1}\u200D\u{1F37C}").success).toBe(true);
+  expect(Schema.string().length(2).safeParse("e\u0301").success).toBe(true);
+  expect(Schema.string().length(3).safeParse("\u{1F9D1}\u200D\u{1F37C}").success).toBe(true);
 
   // an unpaired surrogate is its own code point
-  expect(z.string().length(1).safeParse("\uD83D").success).toBe(true);
-  expect(z.string().length(2).safeParse("\uDE00\uD83D").success).toBe(true);
+  expect(Schema.string().length(1).safeParse("\uD83D").success).toBe(true);
+  expect(Schema.string().length(2).safeParse("\uDE00\uD83D").success).toBe(true);
 
   // the reported bound is still the declared one
   expect(
@@ -1052,43 +1052,43 @@ test("length checks count Unicode code points, not UTF-16 code units", () => {
   });
 
   // other lengthables keep counting elements
-  expect(z.array(z.string()).max(2).safeParse(["a", "b", "c"]).success).toBe(false);
-  expect(z.array(z.string()).length(2).safeParse(["\u{1F600}", "\u{1F600}"]).success).toBe(true);
+  expect(Schema.array(Schema.string()).max(2).safeParse(["a", "b", "c"]).success).toBe(false);
+  expect(Schema.array(Schema.string()).length(2).safeParse(["\u{1F600}", "\u{1F600}"]).success).toBe(true);
 });
 
 test("trim", () => {
-  expect(z.string().trim().min(2).parse(" 12 ")).toEqual("12");
+  expect(Schema.string().trim().min(2).parse(" 12 ")).toEqual("12");
 
   // ordering of methods is respected
-  expect(z.string().min(2).trim().parse(" 1 ")).toEqual("1");
-  expect(() => z.string().trim().min(2).parse(" 1 ")).toThrow();
+  expect(Schema.string().min(2).trim().parse(" 1 ")).toEqual("1");
+  expect(() => Schema.string().trim().min(2).parse(" 1 ")).toThrow();
 });
 
 test("lowerCase", () => {
-  expect(z.string().toLowerCase().parse("ASDF")).toEqual("asdf");
-  expect(z.string().toUpperCase().parse("asdf")).toEqual("ASDF");
+  expect(Schema.string().toLowerCase().parse("ASDF")).toEqual("asdf");
+  expect(Schema.string().toUpperCase().parse("asdf")).toEqual("ASDF");
 });
 
 test("slugify", () => {
-  expect(z.string().slugify().parse("Hello World")).toEqual("hello-world");
-  expect(z.string().slugify().parse("  Hello   World  ")).toEqual("hello-world");
-  expect(z.string().slugify().parse("Hello@World#123")).toEqual("helloworld123");
-  expect(z.string().slugify().parse("Hello-World")).toEqual("hello-world");
-  expect(z.string().slugify().parse("Hello_World")).toEqual("hello-world");
-  expect(z.string().slugify().parse("---Hello---World---")).toEqual("hello-world");
-  expect(z.string().slugify().parse("Hello  World")).toEqual("hello-world");
-  expect(z.string().slugify().parse("Hello!@#$%^&*()World")).toEqual("helloworld");
+  expect(Schema.string().slugify().parse("Hello World")).toEqual("hello-world");
+  expect(Schema.string().slugify().parse("  Hello   World  ")).toEqual("hello-world");
+  expect(Schema.string().slugify().parse("Hello@World#123")).toEqual("helloworld123");
+  expect(Schema.string().slugify().parse("Hello-World")).toEqual("hello-world");
+  expect(Schema.string().slugify().parse("Hello_World")).toEqual("hello-world");
+  expect(Schema.string().slugify().parse("---Hello---World---")).toEqual("hello-world");
+  expect(Schema.string().slugify().parse("Hello  World")).toEqual("hello-world");
+  expect(Schema.string().slugify().parse("Hello!@#$%^&*()World")).toEqual("helloworld");
 
   // can be used with check
-  expect(z.string().check(z.slugify()).parse("Hello World")).toEqual("hello-world");
+  expect(Schema.string().check(Schema.slugify()).parse("Hello World")).toEqual("hello-world");
 
   // can be chained with other methods
-  expect(z.string().slugify().min(5).parse("Hello World")).toEqual("hello-world");
-  expect(() => z.string().slugify().min(20).parse("Hello World")).toThrow();
+  expect(Schema.string().slugify().min(5).parse("Hello World")).toEqual("hello-world");
+  expect(() => Schema.string().slugify().min(20).parse("Hello World")).toThrow();
 });
 
 // test("IP validation", () => {
-//   const ipSchema = z.string().ip();
+//   const ipSchema = Schema.string().ip();
 
 //   // General IP validation (accepts both v4 and v6)
 //   expect(ipSchema.safeParse("114.71.82.94").success).toBe(true);
@@ -1113,7 +1113,7 @@ test("slugify", () => {
 // });
 
 test("IPv4 validation", () => {
-  const ipv4 = z.string().ipv4();
+  const ipv4 = Schema.string().ipv4();
 
   // Valid IPv4 addresses
   expect(ipv4.safeParse("114.71.82.94").success).toBe(true);
@@ -1140,7 +1140,7 @@ test("IPv4 validation", () => {
 });
 
 test("IPv6 validation", () => {
-  const ipv6 = z.string().ipv6();
+  const ipv6 = Schema.string().ipv6();
 
   // Valid IPv6 addresses
   expect(ipv6.safeParse("1e5e:e6c8:daac:514b:114b:e360:d8c0:682c").success).toBe(true);
@@ -1172,7 +1172,7 @@ test("IPv6 validation", () => {
 });
 
 test("MAC validation", () => {
-  const mac = z.mac();
+  const mac = Schema.mac();
 
   // Valid MAC addresses
   expect(mac.safeParse("00:1A:2B:3C:4D:5E").success).toBe(true);
@@ -1210,21 +1210,21 @@ test("MAC validation", () => {
 });
 
 test("MAC validation with custom delimiter", () => {
-  const colonMac = z.mac({ delimiter: ":" });
+  const colonMac = Schema.mac({ delimiter: ":" });
   expect(colonMac.safeParse("00:1A:2B:3C:4D:5E").success).toBe(true);
   expect(colonMac.safeParse("00-1A-2B-3C-4D-5E").success).toBe(false);
 
-  const dashMac = z.mac({ delimiter: "-" });
+  const dashMac = Schema.mac({ delimiter: "-" });
   expect(dashMac.safeParse("00-1A-2B-3C-4D-5E").success).toBe(true);
   expect(dashMac.safeParse("00:1A:2B:3C:4D:5E").success).toBe(false);
 
-  const colonOnlyMac = z.mac({ delimiter: ":" });
+  const colonOnlyMac = Schema.mac({ delimiter: ":" });
   expect(colonOnlyMac.safeParse("00:1A:2B:3C:4D:5E").success).toBe(true);
   expect(colonOnlyMac.safeParse("00-1A-2B-3C-4D-5E").success).toBe(false);
 });
 
 test("CIDR v4 validation", () => {
-  const cidrV4 = z.string().cidrv4();
+  const cidrV4 = Schema.string().cidrv4();
 
   // Valid CIDR v4 addresses
   expect(cidrV4.safeParse("192.168.0.0/24").success).toBe(true);
@@ -1242,7 +1242,7 @@ test("CIDR v4 validation", () => {
 });
 
 test("CIDR v6 validation", () => {
-  const cidrV6 = z.string().cidrv6();
+  const cidrV6 = Schema.string().cidrv6();
 
   // Valid CIDR v6 addresses
   expect(cidrV6.safeParse("2001:db8::/32").success).toBe(true);
@@ -1254,7 +1254,7 @@ test("CIDR v6 validation", () => {
   expect(cidrV6.safeParse("2001:db8:85a3::8a2e:370:7334/64").success).toBe(true);
   expect(cidrV6.safeParse("2001:db8:85a3:0:0:8a2e:370:7334/64").success).toBe(true);
 
-  const pattern = new RegExp(z.toJSONSchema(cidrV6).pattern as string);
+  const pattern = new RegExp(Schema.toJSONSchema(cidrV6).pattern as string);
   for (const input of ["2001:db8::/32", "2001:db8:1::/48", "2001:0db8:85a3::/64", "fe80::/10", "::/0"]) {
     expect(pattern.test(input)).toBe(true);
   }
@@ -1271,7 +1271,7 @@ test("CIDR v6 validation", () => {
 });
 
 test("E.164 validation", () => {
-  const e164Number = z.string().e164();
+  const e164Number = Schema.string().e164();
   expect(e164Number.safeParse("+1555555").success).toBe(true);
 
   const validE164Numbers = [
@@ -1309,7 +1309,7 @@ test("E.164 validation", () => {
 });
 
 test("hostname", () => {
-  const hostname = z.hostname();
+  const hostname = Schema.hostname();
 
   // Valid hostnames
   hostname.parse("localhost");
@@ -1347,7 +1347,7 @@ test("hostname", () => {
 });
 
 test("currency code", () => {
-  const currency = z.currencyCode();
+  const currency = Schema.currencyCode();
   for (const code of ["USD", "EUR", "XXX", "XCG", "XAD"]) expect(currency.parse(code)).toBe(code);
   for (const input of ["", "usd", "US", "USDX", " USD", "ANG", "BGN"])
     expect(currency.safeParse(input).success).toBe(false);
@@ -1360,9 +1360,9 @@ test("currency code", () => {
 
 test("hash validation", () => {
   // MD5 tests
-  const md5hex = z.hash("md5");
-  const md5base64 = z.hash("md5", { enc: "base64" });
-  const md5base64url = z.hash("md5", { enc: "base64url" });
+  const md5hex = Schema.hash("md5");
+  const md5base64 = Schema.hash("md5", { enc: "base64" });
+  const md5base64url = Schema.hash("md5", { enc: "base64url" });
 
   // Valid MD5 hashes
   expect(md5hex.parse("5d41402abc4b2a76b9719d911017c592")).toBe("5d41402abc4b2a76b9719d911017c592");
@@ -1377,9 +1377,9 @@ test("hash validation", () => {
   expect(() => md5base64url.parse("XUFAKrxLKna5cZ2REBfFkg=")).toThrow(); // has padding
 
   // SHA1 tests
-  const sha1hex = z.hash("sha1");
-  const sha1base64 = z.hash("sha1", { enc: "base64" });
-  const sha1base64url = z.hash("sha1", { enc: "base64url" });
+  const sha1hex = Schema.hash("sha1");
+  const sha1base64 = Schema.hash("sha1", { enc: "base64" });
+  const sha1base64url = Schema.hash("sha1", { enc: "base64url" });
 
   // Valid SHA1 hashes
   expect(sha1hex.parse("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d")).toBe("aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d");
@@ -1387,9 +1387,9 @@ test("hash validation", () => {
   expect(sha1base64url.parse("qvTGHdzF6KLavt4PO0gs2a6pQ00")).toBe("qvTGHdzF6KLavt4PO0gs2a6pQ00");
 
   // SHA256 tests
-  const sha256hex = z.hash("sha256");
-  const sha256base64 = z.hash("sha256", { enc: "base64" });
-  const sha256base64url = z.hash("sha256", { enc: "base64url" });
+  const sha256hex = Schema.hash("sha256");
+  const sha256base64 = Schema.hash("sha256", { enc: "base64" });
+  const sha256base64url = Schema.hash("sha256", { enc: "base64url" });
 
   // Valid SHA256 hashes
   expect(sha256hex.parse("2cf24dba4f21d4288094c4a2e2c2d6c6b0c3e0c8f0e0c8f0e0c8f0e0c8f0e0c8")).toBe(
@@ -1403,8 +1403,8 @@ test("hash validation", () => {
   );
 
   // SHA384 tests (no padding in base64)
-  const sha384hex = z.hash("sha384");
-  const sha384base64 = z.hash("sha384", { enc: "base64" });
+  const sha384hex = Schema.hash("sha384");
+  const sha384base64 = Schema.hash("sha384", { enc: "base64" });
 
   expect(
     sha384hex.parse("59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
@@ -1414,8 +1414,8 @@ test("hash validation", () => {
   );
 
   // SHA512 tests
-  const sha512hex = z.hash("sha512");
-  const sha512base64 = z.hash("sha512", { enc: "base64" });
+  const sha512hex = Schema.hash("sha512");
+  const sha512base64 = Schema.hash("sha512", { enc: "base64" });
 
   expect(
     sha512hex.parse(
@@ -1429,12 +1429,12 @@ test("hash validation", () => {
   ).toBe("m3HSJL1i83hdltRq0+o9czGb+8KJDKra4t/3JRlnPKcjI8PZm6XBHXx6zG4UuMXaDEZjR1wuXDre9G9zvN7AQw==");
 
   // Test default encoding (hex)
-  const defaultHash = z.hash("sha256");
+  const defaultHash = Schema.hash("sha256");
   expect(defaultHash.parse("2cf24dba4f21d4288094c4a2e2c2d6c6b0c3e0c8f0e0c8f0e0c8f0e0c8f0e0c8")).toBe(
     "2cf24dba4f21d4288094c4a2e2c2d6c6b0c3e0c8f0e0c8f0e0c8f0e0c8f0e0c8"
   );
 
   // Test with custom error message
-  const hashWithMessage = z.hash("md5", { message: "Invalid MD5 hash" });
+  const hashWithMessage = Schema.hash("md5", { message: "Invalid MD5 hash" });
   expect(() => hashWithMessage.parse("invalid")).toThrow("Invalid MD5 hash");
 });

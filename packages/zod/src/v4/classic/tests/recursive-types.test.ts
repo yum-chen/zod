@@ -1,52 +1,52 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { z } from "zod/v4";
+import { Schema } from "schema/v4";
 
 test("recursive object schema type aliases", () => {
-  type ObjectField = z.ZodObject<{ [k: string]: ObjectField }>;
-  type MixedField = z.ZodString | z.ZodObject<{ [k: string]: MixedField }>;
-  expectTypeOf<ObjectField>().toExtend<z.ZodType>();
-  expectTypeOf<MixedField>().toExtend<z.ZodType>();
+  type ObjectField = Schema.SchemaObject<{ [k: string]: ObjectField }>;
+  type MixedField = Schema.SchemaString | Schema.SchemaObject<{ [k: string]: MixedField }>;
+  expectTypeOf<ObjectField>().toExtend<Schema.SchemaType>();
+  expectTypeOf<MixedField>().toExtend<Schema.SchemaType>();
 
   type ObjectValue = { [k: string]: ObjectValue };
   type MixedValue = string | { [k: string]: MixedValue };
-  expectTypeOf<z.input<ObjectField>>().toEqualTypeOf<ObjectValue>();
-  expectTypeOf<z.output<ObjectField>>().toEqualTypeOf<ObjectValue>();
-  expectTypeOf<z.input<MixedField>>().toEqualTypeOf<MixedValue>();
-  expectTypeOf<z.output<MixedField>>().toEqualTypeOf<MixedValue>();
+  expectTypeOf<Schema.input<ObjectField>>().toEqualTypeOf<ObjectValue>();
+  expectTypeOf<Schema.output<ObjectField>>().toEqualTypeOf<ObjectValue>();
+  expectTypeOf<Schema.input<MixedField>>().toEqualTypeOf<MixedValue>();
+  expectTypeOf<Schema.output<MixedField>>().toEqualTypeOf<MixedValue>();
 
-  const schema: MixedField = z.object({ name: z.string(), nested: z.object({ name: z.string() }) });
-  expect(schema.parse({ name: "a", nested: { name: "b", extra: true } })).toEqual({
+  const schema: MixedField = Schema.object({ name: Schema.string(), nested: Schema.object({ name: Schema.string() }) });
+  expect(Schema.parse({ name: "a", nested: { name: "b", extra: true } })).toEqual({
     name: "a",
     nested: { name: "b" },
   });
-  expect(schema.safeParse({ name: "a", nested: { name: 123 } }).success).toBe(false);
+  expect(Schema.safeParse({ name: "a", nested: { name: 123 } }).success).toBe(false);
 
-  type CoreField = z.core.$ZodString<string> | z.core.$ZodObject<{ [k: string]: CoreField }>;
-  expectTypeOf<z.input<CoreField>>().toEqualTypeOf<MixedValue>();
-  expectTypeOf<z.output<CoreField>>().toEqualTypeOf<MixedValue>();
+  type CoreField = Schema.core.$SchemaString<string> | Schema.core.$SchemaObject<{ [k: string]: CoreField }>;
+  expectTypeOf<Schema.input<CoreField>>().toEqualTypeOf<MixedValue>();
+  expectTypeOf<Schema.output<CoreField>>().toEqualTypeOf<MixedValue>();
 });
 
 test("recursive object aliases preserve distinct input and output", () => {
-  type Field = z.ZodPipe<z.ZodString, z.ZodTransform<number, string>> | z.ZodObject<{ [k: string]: Field }>;
+  type Field = Schema.SchemaPipe<Schema.SchemaString, Schema.SchemaTransform<number, string>> | Schema.SchemaObject<{ [k: string]: Field }>;
   type Input = string | { [k: string]: Input };
   type Output = number | { [k: string]: Output };
-  expectTypeOf<z.input<Field>>().toEqualTypeOf<Input>();
-  expectTypeOf<z.output<Field>>().toEqualTypeOf<Output>();
-  const schema: Field = z.object({ nested: z.object({ length: z.string().transform((s) => s.length) }) });
-  expect(schema.parse({ nested: { length: "abc" } })).toEqual({ nested: { length: 3 } });
-  expect(schema.safeParse({ nested: { length: 3 } }).success).toBe(false);
+  expectTypeOf<Schema.input<Field>>().toEqualTypeOf<Input>();
+  expectTypeOf<Schema.output<Field>>().toEqualTypeOf<Output>();
+  const schema: Field = Schema.object({ nested: Schema.object({ length: Schema.string().transform((s) => s.length) }) });
+  expect(Schema.parse({ nested: { length: "abc" } })).toEqual({ nested: { length: 3 } });
+  expect(Schema.safeParse({ nested: { length: 3 } }).success).toBe(false);
 });
 
 test("indexed object inference preserves string keys", () => {
-  type Indexed = z.ZodObject<Record<string, z.ZodString>>;
-  type Recursive = z.ZodObject<Record<string, Recursive>>;
-  expectTypeOf<keyof z.input<Indexed>>().toEqualTypeOf<string>();
-  expectTypeOf<keyof z.output<Indexed>>().toEqualTypeOf<string>();
-  expectTypeOf<keyof z.input<Recursive>>().toEqualTypeOf<string>();
-  expectTypeOf<keyof z.output<Recursive>>().toEqualTypeOf<string>();
+  type Indexed = Schema.SchemaObject<Record<string, Schema.SchemaString>>;
+  type Recursive = Schema.SchemaObject<Record<string, Recursive>>;
+  expectTypeOf<keyof Schema.input<Indexed>>().toEqualTypeOf<string>();
+  expectTypeOf<keyof Schema.output<Indexed>>().toEqualTypeOf<string>();
+  expectTypeOf<keyof Schema.input<Recursive>>().toEqualTypeOf<string>();
+  expectTypeOf<keyof Schema.output<Recursive>>().toEqualTypeOf<string>();
 });
 
-test("recursion with z.lazy", () => {
+test("recursion with Schema.lazy", () => {
   const data = {
     name: "I",
     subcategories: [
@@ -67,13 +67,13 @@ test("recursion with z.lazy", () => {
     ],
   };
 
-  const Category = z.object({
-    name: z.string(),
+  const Category = Schema.object({
+    name: Schema.string(),
     get subcategories() {
-      return z.array(Category).optional().nullable();
+      return Schema.array(Category).optional().nullable();
     },
   });
-  type Category = z.infer<typeof Category>;
+  type Category = Schema.infer<typeof Category>;
   interface _Category {
     name: string;
     subcategories?: _Category[] | undefined | null;
@@ -97,13 +97,13 @@ test("recursion involving union type", () => {
     },
   };
 
-  const LL = z.object({
-    value: z.number(),
+  const LL = Schema.object({
+    value: Schema.number(),
     get next() {
       return LL.nullable();
     },
   });
-  type LL = z.infer<typeof LL>;
+  type LL = Schema.infer<typeof LL>;
   type _LL = {
     value: number;
     next: _LL | null;
@@ -114,15 +114,15 @@ test("recursion involving union type", () => {
 });
 
 test("mutual recursion - native", () => {
-  const Alazy = z.object({
-    val: z.number(),
+  const Alazy = Schema.object({
+    val: Schema.number(),
     get b() {
       return Blazy;
     },
   });
 
-  const Blazy = z.object({
-    val: z.number(),
+  const Blazy = Schema.object({
+    val: Schema.number(),
     get a() {
       return Alazy.optional();
     },
@@ -146,8 +146,8 @@ test("mutual recursion - native", () => {
     },
   };
 
-  type Alazy = z.infer<typeof Alazy>;
-  type Blazy = z.infer<typeof Blazy>;
+  type Alazy = Schema.infer<typeof Alazy>;
+  type Blazy = Schema.infer<typeof Blazy>;
   interface _Alazy {
     val: number;
     b: _Blazy;
@@ -165,14 +165,14 @@ test("mutual recursion - native", () => {
 });
 
 test("pick and omit with getter", () => {
-  const Category = z.strictObject({
-    name: z.string(),
+  const Category = Schema.strictObject({
+    name: Schema.string(),
     get subcategories() {
-      return z.array(Category);
+      return Schema.array(Category);
     },
   });
 
-  type Category = z.infer<typeof Category>;
+  type Category = Schema.infer<typeof Category>;
 
   interface _Category {
     name: string;
@@ -182,7 +182,7 @@ test("pick and omit with getter", () => {
 
   // Shape should not surface `readonly` modifiers from getter-defined keys. object/strictObject/looseObject all pass shape through util.Writeable<T>.
   type Shape = (typeof Category)["shape"];
-  expectTypeOf<Shape>().toEqualTypeOf<{ name: z.ZodString; subcategories: z.ZodArray<typeof Category> }>();
+  expectTypeOf<Shape>().toEqualTypeOf<{ name: Schema.SchemaString; subcategories: Schema.SchemaArray<typeof Category> }>();
 
   const PickedCategory = Category.pick({ name: true });
   const OmittedCategory = Category.omit({ subcategories: true });
@@ -198,66 +198,66 @@ test("pick and omit with getter", () => {
 });
 
 test("shape stays writeable through extend/safeExtend/partial/required", () => {
-  const Base = z.object({ name: z.string() });
+  const Base = Schema.object({ name: Schema.string() });
 
   const Extended = Base.extend({
     get sub() {
-      return z.array(Extended);
+      return Schema.array(Extended);
     },
   });
   type ExtendedShape = (typeof Extended)["shape"];
   expectTypeOf<ExtendedShape>().toEqualTypeOf<{
-    name: z.ZodString;
-    sub: z.ZodArray<typeof Extended>;
+    name: Schema.SchemaString;
+    sub: Schema.SchemaArray<typeof Extended>;
   }>();
 
-  const SafeExt = Base.safeExtend({ extra: z.string() } as const);
+  const SafeExt = Base.safeExtend({ extra: Schema.string() } as const);
   type SafeExtShape = (typeof SafeExt)["shape"];
   expectTypeOf<SafeExtShape>().toEqualTypeOf<{
-    name: z.ZodString;
-    extra: z.ZodString;
+    name: Schema.SchemaString;
+    extra: Schema.SchemaString;
   }>();
 
-  const FromConst = Base.extend({ a: z.string(), b: z.number() } as const);
+  const FromConst = Base.extend({ a: Schema.string(), b: Schema.number() } as const);
   type FromConstShape = (typeof FromConst)["shape"];
   expectTypeOf<FromConstShape>().toEqualTypeOf<{
-    name: z.ZodString;
-    a: z.ZodString;
-    b: z.ZodNumber;
+    name: Schema.SchemaString;
+    a: Schema.SchemaString;
+    b: Schema.SchemaNumber;
   }>();
 
   const PartialExtended = Extended.partial();
   type PartialShape = (typeof PartialExtended)["shape"];
   expectTypeOf<PartialShape>().toEqualTypeOf<{
-    name: z.ZodOptional<z.ZodString>;
-    sub: z.ZodOptional<z.ZodArray<typeof Extended>>;
+    name: Schema.SchemaOptional<Schema.SchemaString>;
+    sub: Schema.SchemaOptional<Schema.SchemaArray<typeof Extended>>;
   }>();
 
   const RequiredExtended = Extended.required();
   type RequiredShape = (typeof RequiredExtended)["shape"];
   expectTypeOf<RequiredShape>().toEqualTypeOf<{
-    name: z.ZodNonOptional<z.ZodString>;
-    sub: z.ZodNonOptional<z.ZodArray<typeof Extended>>;
+    name: Schema.SchemaNonOptional<Schema.SchemaString>;
+    sub: Schema.SchemaNonOptional<Schema.SchemaArray<typeof Extended>>;
   }>();
 });
 
 test("deferred self-recursion", () => {
-  const Feature = z.object({
-    title: z.string(),
-    get features(): z.ZodOptional<z.ZodArray<typeof Feature>> {
-      return z.optional(z.array(Feature)); //.optional();
+  const Feature = Schema.object({
+    title: Schema.string(),
+    get features(): Schema.SchemaOptional<Schema.SchemaArray<typeof Feature>> {
+      return Schema.optional(Schema.array(Feature)); //.optional();
     },
   });
-  // type Feature = z.infer<typeof Feature>;
+  // type Feature = Schema.infer<typeof Feature>;
 
-  const Output = z.object({
-    id: z.int(), //.nonnegative(),
-    name: z.string(),
-    get features(): z.ZodArray<typeof Feature> {
+  const Output = Schema.object({
+    id: Schema.int(), //.nonnegative(),
+    name: Schema.string(),
+    get features(): Schema.SchemaArray<typeof Feature> {
       return Feature.array();
     },
   });
-  type Output = z.output<typeof Output>;
+  type Output = Schema.output<typeof Output>;
 
   type _Feature = {
     title: string;
@@ -275,27 +275,27 @@ test("deferred self-recursion", () => {
 });
 
 test("deferred mutual recursion", () => {
-  const Slot = z.object({
-    slotCode: z.string(),
+  const Slot = Schema.object({
+    slotCode: Schema.string(),
 
     get blocks() {
-      return z.array(Block);
+      return Schema.array(Block);
     },
   });
-  type Slot = z.infer<typeof Slot>;
+  type Slot = Schema.infer<typeof Slot>;
 
-  const Block = z.object({
-    blockCode: z.string(),
+  const Block = Schema.object({
+    blockCode: Schema.string(),
     get slots() {
-      return z.array(Slot).optional();
+      return Schema.array(Slot).optional();
     },
   });
-  type Block = z.infer<typeof Block>;
+  type Block = Schema.infer<typeof Block>;
 
-  const Page = z.object({
-    slots: z.array(Slot),
+  const Page = Schema.object({
+    slots: Schema.array(Slot),
   });
-  type Page = z.infer<typeof Page>;
+  type Page = Schema.infer<typeof Page>;
 
   type _Slot = {
     slotCode: string;
@@ -316,7 +316,7 @@ test("deferred mutual recursion", () => {
 test("mutual recursion with meta", () => {
   const A = z
     .object({
-      name: z.string(),
+      name: Schema.string(),
       get b() {
         return B;
       },
@@ -327,7 +327,7 @@ test("mutual recursion with meta", () => {
 
   const B = z
     .object({
-      name: z.string(),
+      name: Schema.string(),
       get a() {
         return A;
       },
@@ -335,8 +335,8 @@ test("mutual recursion with meta", () => {
     .readonly()
     .meta({ id: "B" });
 
-  type A = z.infer<typeof A>;
-  type B = z.infer<typeof B>;
+  type A = Schema.infer<typeof A>;
+  type B = Schema.infer<typeof B>;
 
   type _A =
     | Readonly<{
@@ -354,26 +354,26 @@ test("mutual recursion with meta", () => {
 });
 
 test("intersection with recursive types", () => {
-  const A = z.discriminatedUnion("type", [
-    z.object({
-      type: z.literal("CONTAINER"),
+  const A = Schema.discriminatedUnion("type", [
+    Schema.object({
+      type: Schema.literal("CONTAINER"),
     }),
-    z.object({
-      type: z.literal("SCREEN"),
-      config: z.object({ x: z.number(), y: z.number() }),
+    Schema.object({
+      type: Schema.literal("SCREEN"),
+      config: Schema.object({ x: Schema.number(), y: Schema.number() }),
     }),
   ]);
-  // type A = z.infer<typeof A>;
+  // type A = Schema.infer<typeof A>;
 
-  const B = z.object({
+  const B = Schema.object({
     get children() {
-      return z.array(C).optional();
+      return Schema.array(C).optional();
     },
   });
-  // type B = z.infer<typeof B>;
+  // type B = Schema.infer<typeof B>;
 
-  const C = z.intersection(A, B);
-  type C = z.infer<typeof C>;
+  const C = Schema.intersection(A, B);
+  type C = Schema.infer<typeof C>;
 
   type _C = (
     | {
@@ -393,26 +393,26 @@ test("intersection with recursive types", () => {
 });
 
 test("object utilities with recursive types", () => {
-  const NodeBase = z.object({
-    id: z.string(),
-    name: z.string(),
+  const NodeBase = Schema.object({
+    id: Schema.string(),
+    name: Schema.string(),
     get children() {
-      return z.array(Node).optional();
+      return Schema.array(Node).optional();
     },
   });
 
   // Test extend with new keys (extend throws when overwriting existing keys)
   const NodeOne = NodeBase.extend({
-    name: z.literal("nodeOne"),
+    name: Schema.literal("nodeOne"),
     get children() {
-      return z.array(Node);
+      return Schema.array(Node);
     },
   });
 
   const NodeTwo = NodeBase.extend({
-    name: z.literal("nodeTwo"),
+    name: Schema.literal("nodeTwo"),
     get children() {
-      return z.array(Node);
+      return Schema.array(Node);
     },
   });
 
@@ -424,7 +424,7 @@ test("object utilities with recursive types", () => {
 
   // Test merge
   const ExtraProps = {
-    metadata: z.string(),
+    metadata: Schema.string(),
     get parent() {
       return Node.optional();
     },
@@ -436,17 +436,17 @@ test("object utilities with recursive types", () => {
   const PartialMaskedNode = NodeBase.partial({ name: true });
 
   // Test required (assuming NodeBase has optional fields)
-  const OptionalNodeBase = z.object({
-    id: z.string().optional(),
-    name: z.string().optional(),
+  const OptionalNodeBase = Schema.object({
+    id: Schema.string().optional(),
+    name: Schema.string().optional(),
     get children() {
-      return z.array(Node).optional();
+      return Schema.array(Node).optional();
     },
   });
   const RequiredNode = OptionalNodeBase.required();
   const RequiredMaskedNode = OptionalNodeBase.required({ id: true });
 
-  const Node = z.union([
+  const Node = Schema.union([
     NodeOne,
     NodeTwo,
     PickedNode,
@@ -460,13 +460,13 @@ test("object utilities with recursive types", () => {
 });
 
 test("tuple with recursive types", () => {
-  const TaskListNodeSchema = z.strictObject({
-    type: z.literal("taskList"),
+  const TaskListNodeSchema = Schema.strictObject({
+    type: Schema.literal("taskList"),
     get content() {
-      return z.array(z.tuple([TaskListNodeSchema, z.union([TaskListNodeSchema])])).min(1);
+      return Schema.array(Schema.tuple([TaskListNodeSchema, Schema.union([TaskListNodeSchema])])).min(1);
     },
   });
-  type TaskListNodeSchema = z.infer<typeof TaskListNodeSchema>;
+  type TaskListNodeSchema = Schema.infer<typeof TaskListNodeSchema>;
   type _TaskListNodeSchema = {
     type: "taskList";
     content: [_TaskListNodeSchema, _TaskListNodeSchema][];
@@ -476,7 +476,7 @@ test("tuple with recursive types", () => {
 
 test("recursion compatibility", () => {
   // array
-  const A = z.object({
+  const A = Schema.object({
     get array() {
       return A.array();
     },
@@ -499,13 +499,13 @@ test("recursion compatibility", () => {
       return A.meta({ description: "A recursive type" });
     },
     get pipe() {
-      return A.pipe(z.any());
+      return A.pipe(Schema.any());
     },
     get strict() {
       return A.strict();
     },
     get tuple() {
-      return z.tuple([A, A]);
+      return Schema.tuple([A, A]);
     },
     get object() {
       return z
@@ -516,25 +516,25 @@ test("recursion compatibility", () => {
         .loose();
     },
     get union() {
-      return z.union([A, A]);
+      return Schema.union([A, A]);
     },
     get intersection() {
-      return z.intersection(A, A);
+      return Schema.intersection(A, A);
     },
     get record() {
-      return z.record(z.string(), A);
+      return Schema.record(Schema.string(), A);
     },
     get map() {
-      return z.map(z.string(), A);
+      return Schema.map(Schema.string(), A);
     },
     get set() {
-      return z.set(A);
+      return Schema.set(A);
     },
     get lazy() {
-      return z.lazy(() => A);
+      return Schema.lazy(() => A);
     },
     get promise() {
-      return z.promise(A);
+      return Schema.promise(A);
     },
   });
 });
@@ -542,10 +542,10 @@ test("recursion compatibility", () => {
 test("recursive object with .check()", () => {
   const Category = z
     .object({
-      id: z.string(),
-      name: z.string(),
+      id: Schema.string(),
+      name: Schema.string(),
       get subcategories() {
-        return z.array(Category).optional();
+        return Schema.array(Category).optional();
       },
     })
     .check((ctx) => {
@@ -602,29 +602,29 @@ test("recursive object with .check()", () => {
 });
 
 // biome-ignore lint/suspicious/noExportsInTest: unexported it trips noUnusedVariables instead
-export type RecursiveA = z.ZodUnion<
+export type RecursiveA = Schema.SchemaUnion<
   [
-    z.ZodObject<{
-      a: z.ZodDefault<RecursiveA>;
-      b: z.ZodPrefault<RecursiveA>;
-      c: z.ZodNonOptional<RecursiveA>;
-      d: z.ZodOptional<RecursiveA>;
-      e: z.ZodNullable<RecursiveA>;
-      g: z.ZodReadonly<RecursiveA>;
-      h: z.ZodPipe<RecursiveA, z.ZodString>;
-      i: z.ZodArray<RecursiveA>;
-      j: z.ZodSet<RecursiveA>;
-      k: z.ZodMap<RecursiveA, RecursiveA>;
-      l: z.ZodRecord<z.ZodString, RecursiveA>;
-      m: z.ZodUnion<[RecursiveA, RecursiveA]>;
-      n: z.ZodIntersection<RecursiveA, RecursiveA>;
-      o: z.ZodLazy<RecursiveA>;
-      p: z.ZodPromise<RecursiveA>;
-      q: z.ZodCatch<RecursiveA>;
-      r: z.ZodSuccess<RecursiveA>;
-      s: z.ZodTransform<RecursiveA, string>;
-      t: z.ZodTuple<[RecursiveA, RecursiveA]>;
-      u: z.ZodObject<{
+    Schema.SchemaObject<{
+      a: Schema.SchemaDefault<RecursiveA>;
+      b: Schema.SchemaPrefault<RecursiveA>;
+      c: Schema.SchemaNonOptional<RecursiveA>;
+      d: Schema.SchemaOptional<RecursiveA>;
+      e: Schema.SchemaNullable<RecursiveA>;
+      g: Schema.SchemaReadonly<RecursiveA>;
+      h: Schema.SchemaPipe<RecursiveA, Schema.SchemaString>;
+      i: Schema.SchemaArray<RecursiveA>;
+      j: Schema.SchemaSet<RecursiveA>;
+      k: Schema.SchemaMap<RecursiveA, RecursiveA>;
+      l: Schema.SchemaRecord<Schema.SchemaString, RecursiveA>;
+      m: Schema.SchemaUnion<[RecursiveA, RecursiveA]>;
+      n: Schema.SchemaIntersection<RecursiveA, RecursiveA>;
+      o: Schema.SchemaLazy<RecursiveA>;
+      p: Schema.SchemaPromise<RecursiveA>;
+      q: Schema.SchemaCatch<RecursiveA>;
+      r: Schema.SchemaSuccess<RecursiveA>;
+      s: Schema.SchemaTransform<RecursiveA, string>;
+      t: Schema.SchemaTuple<[RecursiveA, RecursiveA]>;
+      u: Schema.SchemaObject<{
         a: RecursiveA;
       }>;
     }>,
@@ -632,27 +632,27 @@ export type RecursiveA = z.ZodUnion<
 >;
 
 test("recursive type with `id` meta", () => {
-  const AType = z.object({
-    type: z.literal("a"),
-    name: z.string(),
+  const AType = Schema.object({
+    type: Schema.literal("a"),
+    name: Schema.string(),
   });
 
-  const BType = z.object({
-    type: z.literal("b"),
-    name: z.string(),
+  const BType = Schema.object({
+    type: Schema.literal("b"),
+    name: Schema.string(),
   });
 
-  const CType = z.object({
-    type: z.literal("c"),
-    name: z.string(),
+  const CType = Schema.object({
+    type: Schema.literal("c"),
+    name: Schema.string(),
   });
 
-  const Schema = z.object({
-    type: z.literal("special").meta({ description: "Type" }),
-    config: z.object({
-      title: z.string().meta({ description: "Title" }),
+  const Schema = Schema.object({
+    type: Schema.literal("special").meta({ description: "Type" }),
+    config: Schema.object({
+      title: Schema.string().meta({ description: "Title" }),
       get elements() {
-        return z.array(z.discriminatedUnion("type", [AType, BType, CType])).meta({
+        return Schema.array(Schema.discriminatedUnion("type", [AType, BType, CType])).meta({
           id: "SpecialElements",
           title: "SpecialElements",
           description: "Array of elements",
@@ -675,29 +675,29 @@ test("recursive type with `id` meta", () => {
 });
 
 test("mutual recursion through discriminatedUnion getter", () => {
-  const variantA = z.object({
-    kind: z.literal("a"),
+  const variantA = Schema.object({
+    kind: Schema.literal("a"),
     get child() {
       return tree.optional();
     },
   });
 
-  const variantB = z.object({
-    kind: z.literal("b"),
+  const variantB = Schema.object({
+    kind: Schema.literal("b"),
     get sibling() {
       return tree.optional();
     },
   });
 
-  const tree = z.discriminatedUnion("kind", [variantA, variantB]);
+  const tree = Schema.discriminatedUnion("kind", [variantA, variantB]);
 
   type _Tree = { kind: "a"; child?: _Tree | undefined } | { kind: "b"; sibling?: _Tree | undefined };
 
-  const treeUnion = z.union([variantA, variantB]);
+  const treeUnion = Schema.union([variantA, variantB]);
 
-  expectTypeOf<z.input<typeof tree>>().toEqualTypeOf<_Tree>();
-  expectTypeOf<z.input<typeof tree>>().not.toBeAny();
-  expectTypeOf<z.input<typeof tree>>().toEqualTypeOf<z.input<typeof treeUnion>>();
+  expectTypeOf<Schema.input<typeof tree>>().toEqualTypeOf<_Tree>();
+  expectTypeOf<Schema.input<typeof tree>>().not.toBeAny();
+  expectTypeOf<Schema.input<typeof tree>>().toEqualTypeOf<Schema.input<typeof treeUnion>>();
 
   expect(tree.parse({ kind: "a", child: { kind: "b", sibling: { kind: "a" } } })).toEqual({
     kind: "a",

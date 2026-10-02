@@ -1,12 +1,12 @@
-// Randomized differential sweep for z.compile. Builds schemas from a grammar, throws generated inputs at both parsers, and compares success, output and issues exactly — plus the one property the fallback cannot rescue: that a bail-out inside a union is not read as a rejected branch.
+// Randomized differential sweep for Schema.compile. Builds schemas from a grammar, throws generated inputs at both parsers, and compares success, output and issues exactly — plus the one property the fallback cannot rescue: that a bail-out inside a union is not read as a rejected branch.
 //
 //   nub run dev scripts/compile-fuzz.ts            # default seed
 //   nub run dev scripts/compile-fuzz.ts 424242     # a specific seed, printed on any failure
 //   ROUNDS=20000 nub run dev scripts/compile-fuzz.ts
 //
 // Not wired into CI: it is a hunting tool, and a seed that finds something new should become a fixture in compile-differential.test.ts rather than a flaky test run.
-import * as z from "zod";
-import { INVALID, ZodCompileAsyncError, ZodCompileUnsupportedError, compile, compileFastpass } from "zod/v4/core";
+import * as Schema   from "schema";
+import { INVALID, SchemaCompileAsyncError, SchemaCompileUnsupportedError, compile, compileFastpass } from "schema/v4/core";
 
 // Seeded PRNG so a failure is reproducible from its seed alone.
 let seed = Number(process.argv[2] ?? 12345);
@@ -17,62 +17,62 @@ const rnd = () => {
 const pick = <T>(xs: T[]): T => xs[Math.floor(rnd() * xs.length)]!;
 const chance = (p: number) => rnd() < p;
 
-type Built = { schema: z.ZodType; gen: () => unknown };
+type Built = { schema: Schema.SchemaType; gen: () => unknown };
 
 const leaves: (() => Built)[] = [
-  () => ({ schema: z.string(), gen: () => pick(["", "abc", "hello world", "  pad  "]) }),
-  () => ({ schema: z.string().min(2).max(8), gen: () => pick(["a", "abc", "abcdefghij"]) }),
-  () => ({ schema: z.string().trim(), gen: () => pick(["  x  ", "y"]) }),
-  () => ({ schema: z.email(), gen: () => pick(["a@b.com", "nope"]) }),
-  () => ({ schema: z.uuid(), gen: () => pick(["550e8400-e29b-41d4-a716-446655440000", "no"]) }),
-  () => ({ schema: z.creditCard(), gen: () => pick(["4111111111111111", "4111111111111112"]) }),
-  () => ({ schema: z.iban(), gen: () => pick(["DE89370400440532013000", "DE89370400440532013001"]) }),
-  () => ({ schema: z.number(), gen: () => pick([0, -1, 3.5, Number.NaN, Number.POSITIVE_INFINITY]) }),
-  () => ({ schema: z.number().int().min(0).max(10), gen: () => pick([0, 5, 11, -1, 2.5]) }),
-  () => ({ schema: z.boolean(), gen: () => pick([true, false, "true"]) }),
-  () => ({ schema: z.bigint(), gen: () => pick([1n, 0n, 1]) }),
-  () => ({ schema: z.date(), gen: () => pick([new Date(0), new Date("nope")]) }),
-  () => ({ schema: z.literal("lit"), gen: () => pick(["lit", "other"]) }),
-  () => ({ schema: z.enum(["a", "b"]), gen: () => pick(["a", "b", "c"]) }),
-  () => ({ schema: z.null(), gen: () => pick([null, undefined]) }),
-  () => ({ schema: z.undefined(), gen: () => pick([undefined, null]) }),
-  () => ({ schema: z.any(), gen: () => pick([1, "x", null, undefined]) }),
-  () => ({ schema: z.unknown(), gen: () => pick([1, "x", undefined]) }),
-  () => ({ schema: z.literal(Number.NaN), gen: () => pick([Number.NaN, 0, "NaN"]) }),
-  () => ({ schema: z.coerce.number(), gen: () => pick(["42", 42, "x"]) }),
-  () => ({ schema: z.coerce.string(), gen: () => pick([5, "s", true]) }),
-  () => ({ schema: z.strictObject({}), gen: () => pick([{}, { extra: 1 }]) }),
-  () => ({ schema: z.looseObject({}), gen: () => pick([{}, { extra: 1 }]) }),
+  () => ({ schema: Schema.string(), gen: () => pick(["", "abc", "hello world", "  pad  "]) }),
+  () => ({ schema: Schema.string().min(2).max(8), gen: () => pick(["a", "abc", "abcdefghij"]) }),
+  () => ({ schema: Schema.string().trim(), gen: () => pick(["  x  ", "y"]) }),
+  () => ({ schema: Schema.email(), gen: () => pick(["a@b.com", "nope"]) }),
+  () => ({ schema: Schema.uuid(), gen: () => pick(["550e8400-e29b-41d4-a716-446655440000", "no"]) }),
+  () => ({ schema: Schema.creditCard(), gen: () => pick(["4111111111111111", "4111111111111112"]) }),
+  () => ({ schema: Schema.iban(), gen: () => pick(["DE89370400440532013000", "DE89370400440532013001"]) }),
+  () => ({ schema: Schema.number(), gen: () => pick([0, -1, 3.5, Number.NaN, Number.POSITIVE_INFINITY]) }),
+  () => ({ schema: Schema.number().int().min(0).max(10), gen: () => pick([0, 5, 11, -1, 2.5]) }),
+  () => ({ schema: Schema.boolean(), gen: () => pick([true, false, "true"]) }),
+  () => ({ schema: Schema.bigint(), gen: () => pick([1n, 0n, 1]) }),
+  () => ({ schema: Schema.date(), gen: () => pick([new Date(0), new Date("nope")]) }),
+  () => ({ schema: Schema.literal("lit"), gen: () => pick(["lit", "other"]) }),
+  () => ({ schema: Schema.enum(["a", "b"]), gen: () => pick(["a", "b", "c"]) }),
+  () => ({ schema: Schema.null(), gen: () => pick([null, undefined]) }),
+  () => ({ schema: Schema.undefined(), gen: () => pick([undefined, null]) }),
+  () => ({ schema: Schema.any(), gen: () => pick([1, "x", null, undefined]) }),
+  () => ({ schema: Schema.unknown(), gen: () => pick([1, "x", undefined]) }),
+  () => ({ schema: Schema.literal(Number.NaN), gen: () => pick([Number.NaN, 0, "NaN"]) }),
+  () => ({ schema: Schema.coerce.number(), gen: () => pick(["42", 42, "x"]) }),
+  () => ({ schema: Schema.coerce.string(), gen: () => pick([5, "s", true]) }),
+  () => ({ schema: Schema.strictObject({}), gen: () => pick([{}, { extra: 1 }]) }),
+  () => ({ schema: Schema.looseObject({}), gen: () => pick([{}, { extra: 1 }]) }),
   () => ({
-    schema: z.looseRecord(z.enum(["a", "b"]), z.number()),
+    schema: Schema.looseRecord(Schema.enum(["a", "b"]), Schema.number()),
     gen: () => pick([{ a: 1, b: 2 }, { a: 1 }, { a: 1, b: 2, x: "k" }]),
   }),
   () => ({
-    schema: (z as any).partialRecord(z.enum(["a", "b"]), z.number()),
+    schema: (z as any).partialRecord(Schema.enum(["a", "b"]), Schema.number()),
     gen: () => pick([{ a: 1 }, { a: 1, b: 2 }, {}]),
   }),
-  () => ({ schema: z.string().catch("fb"), gen: () => pick(["ok", 42, undefined]) }),
-  () => ({ schema: z.string().min(2).catch("fb"), gen: () => pick(["ok", "a", 42]) }),
-  () => ({ schema: z.int32(), gen: () => pick([1, 2 ** 31, 1.5, "3"]) }),
-  () => ({ schema: z.number().multipleOf(0.5), gen: () => pick([1, 1.5, 1.25]) }),
-  () => ({ schema: z.bigint().min(2n), gen: () => pick([1n, 5n, 5]) }),
-  () => ({ schema: z.date().min(new Date(0)), gen: () => pick([new Date(1), new Date(-1), new Date("x")]) }),
-  () => ({ schema: z.templateLiteral(["id_", z.string()]), gen: () => pick(["id_a", "b", 1]) }),
-  () => ({ schema: z.stringbool(), gen: () => pick(["true", "false", "yes", 1]) }),
-  () => ({ schema: z.string().readonly(), gen: () => pick(["s", 1]) }),
-  () => ({ schema: z.success(z.string()), gen: () => pick(["s", 1]) }),
-  () => ({ schema: z.set(z.number()), gen: () => pick([new Set([1, 2]), new Set(["a"]), [1]]) }),
-  () => ({ schema: z.map(z.string(), z.number()), gen: () => pick([new Map([["a", 1]]), new Map([["a", "b"]]), {}]) }),
+  () => ({ schema: Schema.string().catch("fb"), gen: () => pick(["ok", 42, undefined]) }),
+  () => ({ schema: Schema.string().min(2).catch("fb"), gen: () => pick(["ok", "a", 42]) }),
+  () => ({ schema: Schema.int32(), gen: () => pick([1, 2 ** 31, 1.5, "3"]) }),
+  () => ({ schema: Schema.number().multipleOf(0.5), gen: () => pick([1, 1.5, 1.25]) }),
+  () => ({ schema: Schema.bigint().min(2n), gen: () => pick([1n, 5n, 5]) }),
+  () => ({ schema: Schema.date().min(new Date(0)), gen: () => pick([new Date(1), new Date(-1), new Date("x")]) }),
+  () => ({ schema: Schema.templateLiteral(["id_", Schema.string()]), gen: () => pick(["id_a", "b", 1]) }),
+  () => ({ schema: Schema.stringbool(), gen: () => pick(["true", "false", "yes", 1]) }),
+  () => ({ schema: Schema.string().readonly(), gen: () => pick(["s", 1]) }),
+  () => ({ schema: Schema.success(Schema.string()), gen: () => pick(["s", 1]) }),
+  () => ({ schema: Schema.set(Schema.number()), gen: () => pick([new Set([1, 2]), new Set(["a"]), [1]]) }),
+  () => ({ schema: Schema.map(Schema.string(), Schema.number()), gen: () => pick([new Map([["a", 1]]), new Map([["a", "b"]]), {}]) }),
   () => ({
-    schema: z.preprocess((v: any) => (typeof v === "string" ? v.trim() : v), z.string()),
+    schema: Schema.preprocess((v: any) => (typeof v === "string" ? v.trim() : v), Schema.string()),
     gen: () => pick(["  x  ", 1]),
   }),
   () => ({
-    schema: z.xor([z.object({ a: z.string() }), z.object({ b: z.number() })]) as any,
+    schema: Schema.xor([Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() })]) as any,
     gen: () => pick([{ a: "x" }, { b: 1 }, {}]),
   }),
   () => ({
-    schema: z.object({ [Symbol.for("s")]: z.string() } as any),
+    schema: Schema.object({ [Symbol.for("s")]: Schema.string() } as any),
     gen: () => pick([{ [Symbol.for("s")]: "v" }, {}]),
   }),
 ];
@@ -112,7 +112,7 @@ function build(depth: number): Built {
       const parts: [string, Built][] = [];
       for (let i = 0; i < n; i++) parts.push([`k${i}`, inner()]);
       const shape = Object.fromEntries(parts.map(([k, b]) => [k, b.schema]));
-      const make = kind === "object" ? z.object : kind === "strictObject" ? z.strictObject : z.looseObject;
+      const make = kind === "object" ? Schema.object : kind === "strictObject" ? Schema.strictObject : Schema.looseObject;
       return {
         schema: (make as any)(shape),
         gen: () => {
@@ -125,33 +125,33 @@ function build(depth: number): Built {
     }
     case "array": {
       const el = inner();
-      return { schema: z.array(el.schema), gen: () => Array.from({ length: Math.floor(rnd() * 4) }, () => el.gen()) };
+      return { schema: Schema.array(el.schema), gen: () => Array.from({ length: Math.floor(rnd() * 4) }, () => el.gen()) };
     }
     case "tuple": {
       const a = inner();
       const b = inner();
-      return { schema: z.tuple([a.schema, b.schema]), gen: () => (chance(0.8) ? [a.gen(), b.gen()] : [a.gen()]) };
+      return { schema: Schema.tuple([a.schema, b.schema]), gen: () => (chance(0.8) ? [a.gen(), b.gen()] : [a.gen()]) };
     }
     case "union": {
       const a = inner();
       const b = inner();
-      return { schema: z.union([a.schema, b.schema]), gen: () => (chance(0.5) ? a.gen() : b.gen()) };
+      return { schema: Schema.union([a.schema, b.schema]), gen: () => (chance(0.5) ? a.gen() : b.gen()) };
     }
     case "du": {
       const a = inner();
       return {
-        schema: z.discriminatedUnion("t", [
-          z.object({ t: z.literal("a"), v: a.schema }),
-          z.object({ t: z.literal("b"), w: z.string() }),
-        ]) as z.ZodType,
+        schema: Schema.discriminatedUnion("t", [
+          Schema.object({ t: Schema.literal("a"), v: a.schema }),
+          Schema.object({ t: Schema.literal("b"), w: Schema.string() }),
+        ]) as Schema  .SchemaType,
         gen: () => (chance(0.5) ? { t: "a", v: a.gen() } : { t: "b", w: "s" }),
       };
     }
     case "record": {
       const v = inner();
-      const key = pick([z.string(), z.email(), z.string().min(2)]) as z.ZodType;
+      const key = pick([Schema.string(), Schema.email(), Schema.string().min(2)]) as Schema  .SchemaType;
       return {
-        schema: z.record(key as any, v.schema),
+        schema: Schema.record(key as any, v.schema),
         gen: () => {
           const o: any = {};
           for (let i = 0; i < Math.floor(rnd() * 3); i++) o[chance(0.5) ? `a${i}@b.com` : `kk${i}`] = v.gen();
@@ -161,53 +161,53 @@ function build(depth: number): Built {
     }
     case "intersection": {
       return {
-        schema: z.intersection(z.object({ a: z.string() }), z.object({ b: z.number() })),
+        schema: Schema.intersection(Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() })),
         gen: () => ({ a: "x", b: chance(0.8) ? 1 : "no" }),
       };
     }
     case "optional": {
       const i = inner();
-      return { schema: i.schema.optional(), gen: () => (chance(0.3) ? undefined : i.gen()) };
+      return { schema: i.Schema.optional(), gen: () => (chance(0.3) ? undefined : i.gen()) };
     }
     case "nullable": {
       const i = inner();
-      return { schema: i.schema.nullable(), gen: () => (chance(0.3) ? null : i.gen()) };
+      return { schema: i.Schema.nullable(), gen: () => (chance(0.3) ? null : i.gen()) };
     }
     case "nonoptional": {
       const i = inner();
-      return { schema: i.schema.optional().nonoptional(), gen: () => (chance(0.2) ? undefined : i.gen()) };
+      return { schema: i.Schema.optional().nonoptional(), gen: () => (chance(0.2) ? undefined : i.gen()) };
     }
     case "default": {
       const i = inner();
       const d = i.gen();
-      return { schema: i.schema.default(d as any), gen: () => (chance(0.35) ? undefined : i.gen()) };
+      return { schema: i.Schema.default(d as any), gen: () => (chance(0.35) ? undefined : i.gen()) };
     }
     case "prefault": {
       const i = inner();
       const d = i.gen();
-      return { schema: i.schema.prefault(d as any), gen: () => (chance(0.35) ? undefined : i.gen()) };
+      return { schema: i.Schema.prefault(d as any), gen: () => (chance(0.35) ? undefined : i.gen()) };
     }
     case "catch": {
       const i = inner();
       const d = i.gen();
-      return { schema: i.schema.catch(d as any), gen: () => i.gen() };
+      return { schema: i.Schema.catch(d as any), gen: () => i.gen() };
     }
     case "readonly": {
       const i = inner();
-      return { schema: i.schema.readonly(), gen: i.gen };
+      return { schema: i.Schema.readonly(), gen: i.gen };
     }
     case "refine": {
       const i = inner();
       // Must be a pure function of the value: a predicate that consulted the PRNG would answer differently on each parse and manufacture fake divergences.
-      return { schema: i.schema.refine((v: any) => typeof v !== "string" || !v.startsWith("zz")), gen: i.gen };
+      return { schema: i.Schema.refine((v: any) => typeof v !== "string" || !v.startsWith("zz")), gen: i.gen };
     }
     case "transform": {
       const i = inner();
-      return { schema: i.schema.transform((v: any) => ({ wrapped: v })) as z.ZodType, gen: i.gen };
+      return { schema: i.Schema.transform((v: any) => ({ wrapped: v })) as Schema  .SchemaType, gen: i.gen };
     }
     case "pipe": {
       const i = inner();
-      return { schema: i.schema.pipe(z.any()) as z.ZodType, gen: i.gen };
+      return { schema: i.Schema.pipe(Schema.any()) as Schema  .SchemaType, gen: i.gen };
     }
   }
   return pick(leaves)();
@@ -258,8 +258,8 @@ function same(a: unknown, b: unknown, path = "$"): string | null {
 }
 
 function describe(s: any, d = 0): string {
-  if (d > 6 || !s?._zod?.def) return "?";
-  const def = s._zod.def;
+  if (d > 6 || !s?._schema?.def) return "?";
+  const def = s._schema.def;
   const t = def.type;
   if (def.shape)
     return `${t}{${Object.entries(def.shape)
@@ -272,7 +272,7 @@ function describe(s: any, d = 0): string {
   if (def.left) return `${t}(${describe(def.left, d + 1)}&${describe(def.right, d + 1)})`;
   if (def.in) return `${t}(${describe(def.in, d + 1)}->${describe(def.out, d + 1)})`;
   if (def.innerType) return `${t}(${describe(def.innerType, d + 1)})`;
-  const checks = (def.checks ?? []).map((c: any) => c._zod?.def?.check ?? "?").join("+");
+  const checks = (def.checks ?? []).map((c: any) => c._schema?.def?.check ?? "?").join("+");
   return checks ? `${t}[${checks}]` : t;
 }
 
@@ -297,12 +297,12 @@ const failures: string[] = [];
 for (let r = 0; r < ROUNDS && failures.length < 5; r++) {
   const startSeed = seed;
   const built = build(Number(process.env.DEPTH ?? 3));
-  let fast: z.ZodType;
+  let fast: Schema.SchemaType;
   try {
     // Strict: an unsupported schema must be classified as skipped, not silently compared against itself.
-    fast = compile(built.schema, { strict: true }) as z.ZodType;
+    fast = compile(built.schema, { strict: true }) as Schema  .SchemaType;
   } catch (e) {
-    if (e instanceof ZodCompileUnsupportedError || e instanceof ZodCompileAsyncError) {
+    if (e instanceof SchemaCompileUnsupportedError || e instanceof SchemaCompileAsyncError) {
       skipped++;
       continue;
     }
@@ -314,11 +314,11 @@ for (let r = 0; r < ROUNDS && failures.length < 5; r++) {
   // Union soundness: a bail-out inside a union is read as a rejected branch, so a later branch answers and nothing ever returns INVALID for the wrapper to fall back on. This is the only place the fallback cannot rescue a wrong result.
   {
     const marker = Symbol("sentinel");
-    let cu: z.ZodType | null = null;
+    let cu: Schema.SchemaType | null = null;
     try {
-      cu = compile(z.union([built.schema, z.any().transform(() => marker)]) as z.ZodType, {
+      cu = compile(Schema.union([built.schema, Schema.any().transform(() => marker)]) as Schema  .SchemaType, {
         strict: true,
-      }) as z.ZodType;
+      }) as Schema  .SchemaType;
     } catch {
       cu = null;
     }
@@ -327,7 +327,7 @@ for (let r = 0; r < ROUNDS && failures.length < 5; r++) {
         const input = built.gen();
         let accepts = false;
         try {
-          accepts = built.schema.safeParse(input).success;
+          accepts = built.Schema.safeParse(input).success;
         } catch {
           continue;
         }
@@ -353,7 +353,7 @@ for (let r = 0; r < ROUNDS && failures.length < 5; r++) {
     let expected: any;
     let got: any;
     try {
-      expected = built.schema.safeParse(input);
+      expected = built.Schema.safeParse(input);
     } catch {
       continue; // runtime itself throws (e.g. cyclic); not a compiled-path question
     }
@@ -370,7 +370,7 @@ for (let r = 0; r < ROUNDS && failures.length < 5; r++) {
         code = (compileFastpass(built.schema, { debug: true }) as any).code ?? "";
       } catch {}
       let branches = "";
-      const opts = (built.schema._zod.def as any).options as any[] | undefined;
+      const opts = (built.Schema._schema.def as any).options as any[] | undefined;
       if (opts) {
         branches = opts
           .map((o, oi) => {
@@ -390,11 +390,11 @@ for (let r = 0; r < ROUNDS && failures.length < 5; r++) {
                 .map((l: string) => `          ${l}`)
                 .join("\n");
             } catch {}
-            const shape = (o._zod.def as any).shape;
+            const shape = (o._schema.def as any).shape;
             const shapeDesc = shape
               ? Object.entries(shape)
                   .map(
-                    ([k, v]: any) => `${k}=${describe(v)} coerce=${!!v._zod.def.coerce} optin=${String(v._zod.optin)}`
+                    ([k, v]: any) => `${k}=${describe(v)} coerce=${!!v._schema.def.coerce} optin=${String(v._schema.optin)}`
                   )
                   .join(", ")
               : "";

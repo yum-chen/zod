@@ -1,8 +1,8 @@
-import * as z from "zod/mini"
+import * as Schema from "schema/mini"
  
-z.string().check(
-  z.minLength(5), 
-  z.maxLength(10),
-  z.refine(val => val.includes("@")),
-  z.trim()
+Schema.string().check(
+  Schema.minLength(5), 
+  Schema.maxLength(10),
+  Schema.refine(val => val.includes("@")),
+  Schema.trim()
 ).parse("asd@adsf");

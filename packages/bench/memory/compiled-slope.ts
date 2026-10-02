@@ -1,24 +1,24 @@
 // Retained heap PER compiled schema, measured as a slope over many distinct schemas in one process. compiled-footprint.ts holds one instance per process and reports the delta, which also carries one-time costs of whatever the measured schema touched first (lazily compiled compiler functions, prototype members materialized on first read, a regex's first executions); those move the single-instance rows by a few KB between builds while the per-schema cost is unchanged. Distinct key names per schema keep V8's compilation cache from sharing generated source.
-import * as z from "zod";
-import { compile } from "../../zod/src/v4/core/compile.js";
+import * as Schema   from "schema";
+import { compile } from "../../schema/src/v4/core/compile.js";
 import { fmtBytes, heapUsed } from "./harness.js";
 
 const fiveKey = (p: string) =>
-  z.object({
-    [`${p}a`]: z.string(),
-    [`${p}b`]: z.number(),
-    [`${p}c`]: z.boolean(),
-    [`${p}d`]: z.string(),
-    [`${p}e`]: z.number(),
+  Schema.object({
+    [`${p}a`]: Schema.string(),
+    [`${p}b`]: Schema.number(),
+    [`${p}c`]: Schema.boolean(),
+    [`${p}d`]: Schema.string(),
+    [`${p}e`]: Schema.number(),
   });
-function nested(depth: number, fanout: number, p: string): z.ZodType {
-  if (depth === 0) return z.string();
-  const shape: Record<string, z.ZodType> = {};
+function nested(depth: number, fanout: number, p: string): Schema.SchemaType {
+  if (depth === 0) return Schema.string();
+  const shape: Record<string, Schema.SchemaType> = {};
   for (let i = 0; i < fanout; i++) shape[`${p}${i}`] = nested(depth - 1, fanout, p);
-  return z.object(shape);
+  return Schema.object(shape);
 }
-const rejected = (schema: z.ZodType) => {
-  schema.safeParse(undefined);
+const rejected = (schema: Schema.SchemaType) => {
+  Schema.safeParse(undefined);
   return schema;
 };
 

@@ -3,12 +3,12 @@ import { metabench } from "./metabench.js";
 
 import { type } from "arktype";
 import * as v from "valibot";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const schema = z.object({
-  a: z.string(),
-  b: z.string(),
-  c: z.string(),
+const schema = Schema.object({
+  a: Schema.string(),
+  b: Schema.string(),
+  c: Schema.string(),
 });
 
 const atschema = type({
@@ -29,13 +29,13 @@ const DATA = makeData(1000, () => ({
   c: randomString(10),
 }));
 
-console.log(z.parse(schema, DATA[0]));
+console.log(Schema.parse(schema, DATA[0]));
 console.log(atschema(DATA[0]));
 console.log(v.parse(vschema, DATA[0]));
 
-const bench = metabench("zod vs arktype", {
-  zod4() {
-    for (const _ of DATA) z.parse(schema, _);
+const bench = metabench("schema vs arktype", {
+  schema4() {
+    for (const _ of DATA) Schema.parse(schema, _);
   },
   arktype() {
     for (const _ of DATA) atschema(_);

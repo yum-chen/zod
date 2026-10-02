@@ -1,8 +1,8 @@
-import type { $ZodStringFormats } from "../core/checks.js";
+import type { $SchemaStringFormats } from "../core/checks.js";
 import type * as errors from "../core/errors.js";
 import * as util from "../core/util.js";
 
-const error: () => errors.$ZodErrorMap = () => {
+const error: () => errors.$SchemaErrorMap = () => {
   // Hebrew labels + grammatical gender
   const TypeNames: Record<string, { label: string; gender: "m" | "f" }> = {
     string: { label: "מחרוזת", gender: "f" },
@@ -58,7 +58,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   const FormatDictionary: {
-    [k in $ZodStringFormats | (string & {})]?: { label: string; gender: "m" | "f" };
+    [k in $SchemaStringFormats | (string & {})]?: { label: string; gender: "m" | "f" };
   } = {
     regex: { label: "קלט", gender: "m" },
     email: { label: "כתובת אימייל", gender: "f" },
@@ -100,7 +100,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   const TypeDictionary: {
-    [k in errors.$ZodInvalidTypeExpected | (string & {})]?: string;
+    [k in errors.$SchemaInvalidTypeExpected | (string & {})]?: string;
   } = {
     nan: "NaN",
   };
@@ -207,7 +207,7 @@ const error: () => errors.$ZodErrorMap = () => {
       }
 
       case "invalid_format": {
-        const _issue = issue as errors.$ZodStringFormatIssues;
+        const _issue = issue as errors.$SchemaStringFormatIssues;
         // These apply to strings — use feminine grammar + ה׳ הידיעה
         if (_issue.format === "starts_with") return `המחרוזת חייבת להתחיל ב "${_issue.prefix}"`;
         if (_issue.format === "ends_with") return `המחרוזת חייבת להסתיים ב "${_issue.suffix}"`;
@@ -246,7 +246,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 };
 
-export default function (): { localeError: errors.$ZodErrorMap } {
+export default function (): { localeError: errors.$SchemaErrorMap } {
   return {
     localeError: error(),
   };

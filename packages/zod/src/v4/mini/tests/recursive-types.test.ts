@@ -1,23 +1,23 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { z } from "zod/mini";
+import { Schema } from "schema/mini";
 
 test("recursive object schema type aliases", () => {
-  type ObjectField = z.ZodMiniObject<{ [k: string]: ObjectField }>;
-  type Field = z.ZodMiniString<string> | z.ZodMiniObject<{ [k: string]: Field }>;
+  type ObjectField = Schema.SchemaMiniObject<{ [k: string]: ObjectField }>;
+  type Field = Schema.SchemaMiniString<string> | Schema.SchemaMiniObject<{ [k: string]: Field }>;
   type ObjectValue = { [k: string]: ObjectValue };
   type Value = string | { [k: string]: Value };
-  expectTypeOf<z.input<ObjectField>>().toEqualTypeOf<ObjectValue>();
-  expectTypeOf<z.output<ObjectField>>().toEqualTypeOf<ObjectValue>();
-  expectTypeOf<keyof z.input<ObjectField>>().toEqualTypeOf<string>();
-  expectTypeOf<keyof z.output<ObjectField>>().toEqualTypeOf<string>();
-  expectTypeOf<z.input<Field>>().toEqualTypeOf<Value>();
-  expectTypeOf<z.output<Field>>().toEqualTypeOf<Value>();
-  const schema: Field = z.object({ nested: z.object({ name: z.string() }) });
-  expect(schema.parse({ nested: { name: "a", extra: true } })).toEqual({ nested: { name: "a" } });
-  expect(schema.safeParse({ nested: { name: 123 } }).success).toBe(false);
+  expectTypeOf<Schema.input<ObjectField>>().toEqualTypeOf<ObjectValue>();
+  expectTypeOf<Schema.output<ObjectField>>().toEqualTypeOf<ObjectValue>();
+  expectTypeOf<keyof Schema.input<ObjectField>>().toEqualTypeOf<string>();
+  expectTypeOf<keyof Schema.output<ObjectField>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.input<Field>>().toEqualTypeOf<Value>();
+  expectTypeOf<Schema.output<Field>>().toEqualTypeOf<Value>();
+  const schema: Field = Schema.object({ nested: Schema.object({ name: Schema.string() }) });
+  expect(Schema.parse({ nested: { name: "a", extra: true } })).toEqual({ nested: { name: "a" } });
+  expect(Schema.safeParse({ nested: { name: 123 } }).success).toBe(false);
 });
 
-test("recursion with z.lazy", () => {
+test("recursion with Schema.lazy", () => {
   const data = {
     name: "I",
     subcategories: [
@@ -38,15 +38,15 @@ test("recursion with z.lazy", () => {
     ],
   };
 
-  const Category = z.object({
-    name: z.string(),
-    get subcategories(): z.ZodMiniOptional<z.ZodMiniArray<typeof Category>> {
-      return z.optional(z.array(Category));
+  const Category = Schema.object({
+    name: Schema.string(),
+    get subcategories(): Schema.SchemaMiniOptional<Schema.SchemaMiniArray<typeof Category>> {
+      return Schema.optional(Schema.array(Category));
     },
   });
   Category.parse(data);
 
-  type Category = z.infer<typeof Category>;
+  type Category = Schema.infer<typeof Category>;
   interface _Category {
     name: string;
     subcategories?: _Category[] | undefined;
@@ -69,15 +69,15 @@ test("recursion involving union type", () => {
     },
   };
 
-  const LL = z.object({
-    value: z.number(),
-    get next(): z.ZodMiniNullable<typeof LL> {
-      return z.nullable(LL);
+  const LL = Schema.object({
+    value: Schema.number(),
+    get next(): Schema.SchemaMiniNullable<typeof LL> {
+      return Schema.nullable(LL);
     },
   });
 
   LL.parse(data);
-  type LL = z.infer<typeof LL>;
+  type LL = Schema.infer<typeof LL>;
   type _LL = {
     value: number;
     next: _LL | null;
@@ -86,17 +86,17 @@ test("recursion involving union type", () => {
 });
 
 test("mutual recursion - native", () => {
-  const Alazy = z.object({
-    val: z.number(),
+  const Alazy = Schema.object({
+    val: Schema.number(),
     get b() {
-      return z.optional(Blazy);
+      return Schema.optional(Blazy);
     },
   });
 
-  const Blazy = z.object({
-    val: z.number(),
+  const Blazy = Schema.object({
+    val: Schema.number(),
     get a() {
-      return z.optional(Alazy);
+      return Schema.optional(Alazy);
     },
   });
   const testData = {
@@ -121,8 +121,8 @@ test("mutual recursion - native", () => {
   Alazy.parse(testData);
   Blazy.parse(testData.b);
 
-  type Alazy = z.infer<typeof Alazy>;
-  type Blazy = z.infer<typeof Blazy>;
+  type Alazy = Schema.infer<typeof Alazy>;
+  type Blazy = Schema.infer<typeof Blazy>;
   interface _Alazy {
     val: number;
     b?: _Blazy | undefined;
@@ -138,24 +138,24 @@ test("mutual recursion - native", () => {
 });
 
 test("pick and omit with getter", () => {
-  const Category = z.strictObject({
-    name: z.string(),
+  const Category = Schema.strictObject({
+    name: Schema.string(),
     get subcategories() {
-      return z.array(Category);
+      return Schema.array(Category);
     },
   });
 
-  type Category = z.infer<typeof Category>;
+  type Category = Schema.infer<typeof Category>;
   interface _Category {
     name: string;
     subcategories: _Category[];
   }
   expectTypeOf<Category>().toEqualTypeOf<_Category>();
 
-  const PickedCategory = z.pick(Category, { name: true });
-  const OmittedCategory = z.omit(Category, { subcategories: true });
-  type PickedCategory = z.infer<typeof PickedCategory>;
-  type OmittedCategory = z.infer<typeof OmittedCategory>;
+  const PickedCategory = Schema.pick(Category, { name: true });
+  const OmittedCategory = Schema.omit(Category, { subcategories: true });
+  type PickedCategory = Schema.infer<typeof PickedCategory>;
+  type OmittedCategory = Schema.infer<typeof OmittedCategory>;
   interface _PickedCategory {
     name: string;
   }
@@ -176,21 +176,21 @@ test("pick and omit with getter", () => {
 });
 
 test("deferred self-recursion", () => {
-  const Feature = z.object({
-    title: z.string(),
-    get features(): z.ZodMiniOptional<z.ZodMiniArray<typeof Feature>> {
-      return z.optional(z.array(Feature)); //.optional();
+  const Feature = Schema.object({
+    title: Schema.string(),
+    get features(): Schema.SchemaMiniOptional<Schema.SchemaMiniArray<typeof Feature>> {
+      return Schema.optional(Schema.array(Feature)); //.optional();
     },
   });
-  type Feature = z.infer<typeof Feature>;
+  type Feature = Schema.infer<typeof Feature>;
 
-  const Output = z.object({
-    id: z.int(), //.nonnegative(),
-    name: z.string(),
-    features: z.array(Feature), //.array(), // <—
+  const Output = Schema.object({
+    id: Schema.int(), //.nonnegative(),
+    name: Schema.string(),
+    features: Schema.array(Feature), //.array(), // <—
   });
 
-  type Output = z.output<typeof Output>;
+  type Output = Schema.output<typeof Output>;
 
   type _Feature = {
     title: string;
@@ -209,133 +209,133 @@ test("deferred self-recursion", () => {
 
 test("recursion compatibility", () => {
   // array
-  const A = z.object({
+  const A = Schema.object({
     get subcategories() {
-      return z.array(A);
+      return Schema.array(A);
     },
   });
   // tuple
-  const B = z.object({
+  const B = Schema.object({
     get subcategories() {
-      return z.tuple([B, B]);
+      return Schema.tuple([B, B]);
     },
   });
   // object
-  const C = z.object({
+  const C = Schema.object({
     get subcategories() {
-      return z.object({
+      return Schema.object({
         subcategories: C,
       });
     },
   });
   // union
-  const D = z.object({
+  const D = Schema.object({
     get subcategories() {
-      return z.union([D, z.string()]);
+      return Schema.union([D, Schema.string()]);
     },
   });
   // intersection
-  const E = z.object({
+  const E = Schema.object({
     get subcategories() {
-      return z.intersection(E, E);
+      return Schema.intersection(E, E);
     },
   });
   // record
-  const F = z.object({
+  const F = Schema.object({
     get subcategories() {
-      return z.record(z.string(), F);
+      return Schema.record(Schema.string(), F);
     },
   });
   // map
-  const G = z.object({
+  const G = Schema.object({
     get subcategories() {
-      return z.map(z.string(), G);
+      return Schema.map(Schema.string(), G);
     },
   });
   // set
-  const H = z.object({
+  const H = Schema.object({
     get subcategories() {
-      return z.set(H);
+      return Schema.set(H);
     },
   });
   // optional
-  const I = z.object({
+  const I = Schema.object({
     get subcategories() {
-      return z.optional(I);
+      return Schema.optional(I);
     },
   });
   // nullable
-  const J = z.object({
+  const J = Schema.object({
     get subcategories() {
-      return z.nullable(J);
+      return Schema.nullable(J);
     },
   });
   // optional
-  const L = z.object({
+  const L = Schema.object({
     get subcategories() {
-      return z.optional(L);
+      return Schema.optional(L);
     },
   });
   // nullable
-  const M = z.object({
+  const M = Schema.object({
     get subcategories() {
-      return z.nullable(M);
+      return Schema.nullable(M);
     },
   });
   // nonoptional
-  const N = z.object({
+  const N = Schema.object({
     get subcategories() {
-      return z.nonoptional(N);
+      return Schema.nonoptional(N);
     },
   });
 });
 
 test("shape stays writeable through object/strictObject/looseObject/extend with getters", () => {
-  const Cat = z.object({
-    name: z.string(),
-    get sub(): z.ZodMiniArray<typeof Cat> {
-      return z.array(Cat);
+  const Cat = Schema.object({
+    name: Schema.string(),
+    get sub(): Schema.SchemaMiniArray<typeof Cat> {
+      return Schema.array(Cat);
     },
   });
   type CatShape = (typeof Cat)["shape"];
   expectTypeOf<CatShape>().toEqualTypeOf<{
-    name: z.ZodMiniString<string>;
-    sub: z.ZodMiniArray<typeof Cat>;
+    name: Schema.SchemaMiniString<string>;
+    sub: Schema.SchemaMiniArray<typeof Cat>;
   }>();
 
-  const StrictCat = z.strictObject({
-    name: z.string(),
-    get sub(): z.ZodMiniArray<typeof StrictCat> {
-      return z.array(StrictCat);
+  const StrictCat = Schema.strictObject({
+    name: Schema.string(),
+    get sub(): Schema.SchemaMiniArray<typeof StrictCat> {
+      return Schema.array(StrictCat);
     },
   });
   type StrictShape = (typeof StrictCat)["shape"];
   expectTypeOf<StrictShape>().toEqualTypeOf<{
-    name: z.ZodMiniString<string>;
-    sub: z.ZodMiniArray<typeof StrictCat>;
+    name: Schema.SchemaMiniString<string>;
+    sub: Schema.SchemaMiniArray<typeof StrictCat>;
   }>();
 
-  const LooseCat = z.looseObject({
-    name: z.string(),
-    get sub(): z.ZodMiniArray<typeof LooseCat> {
-      return z.array(LooseCat);
+  const LooseCat = Schema.looseObject({
+    name: Schema.string(),
+    get sub(): Schema.SchemaMiniArray<typeof LooseCat> {
+      return Schema.array(LooseCat);
     },
   });
   type LooseShape = (typeof LooseCat)["shape"];
   expectTypeOf<LooseShape>().toEqualTypeOf<{
-    name: z.ZodMiniString<string>;
-    sub: z.ZodMiniArray<typeof LooseCat>;
+    name: Schema.SchemaMiniString<string>;
+    sub: Schema.SchemaMiniArray<typeof LooseCat>;
   }>();
 
-  const Base = z.object({ name: z.string() });
-  const Extended = z.extend(Base, {
-    get sub(): z.ZodMiniArray<typeof Extended> {
-      return z.array(Extended);
+  const Base = Schema.object({ name: Schema.string() });
+  const Extended = Schema.extend(Base, {
+    get sub(): Schema.SchemaMiniArray<typeof Extended> {
+      return Schema.array(Extended);
     },
   });
   type ExtendedShape = (typeof Extended)["shape"];
   expectTypeOf<ExtendedShape>().toEqualTypeOf<{
-    name: z.ZodMiniString<string>;
-    sub: z.ZodMiniArray<typeof Extended>;
+    name: Schema.SchemaMiniString<string>;
+    sub: Schema.SchemaMiniArray<typeof Extended>;
   }>();
 });

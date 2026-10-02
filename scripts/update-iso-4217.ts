@@ -7,7 +7,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 // SIX Group maintains ISO 4217; list one carries the active codes, list three the withdrawn ones
 const SOURCE =
   "https://www.six-group.com/dam/download/financial-information/data-center/iso-currrency/lists/list-one.xml";
-const target = join(__dirname, "..", "packages", "zod", "src", "v4", "core", "regexes.ts");
+const target = join(__dirname, "..", "packages", "schema", "src", "v4", "core", "regexes.ts");
 const line = /^export const currencyCode: RegExp =\s+\/\^\(\?:([A-Z|]+)\)\$\/;$/m;
 
 const response = await fetch(SOURCE);

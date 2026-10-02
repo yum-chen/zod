@@ -1,24 +1,24 @@
 // @ts-ignore TS6133
 import { test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
 test("test", () => {
   z;
 });
 
-// const fish = z.object({
-//   name: z.string(),
-//   props: z.object({
-//     color: z.string(),
-//     numScales: z.number(),
+// const fish = Schema.object({
+//   name: Schema.string(),
+//   props: Schema.object({
+//     color: Schema.string(),
+//     numScales: Schema.number(),
 //   }),
 // });
 
 // const nonStrict = z
 //   .object({
-//     name: z.string(),
-//     color: z.string(),
+//     name: Schema.string(),
+//     color: Schema.string(),
 //   })
 //   .nonstrict();
 
@@ -85,7 +85,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = Schema.array(fish);
 //   const modFishArray = fishArray.pick({
 //     name: true,
 //     props: {
@@ -99,7 +99,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = Schema.array(fish);
 //   const fail = () =>
 //     fishArray.pick({
 //       name: true,
@@ -111,7 +111,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = Schema.array(fish);
 //   const fail = () =>
 //     fishArray.omit({
 //       whateve: true,
@@ -120,7 +120,7 @@ test("test", () => {
 // });
 
 // test('array masking', () => {
-//   const fishArray = z.array(fish);
+//   const fishArray = Schema.array(fish);
 //   const modFishList = fishArray.omit({
 //     name: true,
 //     props: {
@@ -134,13 +134,13 @@ test("test", () => {
 // });
 
 // test('primitive array masking', () => {
-//   const fishArray = z.array(z.number());
+//   const fishArray = Schema.array(Schema.number());
 //   const fail = () => fishArray.pick({} as any);
 //   expect(fail).toThrow();
 // });
 
 // test('other array masking', () => {
-//   const fishArray = z.array(z.array(z.number()));
+//   const fishArray = Schema.array(Schema.array(Schema.number()));
 //   const fail = () => fishArray.pick({} as any);
 //   expect(fail).toThrow();
 // });

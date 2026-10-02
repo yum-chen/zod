@@ -12,7 +12,7 @@ async function run() {
   const files = fileNames.split(",").map((file) => import.meta.resolve(`./${file}`).replace("file://", ""));
 
   for (const file of files) {
-    await $`nub --conditions @zod/source ${file}`;
+    await $`nub --conditions @schema/source ${file}`;
   }
 }
 

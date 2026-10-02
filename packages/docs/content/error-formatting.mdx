@@ -1,28 +1,28 @@
 ---
 title: Formatting errors
-description: "Utilities for formatting and displaying Zod errors"
+description: "Utilities for formatting and displaying Schema errors"
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
 import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
 
-Zod emphasizes _completeness_ and _correctness_ in its error reporting. In many cases, it's helpful to convert the `$ZodError` to a more useful format. Zod provides some utilities for this.
+Schema emphasizes _completeness_ and _correctness_ in its error reporting. In many cases, it's helpful to convert the `$SchemaError` to a more useful format. Schema provides some utilities for this.
 
-Consider this simple object schema.
+Consider this simple object Schema.
 
 ```ts
-import * as z from "zod";
+import * as Schema   from "schema";
 
-const schema = z.strictObject({
-  username: z.string(),
-  favoriteNumbers: z.array(z.number()),
+const schema = Schema.strictObject({
+  username: Schema.string(),
+  favoriteNumbers: Schema.array(Schema.number()),
 });
 ```
 
 Attempting to parse this invalid data results in an error containing three issues.
 
 ```ts
-const result = schema.safeParse({
+const result = Schema.safeParse({
   username: 1234,
   favoriteNumbers: [1234, "4567"],
   extraKey: 1234,
@@ -52,13 +52,13 @@ result.error!.issues;
 ```
 
 
-## `z.treeifyError()`
+## `Schema.treeifyError()`
 
-To convert ("treeify") this error into a nested object, use `z.treeifyError()`.
+To convert ("treeify") this error into a nested object, use `Schema.treeifyError()`.
 
 
 ```ts
-const tree = z.treeifyError(result.error);
+const tree = Schema.treeifyError(result.error);
 
 // =>
 {
@@ -90,12 +90,12 @@ tree.properties?.favoriteNumbers?.items?.[1]?.errors;
 
 > Be sure to use optional chaining (`?.`) to avoid errors when accessing nested properties.
 
-## `z.prettifyError()`
+## `Schema.prettifyError()`
 
-The `z.prettifyError()` provides a human-readable string representation of the error.
+The `Schema.prettifyError()` provides a human-readable string representation of the error.
 
 ```ts
-const pretty = z.prettifyError(result.error);
+const pretty = Schema.prettifyError(result.error);
 ```
 
 This returns the following string:
@@ -109,10 +109,10 @@ This returns the following string:
 ```
 
 
-## `z.formatError()`
+## `Schema.formatError()`
 
 <Callout type="warn">
-  Deprecated. Use `z.treeifyError()` instead.
+  Deprecated. Use `Schema.treeifyError()` instead.
 </Callout>
 
 <Accordions>
@@ -121,7 +121,7 @@ This returns the following string:
     To convert the error into a nested object:
 
      ```ts
-    const formatted = z.formatError(result.error);
+    const formatted = Schema.formatError(result.error);
 
     // returns:
     {
@@ -149,12 +149,12 @@ This returns the following string:
   </Accordion>
   </Accordions>
 
-## `z.flattenError()`
+## `Schema.flattenError()`
 
-While `z.treeifyError()` is useful for traversing a potentially complex nested structure, the majority of schemas are *flat*—just one level deep. In this case, use `z.flattenError()` to retrieve a clean, shallow error object.
+While `Schema.treeifyError()` is useful for traversing a potentially complex nested structure, the majority of schemas are *flat*—just one level deep. In this case, use `Schema.flattenError()` to retrieve a clean, shallow error object.
 
 ```ts
-const flattened = z.flattenError(result.error);
+const flattened = Schema.flattenError(result.error);
 // { errors: string[], properties: { [key: string]: string[] } }
 
 {
@@ -166,7 +166,7 @@ const flattened = z.flattenError(result.error);
 }
 ```
 
-The `formErrors` array contains any top-level errors (where `path` is `[]`). The `fieldErrors` object provides an array of errors for each field in the schema.
+The `formErrors` array contains any top-level errors (where `path` is `[]`). The `fieldErrors` object provides an array of errors for each field in the Schema.
 
 ```ts
 flattened.fieldErrors.username; // => [ 'Invalid input: expected string, received number' ]

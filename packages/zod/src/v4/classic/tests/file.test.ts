@@ -2,11 +2,11 @@ import { File as WebFile } from "@web-std/file";
 
 import { afterEach, beforeEach, expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const minCheck = z.file().min(5);
-const maxCheck = z.file().max(8);
-const mimeCheck = z.file().mime(["text/plain", "application/json"]);
+const minCheck = Schema.file().min(5);
+const maxCheck = Schema.file().max(8);
+const mimeCheck = Schema.file().mime(["text/plain", "application/json"]);
 
 const originalFile = global.File;
 beforeEach(async () => {
@@ -27,13 +27,13 @@ test("passing validations", () => {
 });
 
 test("types", () => {
-  expectTypeOf(z.file().parse(new File([], "test.txt"))).toEqualTypeOf(new File([], "test.txt"));
+  expectTypeOf(Schema.file().parse(new File([], "test.txt"))).toEqualTypeOf(new File([], "test.txt"));
 });
 
 test("failing validations", () => {
   expect(minCheck.safeParse(new File(["1234"], "test.txt"))).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "file",
         "code": "too_small",
@@ -48,7 +48,7 @@ test("failing validations", () => {
   `);
   expect(maxCheck.safeParse(new File(["123456789"], "test.txt"))).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "file",
         "code": "too_big",
@@ -63,7 +63,7 @@ test("failing validations", () => {
   `);
   expect(mimeCheck.safeParse(new File([""], "test.csv"))).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_value",
         "values": [
@@ -79,7 +79,7 @@ test("failing validations", () => {
   `);
   expect(mimeCheck.safeParse(new File([""], "test.csv", { type: "text/csv" }))).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_value",
         "values": [

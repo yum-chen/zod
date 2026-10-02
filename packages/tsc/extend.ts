@@ -1,46 +1,46 @@
-// import * as z from "zod/v4";
+// import * as Schema from "schema/v4";
 
-// const Type1 = z.object({});
-// let test1: z.infer<typeof Type1>;
+// const Type1 = Schema.object({});
+// let test1: Schema.infer<typeof Type1>;
 
 // const Type2 = Type1.extend({});
-// let test2: z.infer<typeof Type2>;
+// let test2: Schema.infer<typeof Type2>;
 
 // const Type3 = Type2.extend({});
-// let test3: z.infer<typeof Type3>;
+// let test3: Schema.infer<typeof Type3>;
 
 // const Type4 = Type3.extend({});
-// let test4: z.infer<typeof Type4>;
+// let test4: Schema.infer<typeof Type4>;
 
 // const Type5 = Type4.extend({});
-// let test5: z.infer<typeof Type5>;
+// let test5: Schema.infer<typeof Type5>;
 
 // const Type6 = Type5.extend({});
-// let test6: z.infer<typeof Type6>;
+// let test6: Schema.infer<typeof Type6>;
 
 // const Type7 = Type6.extend({});
-// let test7: z.infer<typeof Type7>;
+// let test7: Schema.infer<typeof Type7>;
 
 // const Type8 = Type7.extend({});
-// let test8: z.infer<typeof Type8>;
+// let test8: Schema.infer<typeof Type8>;
 
 // const Type9 = Type8.extend({});
-// let test9: z.infer<typeof Type9>;
+// let test9: Schema.infer<typeof Type9>;
 
 // const Type10 = Type9.extend({});
-// let test10: z.infer<typeof Type10>;
+// let test10: Schema.infer<typeof Type10>;
 
 // const Type11 = Type10.extend({});
-// let test11: z.infer<typeof Type11>;
+// let test11: Schema.infer<typeof Type11>;
 
 // const Type12 = Type11.extend({});
-// let test12: z.infer<typeof Type12>;
+// let test12: Schema.infer<typeof Type12>;
 
 // const Type13 = Type12.extend({});
-// let test13: z.infer<typeof Type13>;
+// let test13: Schema.infer<typeof Type13>;
 
 // const Type14 = Type13.extend({});
-// let test14: z.infer<typeof Type14>;
+// let test14: Schema.infer<typeof Type14>;
 
 // const Type15 = Type14.extend({});
-// let test15: z.infer<typeof Type15>;
+// let test15: Schema.infer<typeof Type15>;

@@ -1,8 +1,8 @@
-import { z } from "zod";
+import { Schema } from "schema";
 
-const formDate = z.iso
+const formDate = Schema.iso
   .datetime({ offset: true })
-  .or(z.literal(""))
+  .or(Schema.literal(""))
   .transform((v) => (v === "" ? null : v));
 
 console.log("empty:", formDate.safeParse(""));

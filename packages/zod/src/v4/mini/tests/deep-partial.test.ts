@@ -1,14 +1,14 @@
 import { describe, expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/mini";
+import * as Schema from "schema/mini";
 
 describe("mini deepPartial", () => {
-  test("makes a ZodMiniObject's fields optional recursively", () => {
-    const schema = z.object({
-      name: z.string(),
-      profile: z.object({ bio: z.string(), age: z.number() }),
+  test("makes a SchemaMiniObject's fields optional recursively", () => {
+    const schema = Schema.object({
+      name: Schema.string(),
+      profile: Schema.object({ bio: Schema.string(), age: Schema.number() }),
     });
-    const partial = z.deepPartial(schema);
-    expectTypeOf(partial).toExtend<z.ZodMiniObject>();
+    const partial = Schema.deepPartial(schema);
+    expectTypeOf(partial).toExtend<Schema.SchemaMiniObject>();
     expect(partial.parse({})).toEqual({});
     expect(partial.parse({ profile: {} })).toEqual({ profile: {} });
     expect(partial.parse({ name: "x", profile: { bio: "b" } })).toEqual({
@@ -17,38 +17,38 @@ describe("mini deepPartial", () => {
     });
   });
 
-  test("preserves ZodMiniObject structural type (shape accessible)", () => {
-    const schema = z.object({ a: z.string(), nested: z.object({ b: z.number() }) });
-    const partial = z.deepPartial(schema);
-    expectTypeOf(partial.shape.a).toExtend<z.ZodMiniOptional<z.ZodMiniString>>();
-    expectTypeOf(partial.shape.nested).toExtend<z.ZodMiniOptional<z.ZodMiniObject>>();
+  test("preserves SchemaMiniObject structural type (shape accessible)", () => {
+    const schema = Schema.object({ a: Schema.string(), nested: Schema.object({ b: Schema.number() }) });
+    const partial = Schema.deepPartial(schema);
+    expectTypeOf(partial.shape.a).toExtend<Schema.SchemaMiniOptional<Schema.SchemaMiniString>>();
+    expectTypeOf(partial.shape.nested).toExtend<Schema.SchemaMiniOptional<Schema.SchemaMiniObject>>();
   });
 
   test("tuple elements stay required", () => {
-    const schema = z.tuple([z.object({ a: z.string() }), z.string()]);
-    const partial = z.deepPartial(schema);
+    const schema = Schema.tuple([Schema.object({ a: Schema.string() }), Schema.string()]);
+    const partial = Schema.deepPartial(schema);
     expect(() => partial.parse([{}])).toThrow();
     expect(partial.parse([{}, "x"])).toEqual([{}, "x"]);
   });
 
-  test("ZodMiniCodec preserved through deepPartial", () => {
-    const schema = z.codec(z.object({ a: z.string() }), z.object({ a: z.string() }), {
+  test("SchemaMiniCodec preserved through deepPartial", () => {
+    const schema = Schema.codec(Schema.object({ a: Schema.string() }), Schema.object({ a: Schema.string() }), {
       decode: (v) => v,
       encode: (v) => v,
     });
-    const partial = z.deepPartial(schema);
-    expectTypeOf(partial).toExtend<z.ZodMiniCodec>();
+    const partial = Schema.deepPartial(schema);
+    expectTypeOf(partial).toExtend<Schema.SchemaMiniCodec>();
   });
 
   test("recursive getter-based object is typeable", () => {
-    const Category = z.object({
-      name: z.string(),
+    const Category = Schema.object({
+      name: Schema.string(),
       get subcategories() {
-        return z.optional(z.array(Category));
+        return Schema.optional(Schema.array(Category));
       },
     });
-    const partial = z.deepPartial(Category);
-    expectTypeOf(partial).toExtend<z.ZodMiniObject>();
+    const partial = Schema.deepPartial(Category);
+    expectTypeOf(partial).toExtend<Schema.SchemaMiniObject>();
     expect(partial.parse({ subcategories: [{}] })).toEqual({ subcategories: [{}] });
   });
 });

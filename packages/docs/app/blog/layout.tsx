@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 // feed autodiscovery for the blog index and every post
 export const metadata: Metadata = {
   alternates: {
-    types: { "application/rss+xml": [{ url: "https://zod.dev/blog/rss.xml", title: "Zod Blog" }] },
+    types: { "application/rss+xml": [{ url: "https://Schema.dev/blog/rss.xml", title: "Schema Blog" }] },
   },
 };
 
@@ -23,7 +23,7 @@ export default function BlogLayout({ children }: { children: ReactNode }) {
           on: "nav",
           children: (
             <li className="ms-1.5">
-              <GitHubStarPill repo="colinhacks/zod" />
+              <GitHubStarPill repo="colinhacks/schema" />
             </li>
           ),
         },

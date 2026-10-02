@@ -2,11 +2,11 @@ import { inspect, types } from "node:util";
 import v8 from "node:v8";
 import vm from "node:vm";
 import { afterEach, describe, expect, test, vi } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 // Several tests install a global error map. Resetting on the last line of each leaks it into every later test in the file whenever an assertion above that line fails, which turns one real failure into a cascade.
 afterEach(() => {
-  z.config({ customError: undefined });
+  Schema.config({ customError: undefined });
 });
 
 function getThrownError(fn: () => unknown): unknown {
@@ -40,7 +40,7 @@ function expectFirstStackFrameAtCallsite(error: unknown): void {
 }
 
 test("error creation", () => {
-  const err1 = new z.ZodError([]);
+  const err1 = new Schema.SchemaError([]);
 
   err1.issues.push({
     code: "invalid_type",
@@ -51,8 +51,8 @@ test("error creation", () => {
   });
   err1.isEmpty;
 
-  const err2 = new z.ZodError(err1.issues);
-  const err3 = new z.ZodError([]);
+  const err2 = new Schema.SchemaError(err1.issues);
+  const err3 = new Schema.SchemaError([]);
   err3.addIssues(err1.issues);
   err3.addIssue(err1.issues[0]);
   err1.message;
@@ -62,14 +62,14 @@ test("error creation", () => {
 
 test("do not allow error and message together", () => {
   expect(() =>
-    z.string().refine((_) => true, {
+    Schema.string().refine((_) => true, {
       message: "override",
       error: (iss) => (iss.input === undefined ? "asdf" : null),
     })
   ).toThrow();
 });
 
-const errorMap: z.ZodErrorMap = (issue) => {
+const errorMap: Schema.SchemaErrorMap = (issue) => {
   if (issue.code === "invalid_type") {
     if (issue.expected === "string") {
       return { message: "bad type!" };
@@ -82,10 +82,10 @@ const errorMap: z.ZodErrorMap = (issue) => {
 };
 
 test("type error with custom error map", () => {
-  const result = z.string().safeParse(234, { error: errorMap });
+  const result = Schema.string().safeParse(234, { error: errorMap });
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -105,7 +105,7 @@ test("refinement fail with params", () => {
     .safeParse(2, { error: errorMap });
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -129,7 +129,7 @@ test("hard coded error  with custom errormap", () => {
 
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -150,7 +150,7 @@ test("default error message", () => {
 
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -168,7 +168,7 @@ test("override error in refine", () => {
   expect(result.success).toBe(false);
   expect(result.error!.issues.length).toEqual(1);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -188,7 +188,7 @@ test("override error in refinement", () => {
   expect(result.success).toBe(false);
   expect(result.error!.issues.length).toEqual(1);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -199,16 +199,16 @@ test("override error in refinement", () => {
 });
 
 test("array minimum", () => {
-  let result = z.array(z.string()).min(3, "tooshort").safeParse(["asdf", "qwer"]);
+  let result = Schema.array(Schema.string()).min(3, "tooshort").safeParse(["asdf", "qwer"]);
   expect(result.success).toBe(false);
   expect(result.error!.issues[0].code).toEqual("too_small");
   expect(result.error!.issues[0].message).toEqual("tooshort");
 
-  result = z.array(z.string()).min(3).safeParse(["asdf", "qwer"]);
+  result = Schema.array(Schema.string()).min(3).safeParse(["asdf", "qwer"]);
   expect(result.success).toBe(false);
   expect(result.error!.issues[0].code).toEqual("too_small");
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "array",
         "code": "too_small",
@@ -222,11 +222,11 @@ test("array minimum", () => {
 });
 
 test("literal bigint default error message", () => {
-  const result = z.literal(BigInt(12)).safeParse(BigInt(13));
+  const result = Schema.literal(BigInt(12)).safeParse(BigInt(13));
   expect(result.success).toBe(false);
   expect(result.error!.issues.length).toEqual(1);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_value",
         "values": [
@@ -240,20 +240,20 @@ test("literal bigint default error message", () => {
 });
 
 test("custom path in custom error map", () => {
-  const schema = z.object({
-    items: z.array(z.string()).refine((data) => data.length > 3, {
+  const schema = Schema.object({
+    items: Schema.array(Schema.string()).refine((data) => data.length > 3, {
       path: ["items-too-few"],
     }),
   });
 
-  const errorMap: z.ZodErrorMap = (issue) => {
+  const errorMap: Schema.SchemaErrorMap = (issue) => {
     expect((issue.path ?? []).length).toBe(2);
     return { message: "doesnt matter" };
   };
-  const result = schema.safeParse({ items: ["first"] }, { error: errorMap });
+  const result = Schema.safeParse({ items: ["first"] }, { error: errorMap });
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [
@@ -267,7 +267,7 @@ test("custom path in custom error map", () => {
 });
 
 // test("error metadata from value", () => {
-//   const dynamicRefine = z.string().refine(
+//   const dynamicRefine = Schema.string().refine(
 //     (val) => val === val.toUpperCase(),
 //     (val) => ({ params: { val } })
 //   );
@@ -286,8 +286,8 @@ test("custom path in custom error map", () => {
 // test("don't call refine after validation failed", () => {
 //   const asdf = z
 //     .union([
-//       z.number(),
-//       z.string().transform(z.number(), (val) => {
+//       Schema.number(),
+//       Schema.string().transform(Schema.number(), (val) => {
 //         return parseFloat(val);
 //       }),
 //     ])
@@ -297,8 +297,8 @@ test("custom path in custom error map", () => {
 // });
 
 test("root level formatting", () => {
-  const schema = z.string().email();
-  const result = schema.safeParse("asdfsdf");
+  const schema = Schema.string().email();
+  const result = Schema.safeParse("asdfsdf");
   expect(result.success).toBe(false);
 
   expect(result.error!.format()).toMatchInlineSnapshot(`
@@ -313,12 +313,12 @@ test("root level formatting", () => {
 test("custom path", () => {
   const schema = z
     .object({
-      password: z.string(),
-      confirm: z.string(),
+      password: Schema.string(),
+      confirm: Schema.string(),
     })
     .refine((val) => val.confirm === val.password, { path: ["confirm"] });
 
-  const result = schema.safeParse({
+  const result = Schema.safeParse({
     password: "peanuts",
     confirm: "qeanuts",
   });
@@ -333,12 +333,12 @@ test("custom path", () => {
 test("custom path", () => {
   const schema = z
     .object({
-      password: z.string().min(6),
-      confirm: z.string().min(6),
+      password: Schema.string().min(6),
+      confirm: Schema.string().min(6),
     })
     .refine((val) => val.confirm === val.password);
 
-  const result = schema.safeParse({
+  const result = Schema.safeParse({
     password: "qwer",
     confirm: "asdf",
   });
@@ -347,8 +347,8 @@ test("custom path", () => {
   expect(result.error!.issues.length).toEqual(3);
 });
 
-const schema = z.object({
-  inner: z.object({
+const schema = Schema.object({
+  inner: Schema.object({
     name: z
       .string()
       .refine((val) => val.length > 5)
@@ -362,7 +362,7 @@ test("no abort early on refinements", () => {
     inner: { name: ["aasd", "asdfasdfasfd"] },
   };
 
-  const result1 = schema.safeParse(invalidItem);
+  const result1 = Schema.safeParse(invalidItem);
   expect(result1.success).toBe(false);
   expect(result1.error!.issues.length).toEqual(2);
 });
@@ -378,7 +378,7 @@ test("detect issue with input fallback", () => {
         return (val ^ 2) > 10;
       } // should be number but it's a string
     );
-  expect(() => schema.parse("hello")).toThrow(z.ZodError);
+  expect(() => Schema.parse("hello")).toThrow(Schema.SchemaError);
 });
 
 test("formatting", () => {
@@ -388,8 +388,8 @@ test("formatting", () => {
   const invalidArray = {
     inner: { name: ["asdfasdf", "asdfasdfasfd"] },
   };
-  const result1 = schema.safeParse(invalidItem);
-  const result2 = schema.safeParse(invalidArray);
+  const result1 = Schema.safeParse(invalidItem);
+  const result2 = Schema.safeParse(invalidArray);
 
   expect(result1.success).toBe(false);
   expect(result2.success).toBe(false);
@@ -398,7 +398,7 @@ test("formatting", () => {
   expect(error1.inner?._errors).toEqual([]);
   expect(error1.inner?.name?.[1]).toEqual(undefined);
 
-  type FormattedError = z.inferFormattedError<typeof schema>;
+  type FormattedError = Schema.inferFormattedError<typeof schema>;
   const error2: FormattedError = result2.error!.format();
   expect(error2._errors).toEqual([]);
   expect(error2.inner?._errors).toEqual([]);
@@ -408,7 +408,7 @@ test("formatting", () => {
   expect(error2.inner?.name?.[2]).toEqual(undefined);
 
   // test custom mapper
-  type FormattedErrorWithNumber = z.inferFormattedError<typeof schema, number>;
+  type FormattedErrorWithNumber = Schema.inferFormattedError<typeof schema, number>;
   const errorWithNumber: FormattedErrorWithNumber = result2.error!.format(() => 5);
   expect(errorWithNumber._errors).toEqual([]);
   expect(errorWithNumber.inner?._errors).toEqual([]);
@@ -416,14 +416,14 @@ test("formatting", () => {
 });
 
 test("formatting with nullable and optional fields", () => {
-  const nameSchema = z.string().refine((val) => val.length > 5);
-  const schema = z.object({
-    nullableObject: z.object({ name: nameSchema }).nullable(),
-    nullableArray: z.array(nameSchema).nullable(),
-    nullableTuple: z.tuple([nameSchema, nameSchema, z.number()]).nullable(),
-    optionalObject: z.object({ name: nameSchema }).optional(),
-    optionalArray: z.array(nameSchema).optional(),
-    optionalTuple: z.tuple([nameSchema, nameSchema, z.number()]).optional(),
+  const nameSchema = Schema.string().refine((val) => val.length > 5);
+  const schema = Schema.object({
+    nullableObject: Schema.object({ name: nameSchema }).nullable(),
+    nullableArray: Schema.array(nameSchema).nullable(),
+    nullableTuple: Schema.tuple([nameSchema, nameSchema, Schema.number()]).nullable(),
+    optionalObject: Schema.object({ name: nameSchema }).optional(),
+    optionalArray: Schema.array(nameSchema).optional(),
+    optionalTuple: Schema.tuple([nameSchema, nameSchema, Schema.number()]).optional(),
   });
   const invalidItem = {
     nullableObject: { name: "abcd" },
@@ -433,9 +433,9 @@ test("formatting with nullable and optional fields", () => {
     optionalArray: ["abcd"],
     optionalTuple: ["abcd", "abcd", 1],
   };
-  const result = schema.safeParse(invalidItem);
+  const result = Schema.safeParse(invalidItem);
   expect(result.success).toBe(false);
-  const error: z.inferFormattedError<typeof schema> = result.error!.format();
+  const error: Schema.inferFormattedError<typeof schema> = result.error!.format();
   expect(error._errors).toEqual([]);
   expect(error.nullableObject?._errors).toEqual([]);
   expect(error.nullableObject?.name?._errors).toEqual(["Invalid input"]);
@@ -518,12 +518,12 @@ test("formatting with nullable and optional fields", () => {
 });
 
 test("inferFlattenedErrors", () => {
-  const schemaWithTransform = z.object({ foo: z.string() }).transform((o) => ({ bar: o.foo }));
+  const schemaWithTransform = Schema.object({ foo: Schema.string() }).transform((o) => ({ bar: o.foo }));
 
   const result = schemaWithTransform.safeParse({});
 
   expect(result.success).toBe(false);
-  type ValidationErrors = z.inferFlattenedErrors<typeof schemaWithTransform>;
+  type ValidationErrors = Schema.inferFlattenedErrors<typeof schemaWithTransform>;
   const error: ValidationErrors = result.error!.flatten();
   expect(error).toMatchInlineSnapshot(`
     {
@@ -537,7 +537,7 @@ test("inferFlattenedErrors", () => {
   `);
 });
 
-const stringWithCustomError = z.string({
+const stringWithCustomError = Schema.string({
   error: () => "bound",
 });
 
@@ -556,14 +556,14 @@ test("bound error map overrides contextual", () => {
   expect(result.error!.issues[0].message).toEqual("bound");
 });
 
-test("z.config customError ", () => {
+test("Schema.config customError ", () => {
   // support overrideErrorMap
 
-  z.config({ customError: () => ({ message: "override" }) });
-  const result = z.string().min(10).safeParse("tooshort");
+  Schema.config({ customError: () => ({ message: "override" }) });
+  const result = Schema.string().min(10).safeParse("tooshort");
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "too_small",
@@ -590,7 +590,7 @@ test("a check's own error map beats the schema's", () => {
 });
 
 test("the schema's error map beats contextual and global for a check issue", () => {
-  z.config({ customError: () => "global" });
+  Schema.config({ customError: () => "global" });
   const result = stringWithCustomError.min(10).safeParse("tooshort", { error: () => "contextual" });
   expect(result.success).toBe(false);
   expect(result.error!.issues[0].message).toEqual("bound");
@@ -598,13 +598,13 @@ test("the schema's error map beats contextual and global for a check issue", () 
 
 test("a schema map returning undefined defers to the next rung, and runs once", () => {
   let calls = 0;
-  const deferring = z.string({
+  const deferring = Schema.string({
     error: () => {
       calls++;
       return undefined;
     },
   });
-  z.config({ customError: () => "global" });
+  Schema.config({ customError: () => "global" });
   const result = deferring.min(10).safeParse("tooshort");
   expect(result.success).toBe(false);
   expect(result.error!.issues[0].message).toEqual("global");
@@ -612,7 +612,7 @@ test("a schema map returning undefined defers to the next rung, and runs once", 
 });
 
 // test("invalid and required", () => {
-//   const str = z.string({
+//   const str = Schema.string({
 //     invalid_type_error: "Invalid name",
 //     required_error: "Name is required",
 //   });
@@ -629,7 +629,7 @@ test("a schema map returning undefined defers to the next rung, and runs once", 
 // });
 
 // test("Fallback to default required error", () => {
-//   const str = z.string({
+//   const str = Schema.string({
 //     invalid_type_error: "Invalid name",
 //     // required_error: "Name is required",
 //   });
@@ -643,7 +643,7 @@ test("a schema map returning undefined defers to the next rung, and runs once", 
 
 // test("invalid and required and errorMap", () => {
 //   expect(() => {
-//     return z.string({
+//     return Schema.string({
 //       invalid_type_error: "Invalid name",
 //       required_error: "Name is required",
 //       errorMap: () => ({ message: "override" }),
@@ -653,7 +653,7 @@ test("a schema map returning undefined defers to the next rung, and runs once", 
 
 // test("strict error message", () => {
 //   const errorMsg = "Invalid object";
-//   const obj = z.object({ x: z.string() }).strict(errorMsg);
+//   const obj = Schema.object({ x: Schema.string() }).strict(errorMsg);
 //   const result = obj.safeParse({ x: "a", y: "b" });
 //   expect(result.success).toBe(false);
 //   if (!result.success) {
@@ -662,8 +662,8 @@ test("a schema map returning undefined defers to the next rung, and runs once", 
 // });
 
 test("empty string error message", () => {
-  const schema = z.string().max(1, { message: "" });
-  const result = schema.safeParse("asdf");
+  const schema = Schema.string().max(1, { message: "" });
+  const result = Schema.safeParse("asdf");
   expect(result.success).toBe(false);
   expect(result.error!.issues[0].message).toEqual("");
 });
@@ -671,8 +671,8 @@ test("empty string error message", () => {
 test("dont short circuit on continuable errors", () => {
   const user = z
     .object({
-      password: z.string().min(6),
-      confirm: z.string(),
+      password: Schema.string().min(6),
+      confirm: Schema.string(),
     })
     .refine((data) => data.password === data.confirm, {
       message: "Passwords don't match",
@@ -681,7 +681,7 @@ test("dont short circuit on continuable errors", () => {
   const result = user.safeParse({ password: "asdf", confirm: "qwer" });
   expect(result.success).toBe(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "origin": "string",
         "code": "too_small",
@@ -705,113 +705,113 @@ test("dont short circuit on continuable errors", () => {
 });
 
 test("string error params", () => {
-  const a = z.string("Bad!");
+  const a = Schema.string("Bad!");
   expect(a.safeParse(123).error!.issues[0].message).toBe("Bad!");
 
-  const b = z.string().min(5, "Too short!");
+  const b = Schema.string().min(5, "Too short!");
   expect(b.safeParse("abc").error!.issues[0].message).toBe("Too short!");
 
-  const c = z.uuid("Bad UUID!");
+  const c = Schema.uuid("Bad UUID!");
   expect(c.safeParse("not-a-uuid").error!.issues[0].message).toBe("Bad UUID!");
 
-  const d = z.string().datetime({ message: "Bad date!" });
+  const d = Schema.string().datetime({ message: "Bad date!" });
   expect(d.safeParse("not-a-date").error!.issues[0].message).toBe("Bad date!");
 
-  const e = z.array(z.string(), "Bad array!");
+  const e = Schema.array(Schema.string(), "Bad array!");
   expect(e.safeParse("not-an-array").error!.issues[0].message).toBe("Bad array!");
 
-  const f = z.array(z.string()).min(5, "Too few items!");
+  const f = Schema.array(Schema.string()).min(5, "Too few items!");
   expect(f.safeParse(["a", "b"]).error!.issues[0].message).toBe("Too few items!");
 
-  const g = z.set(z.string(), "Bad set!");
+  const g = Schema.set(Schema.string(), "Bad set!");
   expect(g.safeParse("not-a-set").error!.issues[0].message).toBe("Bad set!");
 
-  const h = z.array(z.string(), "Bad array!");
+  const h = Schema.array(Schema.string(), "Bad array!");
   expect(h.safeParse(123).error!.issues[0].message).toBe("Bad array!");
 
-  const i = z.set(z.string(), "Bad set!");
+  const i = Schema.set(Schema.string(), "Bad set!");
   expect(i.safeParse(123).error!.issues[0].message).toBe("Bad set!");
 
-  const j = z.array(z.string(), "Bad array!");
+  const j = Schema.array(Schema.string(), "Bad array!");
   expect(j.safeParse(null).error!.issues[0].message).toBe("Bad array!");
 });
 
 test("error inheritance", () => {
-  const e1 = z.string().safeParse(123).error!;
-  expect(e1).toBeInstanceOf(z.core.$ZodError);
-  expect(e1).toBeInstanceOf(z.ZodError);
-  expect(e1).toBeInstanceOf(z.ZodRealError);
+  const e1 = Schema.string().safeParse(123).error!;
+  expect(e1).toBeInstanceOf(Schema.core.$SchemaError);
+  expect(e1).toBeInstanceOf(Schema.SchemaError);
+  expect(e1).toBeInstanceOf(Schema.SchemaRealError);
   expect(e1).toBeInstanceOf(Error);
 
   try {
-    z.string().parse(123);
+    Schema.string().parse(123);
   } catch (e2) {
-    expect(e1).toBeInstanceOf(z.core.$ZodError);
-    expect(e2).toBeInstanceOf(z.ZodError);
-    expect(e2).toBeInstanceOf(z.ZodRealError);
+    expect(e1).toBeInstanceOf(Schema.core.$SchemaError);
+    expect(e2).toBeInstanceOf(Schema.SchemaError);
+    expect(e2).toBeInstanceOf(Schema.SchemaRealError);
     expect(e2).toBeInstanceOf(Error);
   }
 });
 
 test("parse errors capture the caller stack frame", async () => {
-  const schema = z.string();
-  const parse = schema.parse;
-  const parseAsync = schema.parseAsync;
+  const schema = Schema.string();
+  const parse = Schema.parse;
+  const parseAsync = Schema.parseAsync;
 
-  expectFirstStackFrameAtCallsite(getThrownError(() => schema.parse(123)));
+  expectFirstStackFrameAtCallsite(getThrownError(() => Schema.parse(123)));
   expectFirstStackFrameAtCallsite(getThrownError(() => parse(123)));
-  expectFirstStackFrameAtCallsite(getThrownError(() => z.parse(schema, 123)));
+  expectFirstStackFrameAtCallsite(getThrownError(() => Schema.parse(schema, 123)));
 
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => schema.parseAsync(123)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.parseAsync(123)));
   expectFirstStackFrameAtCallsite(await getRejectedError(() => parseAsync(123)));
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => z.parseAsync(schema, 123)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.parseAsync(schema, 123)));
 });
 
 test("codec errors capture the caller stack frame", async () => {
-  const schema = z.string();
-  const encode = schema.encode;
-  const decode = schema.decode;
-  const encodeAsync = schema.encodeAsync;
-  const decodeAsync = schema.decodeAsync;
+  const schema = Schema.string();
+  const encode = Schema.encode;
+  const decode = Schema.decode;
+  const encodeAsync = Schema.encodeAsync;
+  const decodeAsync = Schema.decodeAsync;
 
-  expectFirstStackFrameAtCallsite(getThrownError(() => schema.encode(123 as any)));
+  expectFirstStackFrameAtCallsite(getThrownError(() => Schema.encode(123 as any)));
   expectFirstStackFrameAtCallsite(getThrownError(() => encode(123 as any)));
-  expectFirstStackFrameAtCallsite(getThrownError(() => z.encode(schema, 123 as any)));
+  expectFirstStackFrameAtCallsite(getThrownError(() => Schema.encode(schema, 123 as any)));
 
-  expectFirstStackFrameAtCallsite(getThrownError(() => schema.decode(123 as any)));
+  expectFirstStackFrameAtCallsite(getThrownError(() => Schema.decode(123 as any)));
   expectFirstStackFrameAtCallsite(getThrownError(() => decode(123 as any)));
-  expectFirstStackFrameAtCallsite(getThrownError(() => z.decode(schema, 123 as any)));
+  expectFirstStackFrameAtCallsite(getThrownError(() => Schema.decode(schema, 123 as any)));
 
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => schema.encodeAsync(123 as any)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.encodeAsync(123 as any)));
   expectFirstStackFrameAtCallsite(await getRejectedError(() => encodeAsync(123 as any)));
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => z.encodeAsync(schema, 123 as any)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.encodeAsync(schema, 123 as any)));
 
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => schema.decodeAsync(123 as any)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.decodeAsync(123 as any)));
   expectFirstStackFrameAtCallsite(await getRejectedError(() => decodeAsync(123 as any)));
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => z.decodeAsync(schema, 123 as any)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.decodeAsync(schema, 123 as any)));
 });
 
 test("async errors that fail after suspending capture the caller stack frame", async () => {
   // `Error.captureStackTrace` is skip-until-seen: when it cannot find its callee it discards every frame, not just the ones above. An async wrapper that returns its inner promise without awaiting has already left the async chain by the time the rejection is built, so its callee is unfindable and the stack comes back empty. Only a schema that actually suspends reaches that path — the sync cases above run straight through to their first await and pass either way.
-  const refined = z.string().refine(async () => false, "nope");
-  const codec = z.codec(z.string(), z.number(), {
+  const refined = Schema.string().refine(async () => false, "nope");
+  const codec = Schema.codec(Schema.string(), Schema.number(), {
     decode: async (value) => value as never,
     encode: async (value) => value as never,
   });
 
   expectFirstStackFrameAtCallsite(await getRejectedError(() => refined.parseAsync("x")));
   expectFirstStackFrameAtCallsite(await getRejectedError(() => codec.decodeAsync("x")));
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => z.decodeAsync(codec, "x")));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.decodeAsync(codec, "x")));
   expectFirstStackFrameAtCallsite(await getRejectedError(() => codec.encodeAsync(5)));
-  expectFirstStackFrameAtCallsite(await getRejectedError(() => z.encodeAsync(codec, 5)));
+  expectFirstStackFrameAtCallsite(await getRejectedError(() => Schema.encodeAsync(codec, 5)));
 });
 
 test("error serialization", () => {
   try {
-    z.string().parse(123);
+    Schema.string().parse(123);
   } catch (e) {
     expect(e).toMatchInlineSnapshot(`
-      [ZodError: [
+      [SchemaError: [
         {
           "expected": "string",
           "code": "invalid_type",
@@ -821,7 +821,7 @@ test("error serialization", () => {
       ]]
     `);
     expect(inspect(e).split("\n").slice(0, 8).join("\n")).toMatchInlineSnapshot(`
-      "ZodError: [
+      "SchemaError: [
         {
           "expected": "string",
           "code": "invalid_type",
@@ -834,7 +834,7 @@ test("error serialization", () => {
 });
 
 test("message is lazy but stays own and enumerable", () => {
-  const err = z.object({ a: z.string() }).safeParse({ a: 1 }).error!;
+  const err = Schema.object({ a: Schema.string() }).safeParse({ a: 1 }).error!;
 
   expect(Object.keys(err)).toEqual(["name", "message"]);
   expect(Object.keys({ ...err })).toEqual(["name", "message"]);
@@ -853,11 +853,11 @@ test("message is lazy but stays own and enumerable", () => {
   expect(err.toString()).toEqual("overwritten");
 
   // a second error computes its own message
-  expect(z.string().safeParse(1).error!.message).not.toEqual(computed);
+  expect(Schema.string().safeParse(1).error!.message).not.toEqual(computed);
 });
 
 test("error helpers survive detaching", () => {
-  const err = z.object({ a: z.string() }).safeParse({ a: 1 }).error!;
+  const err = Schema.object({ a: Schema.string() }).safeParse({ a: 1 }).error!;
   const { format, flatten } = err;
   const stringify = err.toString;
 
@@ -865,17 +865,17 @@ test("error helpers survive detaching", () => {
   expect(flatten().fieldErrors.a).toEqual(["Invalid input: expected string, received number"]);
   expect(stringify()).toEqual(err.message);
   expect(err.isEmpty).toBe(false);
-  expect(new z.ZodError([]).isEmpty).toBe(true);
+  expect(new Schema.SchemaError([]).isEmpty).toBe(true);
 
   // addIssue refreshes a message that was already materialized
-  const empty = new z.ZodError([]);
+  const empty = new Schema.SchemaError([]);
   expect(empty.message).toEqual("[]");
   empty.addIssue({ code: "custom", message: "added", path: [], input: undefined });
   expect(empty.message).toContain("added");
 });
 
 test("an error is a real Error, minus the captured frames", () => {
-  const err = z.string().safeParse(123).error!;
+  const err = Schema.string().safeParse(123).error!;
 
   // suppressing the capture, not skipping the constructor, keeps every brand check working
   expect(err).toBeInstanceOf(Error);
@@ -884,17 +884,17 @@ test("an error is a real Error, minus the captured frames", () => {
   expect(structuredClone(err)).toBeInstanceOf(Error);
 
   // only a returned error loses its frames; the throwing paths restore them
-  expect(err.stack!.startsWith("ZodError: [")).toBe(true);
+  expect(err.stack!.startsWith("SchemaError: [")).toBe(true);
   expect(err.stack!).toContain("invalid_type");
   expect(err.stack!.split("\n").some((line) => line.trim().startsWith("at "))).toBe(false);
 
   // the borrowed global is given back unchanged, including a caller's own value
   const ambient = Error.stackTraceLimit;
-  z.string().safeParse(123);
+  Schema.string().safeParse(123);
   expect(Error.stackTraceLimit).toBe(ambient);
   Error.stackTraceLimit = ambient + 3;
   try {
-    z.string().safeParse(123);
+    Schema.string().safeParse(123);
     expect(Error.stackTraceLimit).toBe(ambient + 3);
   } finally {
     Error.stackTraceLimit = ambient;
@@ -909,7 +909,7 @@ test("an engine without captureStackTrace keeps the frames on a thrown error", a
 
   let thrown: unknown;
   try {
-    const fresh = await import("zod/v4");
+    const fresh = await import("schema/v4");
     function callSite() {
       fresh.string().parse(1);
     }
@@ -927,9 +927,9 @@ test("an engine without captureStackTrace keeps the frames on a thrown error", a
 });
 
 test("a realm that hardens Error after import degrades instead of throwing", async () => {
-  // lockdown() runs after zod's module graph evaluates, so the latch fires in a throwaway instance rather than the one this file uses
+  // lockdown() runs after schema's module graph evaluates, so the latch fires in a throwaway instance rather than the one this file uses
   vi.resetModules();
-  const fresh = await import("zod/v4");
+  const fresh = await import("schema/v4");
   const desc = Object.getOwnPropertyDescriptor(Error, "stackTraceLimit")!;
   Object.defineProperty(Error, "stackTraceLimit", { value: 10, writable: false, configurable: true });
 
@@ -957,8 +957,8 @@ test("an engine with no stackTraceLimit is never written to", () => {
   });
 
   try {
-    const err = z.string().safeParse(123).error!;
-    expect(err).toBeInstanceOf(z.ZodError);
+    const err = Schema.string().safeParse(123).error!;
+    expect(err).toBeInstanceOf(Schema.SchemaError);
     expect(types.isNativeError(err)).toBe(true);
     expect(err.issues).toHaveLength(1);
     expect(writes).toBe(0);
@@ -969,9 +969,9 @@ test("an engine with no stackTraceLimit is never written to", () => {
 
 test("error initializer never installs onto an intrinsic prototype", () => {
   // `init` accepts any object; a foreign one must not leak accessors onto the prototype it happens to inherit from.
-  z.core.$ZodError.init({} as any, []);
-  z.ZodError.init({} as any, []);
-  z.core.$ZodError.init(new Error() as any, []);
+  Schema.core.$SchemaError.init({} as any, []);
+  Schema.SchemaError.init({} as any, []);
+  Schema.core.$SchemaError.init(new Error() as any, []);
 
   expect(Object.getOwnPropertyDescriptor(Object.prototype, "toString")!.get).toBeUndefined();
   expect(Object.getOwnPropertyDescriptor(Error.prototype, "toString")!.get).toBeUndefined();
@@ -990,7 +990,7 @@ describe("safeParse builds the error on first read", () => {
 
   test("constructs once, on read", () => {
     CountingError.constructed = 0;
-    const result = z.core._safeParse(CountingError as any)(z.string(), 1) as any;
+    const result = Schema.core._safeParse(CountingError as any)(Schema.string(), 1) as any;
     expect(result.success).toBe(false);
     expect(CountingError.constructed).toBe(0);
     const err = result.error;
@@ -1002,18 +1002,18 @@ describe("safeParse builds the error on first read", () => {
 
   test("async variant", async () => {
     CountingError.constructed = 0;
-    const result = (await z.core._safeParseAsync(CountingError as any)(z.string(), 1)) as any;
+    const result = (await Schema.core._safeParseAsync(CountingError as any)(Schema.string(), 1)) as any;
     expect(CountingError.constructed).toBe(0);
     expect(result.error).toBeInstanceOf(CountingError);
     expect(CountingError.constructed).toBe(1);
   });
 
   test("result stays plain data", () => {
-    const result = z.string().safeParse(1);
+    const result = Schema.string().safeParse(1);
     expect(Object.keys(result)).toEqual(["success", "error"]);
-    expect(result).toEqual({ success: false, error: expect.any(z.ZodError) });
+    expect(result).toEqual({ success: false, error: expect.any(Schema.SchemaError) });
     expect(structuredClone(result).error).toBeInstanceOf(Error);
-    const replaced = new z.ZodError([]);
+    const replaced = new Schema.SchemaError([]);
     (result as any).error = replaced;
     expect(result.error).toBe(replaced);
   });
@@ -1026,16 +1026,16 @@ describe("safeParse builds the error on first read", () => {
     v8.setFlagsFromString("--expose-gc");
     const gc = vm.runInNewContext("gc") as () => void;
 
-    const schema = z.string();
+    const schema = Schema.string();
     const refs: Weak<object>[] = [];
     const results: unknown[] = [];
     for (let i = 0; i < 50; i++) {
       const input = { i, blob: new Array(500).fill(i) };
       refs.push(new Weak(input));
-      const result = schema.safeParse(input);
+      const result = Schema.safeParse(input);
       // half read the error, half replace it without ever reading; both have to release
       if (i % 2) void result.error;
-      else (result as { error: z.core.$ZodError }).error = new z.ZodError([]);
+      else (result as { error: Schema.core.$SchemaError }).error = new Schema.SchemaError([]);
       results.push(result);
     }
     // the collector decides when it runs, so give it several passes; a retained input never clears no matter how many it gets
@@ -1050,7 +1050,7 @@ describe("safeParse builds the error on first read", () => {
   });
 
   test("no reader frames leak into the error, however late it is read", async () => {
-    const result = z.string().safeParse(12) as { error: z.core.$ZodError };
+    const result = Schema.string().safeParse(12) as { error: Schema.core.$SchemaError };
 
     // the constructor runs at THIS read: a macrotask later and twenty frames deeper than the parse
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1062,13 +1062,13 @@ describe("safeParse builds the error on first read", () => {
     expect(control.stack!.split("\n").some((line) => line.trim().startsWith("at "))).toBe(true);
     expect(control.stack!).toContain("readDeep");
 
-    expect(error.stack!.startsWith("ZodError: [")).toBe(true);
+    expect(error.stack!.startsWith("SchemaError: [")).toBe(true);
     expect(error.stack!.split("\n").some((line) => line.trim().startsWith("at "))).toBe(false);
     expect(error.stack!).not.toContain("readDeep");
   });
 
   test("a lazy build gives back the caller's stackTraceLimit, not the parse-time one", () => {
-    const result = z.string().safeParse(12) as { error: z.core.$ZodError };
+    const result = Schema.string().safeParse(12) as { error: Schema.core.$SchemaError };
     const ambient = Error.stackTraceLimit;
     // changed between the parse and the read, so restoring a value captured at parse time would clobber it
     Error.stackTraceLimit = ambient + 7;
@@ -1083,22 +1083,22 @@ describe("safeParse builds the error on first read", () => {
 
 test("a finalized issue copies the raw issue's own keys only", () => {
   const proto = { inherited: true };
-  const schema = z.string().check((ctx) => {
+  const schema = Schema.string().check((ctx) => {
     const raw = Object.create(proto);
     Object.assign(raw, { code: "custom", message: "own", input: ctx.value, extra: 1 });
     ctx.issues.push(raw);
   });
-  const issue = schema.safeParse("x").error!.issues[0];
+  const issue = Schema.safeParse("x").error!.issues[0];
   expect(issue).toStrictEqual({ code: "custom", message: "own", path: [], extra: 1 });
   expect("inherited" in issue).toBe(false);
-  // own symbol-keyed fields are not copied either; nothing in zod produces one and the walk stays a string-key walk
+  // own symbol-keyed fields are not copied either; nothing in schema produces one and the walk stays a string-key walk
   const sym = Symbol("meta");
-  const symbolic = z.string().check((ctx) => {
+  const symbolic = Schema.string().check((ctx) => {
     ctx.issues.push({ code: "custom", message: "sym", input: ctx.value, [sym]: 1 } as never);
   });
   expect(Object.getOwnPropertySymbols(symbolic.safeParse("x").error!.issues[0])).toEqual([]);
   // an own __proto__ key, as JSON.parse produces, neither swaps the prototype nor survives
-  const parsed = z.string().check((ctx) => {
+  const parsed = Schema.string().check((ctx) => {
     ctx.issues.push(JSON.parse('{"code":"custom","message":"json","__proto__":{"polluted":true}}'));
   });
   const fromJson = parsed.safeParse("x").error!.issues[0];

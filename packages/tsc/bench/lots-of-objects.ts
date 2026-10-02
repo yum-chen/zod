@@ -9,22 +9,22 @@ const SHARED = {
   numExtends: 1,
 };
 console.log("╔════════════════╗");
-console.log("║     Zod v3     ║");
+console.log("║     Schema v3     ║");
 console.log("╚════════════════╝");
 await gen.generate({
   ...gen.ZOD3,
-  schemaType: "z.object",
+  schemaType: "Schema.object",
   ...SHARED,
 });
 
 await $`nub run build:bench`;
 
 console.log("╔════════════════╗");
-console.log("║     Zod v4     ║");
+console.log("║     Schema v4     ║");
 console.log("╚════════════════╝");
 await gen.generate({
   ...gen.ZOD,
-  schemaType: "z.object",
+  schemaType: "Schema.object",
   ...SHARED,
 });
 

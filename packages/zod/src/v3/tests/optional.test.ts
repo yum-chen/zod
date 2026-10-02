@@ -1,42 +1,42 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-function checkErrors(a: z.ZodTypeAny, bad: any) {
+function checkErrors(a: Schema.SchemaTypeAny, bad: any) {
   let expected: any;
   try {
     a.parse(bad);
   } catch (error) {
-    expected = (error as z.ZodError).formErrors;
+    expected = (error as Schema  .SchemaError).formErrors;
   }
   try {
     a.optional().parse(bad);
   } catch (error) {
-    expect((error as z.ZodError).formErrors).toEqual(expected);
+    expect((error as Schema  .SchemaError).formErrors).toEqual(expected);
   }
 }
 
 test("Should have error messages appropriate for the underlying type", () => {
-  checkErrors(z.string().min(2), 1);
-  z.string().min(2).optional().parse(undefined);
-  checkErrors(z.number().gte(2), 1);
-  z.number().gte(2).optional().parse(undefined);
-  checkErrors(z.boolean(), "");
-  z.boolean().optional().parse(undefined);
-  checkErrors(z.undefined(), null);
-  z.undefined().optional().parse(undefined);
-  checkErrors(z.null(), {});
-  z.null().optional().parse(undefined);
-  checkErrors(z.object({}), 1);
-  z.object({}).optional().parse(undefined);
-  checkErrors(z.tuple([]), 1);
-  z.tuple([]).optional().parse(undefined);
-  checkErrors(z.unknown(), 1);
-  z.unknown().optional().parse(undefined);
+  checkErrors(Schema.string().min(2), 1);
+  Schema.string().min(2).optional().parse(undefined);
+  checkErrors(Schema.number().gte(2), 1);
+  Schema.number().gte(2).optional().parse(undefined);
+  checkErrors(Schema.boolean(), "");
+  Schema.boolean().optional().parse(undefined);
+  checkErrors(Schema.undefined(), null);
+  Schema.undefined().optional().parse(undefined);
+  checkErrors(Schema.null(), {});
+  Schema.null().optional().parse(undefined);
+  checkErrors(Schema.object({}), 1);
+  Schema.object({}).optional().parse(undefined);
+  checkErrors(Schema.tuple([]), 1);
+  Schema.tuple([]).optional().parse(undefined);
+  checkErrors(Schema.unknown(), 1);
+  Schema.unknown().optional().parse(undefined);
 });
 
 test("unwrap", () => {
-  const unwrapped = z.string().optional().unwrap();
-  expect(unwrapped).toBeInstanceOf(z.ZodString);
+  const unwrapped = Schema.string().optional().unwrap();
+  expect(unwrapped).toBeInstanceOf(Schema.SchemaString);
 });

@@ -1,8 +1,8 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("basic datetime parsing", () => {
-  const datetime = z.string().datetime();
+  const datetime = Schema.string().datetime();
   datetime.parse("1970-01-01T00:00:00.000Z");
   datetime.parse("2022-10-13T09:52:31.816Z");
   datetime.parse("2022-10-13T09:52:31.8162314Z");
@@ -16,7 +16,7 @@ test("basic datetime parsing", () => {
 });
 
 test("datetime parsing with precision -1", () => {
-  const datetimeNoMs = z.string().datetime({ precision: -1, offset: true, local: true });
+  const datetimeNoMs = Schema.string().datetime({ precision: -1, offset: true, local: true });
   datetimeNoMs.parse("1970-01-01T00:00Z");
   datetimeNoMs.parse("2022-10-13T09:52Z");
   datetimeNoMs.parse("2022-10-13T09:52+02:00");
@@ -30,7 +30,7 @@ test("datetime parsing with precision -1", () => {
 });
 
 test("datetime parsing with precision 0", () => {
-  const datetimeNoMs = z.string().datetime({ precision: 0 });
+  const datetimeNoMs = Schema.string().datetime({ precision: 0 });
   datetimeNoMs.parse("1970-01-01T00:00:00Z");
   datetimeNoMs.parse("2022-10-13T09:52:31Z");
   expect(() => datetimeNoMs.parse("tuna")).toThrow();
@@ -40,7 +40,7 @@ test("datetime parsing with precision 0", () => {
 });
 
 test("datetime parsing with precision 3", () => {
-  const datetime3Ms = z.string().datetime({ precision: 3 });
+  const datetime3Ms = Schema.string().datetime({ precision: 3 });
   datetime3Ms.parse("1970-01-01T00:00:00.000Z");
   datetime3Ms.parse("2022-10-13T09:52:31.123Z");
   expect(() => datetime3Ms.parse("tuna")).toThrow();
@@ -50,7 +50,7 @@ test("datetime parsing with precision 3", () => {
 });
 
 test("datetime parsing with offset", () => {
-  const datetimeOffset = z.string().datetime({ offset: true });
+  const datetimeOffset = Schema.string().datetime({ offset: true });
   datetimeOffset.parse("1970-01-01T00:00:00.000Z");
   datetimeOffset.parse("2022-10-13T09:52:31.816234134Z");
   datetimeOffset.parse("1970-01-01T00:00:00Z");
@@ -70,7 +70,7 @@ test("datetime parsing with offset", () => {
 });
 
 test("datetime parsing with offset and precision 0", () => {
-  const datetimeOffsetNoMs = z.string().datetime({ offset: true, precision: 0 });
+  const datetimeOffsetNoMs = Schema.string().datetime({ offset: true, precision: 0 });
   datetimeOffsetNoMs.parse("1970-01-01T00:00:00Z");
   datetimeOffsetNoMs.parse("2022-10-13T09:52:31Z");
   datetimeOffsetNoMs.parse("2020-10-14T17:42:29+00:00");
@@ -84,7 +84,7 @@ test("datetime parsing with offset and precision 0", () => {
 });
 
 test("datetime parsing with offset and precision 4", () => {
-  const datetimeOffset4Ms = z.string().datetime({ offset: true, precision: 4 });
+  const datetimeOffset4Ms = Schema.string().datetime({ offset: true, precision: 4 });
   datetimeOffset4Ms.parse("1970-01-01T00:00:00.1234Z");
   datetimeOffset4Ms.parse("2020-10-14T17:42:29.1234+00:00");
   expect(() => datetimeOffset4Ms.parse("2020-10-14T17:42:29.1234+0000")).toThrow();
@@ -95,7 +95,7 @@ test("datetime parsing with offset and precision 4", () => {
 });
 
 test("datetime offset normalization", () => {
-  const a = z.iso.datetime({ offset: true });
+  const a = Schema.iso.datetime({ offset: true });
 
   expect(a.safeParse("2020-10-14T17:42:29+02")).toMatchObject({ success: false });
   expect(a.safeParse("2020-10-14T17:42:29+0200")).toMatchObject({ success: false });
@@ -103,7 +103,7 @@ test("datetime offset normalization", () => {
 });
 
 test("datetime parsing with local option", () => {
-  const a = z.string().datetime({ local: true });
+  const a = Schema.string().datetime({ local: true });
 
   expect(a.safeParse("1970-01-01T00:00")).toMatchObject({ success: true });
   expect(a.safeParse("1970-01-01T00:00:00")).toMatchObject({ success: true });
@@ -121,7 +121,7 @@ test("datetime parsing with local option", () => {
 });
 
 test("datetime parsing with local and offset", () => {
-  const a = z.string().datetime({ local: true, offset: true });
+  const a = Schema.string().datetime({ local: true, offset: true });
 
   a.parse("2022-10-13T12:52:00");
   a.parse("2022-10-13T12:52:00Z");
@@ -135,20 +135,20 @@ test("datetime parsing with local and offset", () => {
 });
 
 test("datetime requires seconds once a Z or offset is present", () => {
-  expect(z.iso.datetime().safeParse("2022-10-13T12:52Z").success).toEqual(false);
-  expect(z.iso.datetime().safeParse("2022-10-13T12:52:00Z").success).toEqual(true);
-  expect(z.iso.datetime().safeParse("2022-10-13T12:52:00.123Z").success).toEqual(true);
-  expect(z.iso.datetime({ offset: true }).safeParse("2022-10-13T12:52+02:00").success).toEqual(false);
-  expect(z.iso.datetime({ offset: true }).safeParse("2022-10-13T12:52:00+02:00").success).toEqual(true);
+  expect(Schema.iso.datetime().safeParse("2022-10-13T12:52Z").success).toEqual(false);
+  expect(Schema.iso.datetime().safeParse("2022-10-13T12:52:00Z").success).toEqual(true);
+  expect(Schema.iso.datetime().safeParse("2022-10-13T12:52:00.123Z").success).toEqual(true);
+  expect(Schema.iso.datetime({ offset: true }).safeParse("2022-10-13T12:52+02:00").success).toEqual(false);
+  expect(Schema.iso.datetime({ offset: true }).safeParse("2022-10-13T12:52:00+02:00").success).toEqual(true);
   // an explicit precision still wins, and gives up `format: "date-time"` in exchange
-  expect(z.iso.datetime({ precision: -1 }).safeParse("2022-10-13T12:52Z").success).toEqual(true);
-  expect(z.toJSONSchema(z.iso.datetime()).format).toEqual("date-time");
-  expect(z.toJSONSchema(z.iso.datetime({ precision: -1 })).format).toEqual(undefined);
+  expect(Schema.iso.datetime({ precision: -1 }).safeParse("2022-10-13T12:52Z").success).toEqual(true);
+  expect(Schema.toJSONSchema(Schema.iso.datetime()).format).toEqual("date-time");
+  expect(Schema.toJSONSchema(Schema.iso.datetime({ precision: -1 })).format).toEqual(undefined);
 });
 
 test("the documented migration union reproduces the old default", () => {
   // no single precision covers both, so the docs point at this union — pin that it works
-  const mixed = z.union([z.iso.datetime(), z.iso.datetime({ precision: -1 })]);
+  const mixed = Schema.union([Schema.iso.datetime(), Schema.iso.datetime({ precision: -1 })]);
   expect(mixed.safeParse("2020-01-01T06:15Z").success).toEqual(true);
   expect(mixed.safeParse("2020-01-01T06:15:00Z").success).toEqual(true);
   expect(mixed.safeParse("2020-01-01T06:15:00.123Z").success).toEqual(true);
@@ -156,7 +156,7 @@ test("the documented migration union reproduces the old default", () => {
 });
 
 test("date parsing", () => {
-  const date = z.string().date();
+  const date = Schema.string().date();
   date.parse("1970-01-01");
   date.parse("2022-01-31");
   date.parse("2022-03-31");
@@ -210,7 +210,7 @@ test("date parsing", () => {
 });
 
 test("time parsing", () => {
-  const time = z.string().time();
+  const time = Schema.string().time();
   time.parse("00:00:00");
   time.parse("23:00:00");
   time.parse("00:59:00");
@@ -231,7 +231,7 @@ test("time parsing", () => {
   expect(() => time.parse("00:00:60")).toThrow();
   expect(() => time.parse("24:60:60")).toThrow();
 
-  const time2 = z.string().time({ precision: 2 });
+  const time2 = Schema.string().time({ precision: 2 });
   time2.parse("00:00:00.00");
   time2.parse("09:52:31.12");
   time2.parse("23:59:59.99");
@@ -243,13 +243,13 @@ test("time parsing", () => {
   expect(() => time2.parse("00:00:00.000")).toThrow();
   expect(() => time2.parse("00:00:00.00+00:00")).toThrow();
 
-  const time3 = z.string().time({ precision: z.TimePrecision.Minute });
+  const time3 = Schema.string().time({ precision: Schema.TimePrecision.Minute });
   time3.parse("00:00");
   expect(() => time3.parse("00:00:00")).toThrow();
 });
 
 test("duration", () => {
-  const duration = z.string().duration();
+  const duration = Schema.string().duration();
 
   const validDurations = [
     "P3Y6M4DT12H30M5S",
@@ -309,7 +309,7 @@ test("duration", () => {
 
 test("datetime pattern has no empty alternation branch", () => {
   for (const args of [{}, { local: true }, { offset: true }, { local: true, offset: true }]) {
-    const { pattern } = z.toJSONSchema(z.iso.datetime(args));
+    const { pattern } = Schema.toJSONSchema(Schema.iso.datetime(args));
     expect(pattern, JSON.stringify(args)).toBeDefined();
     expect(pattern, JSON.stringify(args)).not.toMatch(/\|\||\(\?:\||\|\)/);
   }

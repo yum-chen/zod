@@ -4,7 +4,7 @@ export const Bronze = () => {
       name: "Code for Japan",
       logoSrc: "/sponsors/code-for-japan.png",
       url: "code4japan.org",
-      href: "https://www.code4japan.org/?utm_source=zod",
+      href: "https://www.code4japan.org/?utm_source=schema",
     },
     {
       name: "Jason Laster",
@@ -16,19 +16,19 @@ export const Bronze = () => {
       name: "Convex",
       logoSrc: "https://avatars.githubusercontent.com/u/81530787?s=200&v=4",
       url: "convex.dev",
-      href: "https://convex.dev/?utm_source=zod",
+      href: "https://convex.dev/?utm_source=schema",
     },
     {
       name: "n8n",
       logoSrc: "https://avatars.githubusercontent.com/u/104988782?s=200&v=4",
       url: "n8n.io",
-      href: "https://n8n.io/?utm_source=zod",
+      href: "https://n8n.io/?utm_source=schema",
     },
     {
       name: "Route4Me",
       logoSrc: "https://avatars.githubusercontent.com/u/7936820?s=200&v=4",
       url: "route4me.com",
-      href: "https://www.route4me.com/?utm_source=zod",
+      href: "https://www.route4me.com/?utm_source=schema",
     },
   ];
 

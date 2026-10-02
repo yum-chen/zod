@@ -1,14 +1,14 @@
 import { expect, test } from "vitest";
-import * as z from "zod/mini";
+import * as Schema from "schema/mini";
 
-test("z.function", () => {
+test("Schema.function", () => {
   expect(true).toEqual(true);
 });
 
 test("implement exposes the function schema at runtime", () => {
-  const schema = z.function({ input: [z.string()], output: z.number() });
-  const fn = schema.implement((s) => s.length);
+  const schema = Schema.function({ input: [Schema.string()], output: Schema.number() });
+  const fn = Schema.implement((s) => s.length);
 
-  expect((fn as any)._zod).toBe(schema._zod);
+  expect((fn as any)._schema).toBe(Schema._schema);
   expect(fn("asdf")).toBe(4);
 });

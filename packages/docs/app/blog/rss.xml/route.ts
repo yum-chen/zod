@@ -12,7 +12,7 @@ export function GET() {
     .sort((a, b) => new Date(b.data?.date ?? 0).getTime() - new Date(a.data?.date ?? 0).getTime());
 
   const items = posts.map((post) => {
-    const url = `https://zod.dev${post.url}`;
+    const url = `https://Schema.dev${post.url}`;
     const title = stripBackticks((post.data?.title as string | undefined) ?? post.slugs.join("/"));
     const description = (post.data?.description as string | undefined) ?? "";
     const pubDate = new Date(post.data?.date ?? 0).toUTCString();
@@ -28,11 +28,11 @@ export function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Zod Blog</title>
-    <link>https://zod.dev/blog</link>
-    <description>Release announcements and engineering deep dives from Zod.</description>
+    <title>Schema Blog</title>
+    <link>https://Schema.dev/blog</link>
+    <description>Release announcements and engineering deep dives from Schema.</description>
     <language>en-us</language>
-    <atom:link href="https://zod.dev/blog/rss.xml" rel="self" type="application/rss+xml"/>
+    <atom:link href="https://Schema.dev/blog/rss.xml" rel="self" type="application/rss+xml"/>
 ${items.join("\n")}
   </channel>
 </rss>

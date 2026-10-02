@@ -1,15 +1,15 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const promSchema = z.promise(
-  z.object({
-    name: z.string(),
-    age: z.number(),
+const promSchema = Schema.promise(
+  Schema.object({
+    name: Schema.string(),
+    age: Schema.number(),
   })
 );
 
 test("promise inference", () => {
-  type promSchemaType = z.infer<typeof promSchema>;
+  type promSchemaType = Schema.infer<typeof promSchema>;
   expectTypeOf<promSchemaType>().toEqualTypeOf<Promise<{ name: string; age: number }>>();
 });
 
@@ -29,13 +29,13 @@ test("promise parsing success", async () => {
 test("promise parsing fail", async () => {
   const bad = await promSchema.safeParseAsync(Promise.resolve({ name: "Bobby", age: "10" }));
   expect(bad.success).toBe(false);
-  expect(bad.error).toBeInstanceOf(z.ZodError);
+  expect(bad.error).toBeInstanceOf(Schema.SchemaError);
 });
 
 test("promise parsing fail 2", async () => {
   const result = await promSchema.safeParseAsync(Promise.resolve({ name: "Bobby", age: "10" }));
   expect(result.success).toBe(false);
-  expect(result.error).toBeInstanceOf(z.ZodError);
+  expect(result.error).toBeInstanceOf(Schema.SchemaError);
 });
 
 test("promise parsing fail", () => {
@@ -44,11 +44,11 @@ test("promise parsing fail", () => {
 });
 
 test("sync promise parsing", () => {
-  expect(() => z.promise(z.string()).parse(Promise.resolve("asfd"))).toThrow();
+  expect(() => Schema.promise(Schema.string()).parse(Promise.resolve("asfd"))).toThrow();
 });
 
-const asyncFunction = z.function({
-  input: z.tuple([]),
+const asyncFunction = Schema.function({
+  input: Schema.tuple([]),
   output: promSchema,
 });
 
@@ -66,16 +66,16 @@ test("async function fail", async () => {
   const validatedFunction = asyncFunction.implementAsync(() => {
     return Promise.resolve("asdf" as any);
   });
-  await expect(validatedFunction()).rejects.toBeInstanceOf(z.core.$ZodError);
+  await expect(validatedFunction()).rejects.toBeInstanceOf(Schema.core.$SchemaError);
 });
 
 test("async promise parsing", () => {
-  const res = z.promise(z.number()).parseAsync(Promise.resolve(12));
+  const res = Schema.promise(Schema.number()).parseAsync(Promise.resolve(12));
   expect(res).toBeInstanceOf(Promise);
 });
 
 test("resolves", () => {
-  const foo = z.literal("foo");
-  const res = z.promise(foo);
+  const foo = Schema.literal("foo");
+  const res = Schema.promise(foo);
   expect(res.unwrap()).toEqual(foo);
 });

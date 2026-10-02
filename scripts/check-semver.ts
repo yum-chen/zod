@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import semver from "semver";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const packageJsonPath = join(__dirname, "../packages/zod/package.json");
+const packageJsonPath = join(__dirname, "../packages/schema/package.json");
 
 try {
   const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf-8"));

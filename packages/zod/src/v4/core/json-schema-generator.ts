@@ -1,6 +1,6 @@
 import { allProcessors } from "./json-schema-processors.js";
-import type * as JSONSchema from "./json-schema.js";
-import type { $ZodRegistry } from "./registries.js";
+import type * as JSONSchema from "./json-Schema.js";
+import type { $SchemaRegistry } from "./registries.js";
 import type * as schemas from "./schemas.js";
 import {
   type JSONSchemaGeneratorParams,
@@ -11,7 +11,7 @@ import {
   finalize,
   initializeContext,
   processSchema,
-} from "./to-json-schema.js";
+} from "./to-json-Schema.js";
 
 /**
  * Parameters for the emit method of JSONSchemaGenerator.
@@ -49,7 +49,7 @@ export class JSONSchemaGenerator {
   private ctx: ToJSONSchemaContext;
 
   /** @deprecated Access via ctx instead */
-  get metadataRegistry(): $ZodRegistry<Record<string, any>> {
+  get metadataRegistry(): $SchemaRegistry<Record<string, any>> {
     return this.ctx.metadataRegistry;
   }
   /** @deprecated Access via ctx instead */
@@ -77,7 +77,7 @@ export class JSONSchemaGenerator {
     this.ctx.counter = value;
   }
   /** @deprecated Access via ctx instead */
-  get seen(): Map<schemas.$ZodType, Seen> {
+  get seen(): Map<schemas.$SchemaType, Seen> {
     return this.ctx.seen;
   }
 
@@ -101,7 +101,7 @@ export class JSONSchemaGenerator {
    * Process a schema to prepare it for JSON Schema generation.
    * This must be called before emit().
    */
-  process(schema: schemas.$ZodType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {
+  process(schema: schemas.$SchemaType, _params: ProcessParams = { path: [], schemaPath: [] }): JSONSchema.BaseSchema {
     return processSchema(schema, this.ctx, _params);
   }
 
@@ -109,7 +109,7 @@ export class JSONSchemaGenerator {
    * Emit the final JSON Schema after processing.
    * Must call process() first.
    */
-  emit(schema: schemas.$ZodType, _params?: EmitParams): JSONSchema.BaseSchema {
+  emit(schema: schemas.$SchemaType, _params?: EmitParams): JSONSchema.BaseSchema {
     // Apply emit params to the context
     if (_params) {
       if (_params.cycles) this.ctx.cycles = _params.cycles;

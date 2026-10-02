@@ -1,18 +1,18 @@
-import * as z from "zod";
+import * as Schema   from "schema";
 import { fmtBytes, table } from "./harness.js";
 import { diffAllocation } from "./snapshot.js";
 
 const which = process.argv[2] ?? "string";
 
 const factories: Record<string, () => unknown> = {
-  string: () => z.string(),
-  number: () => z.number(),
-  "object-empty": () => z.object({}),
-  "object-3": () => z.object({ a: z.string(), b: z.number(), c: z.boolean() }),
-  "string-min": () => z.string().min(1),
-  optional: () => z.string().optional(),
-  union: () => z.union([z.string(), z.number()]),
-  array: () => z.array(z.string()),
+  string: () => Schema.string(),
+  number: () => Schema.number(),
+  "object-empty": () => Schema.object({}),
+  "object-3": () => Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean() }),
+  "string-min": () => Schema.string().min(1),
+  optional: () => Schema.string().optional(),
+  union: () => Schema.union([Schema.string(), Schema.number()]),
+  array: () => Schema.array(Schema.string()),
 };
 
 const factory = factories[which];

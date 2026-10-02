@@ -1,31 +1,31 @@
-import * as z from "zod/v4";
-import * as zcore from "zod/v4/core";
+import * as Schema from "schema/v4";
+import * as zcore from "schema/v4/core";
 import { metabench } from "./metabench.js";
 
 const INVALID = Symbol("invalid");
 
-const inputSchema = z.object({
-  id: z.string(),
-  count: z.number(),
-  active: z.boolean(),
-  nested: z.object({
-    label: z.string(),
-    score: z.number(),
+const inputSchema = Schema.object({
+  id: Schema.string(),
+  count: Schema.number(),
+  active: Schema.boolean(),
+  nested: Schema.object({
+    label: Schema.string(),
+    score: Schema.number(),
   }),
 });
 
-const outputSchema = z.object({
-  id: z.string(),
-  count: z.number(),
-  active: z.boolean(),
-  nested: z.object({
-    label: z.string(),
-    score: z.number(),
+const outputSchema = Schema.object({
+  id: Schema.string(),
+  count: Schema.number(),
+  active: Schema.boolean(),
+  nested: Schema.object({
+    label: Schema.string(),
+    score: Schema.number(),
   }),
-  encoded: z.boolean(),
+  encoded: Schema.boolean(),
 });
 
-const codec = z.codec(inputSchema, outputSchema, {
+const codec = Schema.codec(inputSchema, outputSchema, {
   decode: (input) => ({ ...input, encoded: true }),
   encode: (output) => ({
     id: output.id,
@@ -130,7 +130,7 @@ await metabench("codec forward direction", {
   "manual unified nested branch"() {
     return unifiedNestedBranch(input, "forward");
   },
-  "z.compile(codec).decode"() {
+  "Schema.compile(codec).decode"() {
     return compiled.decode(input);
   },
   "runtime codec.decode"() {

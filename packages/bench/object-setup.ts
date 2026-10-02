@@ -1,11 +1,11 @@
 import { makeData, makeSchema } from "./benchUtil.js";
 // import { metabench } from "./metabench.js";
 
-export const { zod3, zod4 } = makeSchema((z) =>
-  z.object({
-    string: z.string(),
-    boolean: z.boolean(),
-    number: z.number(),
+export const { schema3, schema4 } = makeSchema((z) =>
+  Schema.object({
+    string: Schema.string(),
+    boolean: Schema.boolean(),
+    number: Schema.number(),
   })
 );
 
@@ -17,15 +17,15 @@ export const DATA: any[] = makeData(1000, () => {
   });
 });
 
-// const bench = metabench("small: z.object().parse", {
-//   zod3() {
+// const bench = metabench("small: Schema.object().parse", {
+//   schema3() {
 //     for (const d of DATA) {
-//       zod3.parse(d);
+//       schema3.parse(d);
 //     }
 //   },
-//   zod4() {
+//   schema4() {
 //     for (const d of DATA) {
-//       zod4.parse(d);
+//       schema4.parse(d);
 //     }
 //   },
 // });

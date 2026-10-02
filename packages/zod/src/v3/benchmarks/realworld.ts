@@ -1,21 +1,21 @@
 import Benchmark from "benchmark";
 
-import { z } from "zod/v3";
+import { Schema } from "schema/v3";
 
 const shortSuite = new Benchmark.Suite("realworld");
 
-const People = z.array(
-  z.object({
-    type: z.literal("person"),
-    hair: z.enum(["blue", "brown"]),
-    active: z.boolean(),
-    name: z.string(),
-    age: z.number().int(),
-    hobbies: z.array(z.string()),
-    address: z.object({
-      street: z.string(),
-      zip: z.string(),
-      country: z.string(),
+const People = Schema.array(
+  Schema.object({
+    type: Schema.literal("person"),
+    hair: Schema.enum(["blue", "brown"]),
+    active: Schema.boolean(),
+    name: Schema.string(),
+    age: Schema.number().int(),
+    hobbies: Schema.array(Schema.string()),
+    address: Schema.object({
+      street: Schema.string(),
+      zip: Schema.string(),
+      country: Schema.string(),
     }),
   })
 );

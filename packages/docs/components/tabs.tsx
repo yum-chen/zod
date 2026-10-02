@@ -3,7 +3,7 @@
 import { Tab as FumaTab, Tabs as FumaTabs, type TabProps, type TabsProps } from "fumadocs-ui/components/tabs";
 import React from "react";
 
-// the stock tabs need `items` up front; here each tab carries its own `title`, so a post writes `<Tab title="Zod">` with no list to keep in sync
+// the stock tabs need `items` up front; here each tab carries its own `title`, so a post writes `<Tab title="Schema">` with no list to keep in sync
 const Tabs = ({ children, items, ...rest }: TabsProps) => {
   const titles =
     items ??

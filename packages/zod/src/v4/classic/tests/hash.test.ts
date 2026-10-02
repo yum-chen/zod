@@ -1,5 +1,5 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { type ZodCustomStringFormat, hash } from "zod"; // adjust path as needed
+import { type SchemaCustomStringFormat, hash } from "schema"; // adjust path as needed
 
 test("hash() API — types and runtime across all alg/enc combinations", async () => {
   const { createHash } = await import("node:crypto");
@@ -18,18 +18,18 @@ test("hash() API — types and runtime across all alg/enc combinations", async (
   };
 
   const algs: ReadonlyArray<Alg> = ["md5", "sha1", "sha256", "sha384", "sha512"];
-  const input = "zodasklfjaasdf";
+  const input = "schemaasklfjaasdf";
 
   // --- Type-level checks (ensure the literal format string is encoded in the return type)
-  expectTypeOf(hash("md5")).toEqualTypeOf<ZodCustomStringFormat<"md5_hex">>();
-  expectTypeOf(hash("sha1")).toEqualTypeOf<ZodCustomStringFormat<"sha1_hex">>();
-  expectTypeOf(hash("sha256", { enc: "base64" as const })).toEqualTypeOf<ZodCustomStringFormat<"sha256_base64">>();
+  expectTypeOf(hash("md5")).toEqualTypeOf<SchemaCustomStringFormat<"md5_hex">>();
+  expectTypeOf(hash("sha1")).toEqualTypeOf<SchemaCustomStringFormat<"sha1_hex">>();
+  expectTypeOf(hash("sha256", { enc: "base64" as const })).toEqualTypeOf<SchemaCustomStringFormat<"sha256_base64">>();
   expectTypeOf(hash("sha384", { enc: "base64url" as const })).toEqualTypeOf<
-    ZodCustomStringFormat<"sha384_base64url">
+    SchemaCustomStringFormat<"sha384_base64url">
   >();
 
   // Test generic format types are correctly inferred and Enc defaults to "hex"
-  expectTypeOf(hash("sha256")).toEqualTypeOf<ZodCustomStringFormat<"sha256_hex">>();
+  expectTypeOf(hash("sha256")).toEqualTypeOf<SchemaCustomStringFormat<"sha256_hex">>();
 
   // --- Runtime matrix (success + a few sharp-edged failures per combo)
   for (const alg of algs) {

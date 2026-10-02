@@ -39,7 +39,7 @@ export function Featured(props: { data: FeatureData }) {
 // <h2 align="center">Featured sponsor: Fern</h2>
 
 // <div align="center">
-//   <a href="https://link.buildwithfern.com/zod-partnership">
+//   <a href="https://link.buildwithfern.com/schema-partnership">
 //     <picture width="95%" >
 //       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/user-attachments/assets/995d60b8-2ad9-4ba5-9b08-c41ec8c2cb45">
 //       <img alt="fern logo" src="https://github.com/user-attachments/assets/b140d9bd-dfd3-4d97-a059-c3eda10d2840" width="95%">

@@ -1,40 +1,40 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("_values", () => {
-  expect(z.string()._zod.values).toEqual(undefined);
-  expect(z.enum(["a", "b"])._zod.values).toEqual(new Set(["a", "b"]));
-  expect(z.nativeEnum({ a: "A", b: "B" })._zod.values).toEqual(new Set(["A", "B"]));
-  expect(z.literal("test")._zod.values).toEqual(new Set(["test"]));
-  expect(z.literal(123)._zod.values).toEqual(new Set([123]));
-  expect(z.literal(true)._zod.values).toEqual(new Set([true]));
-  expect(z.literal(BigInt(123))._zod.values).toEqual(new Set([BigInt(123)]));
-  expect(z.undefined()._zod.values).toEqual(new Set([undefined]));
-  expect(z.null()._zod.values).toEqual(new Set([null]));
+  expect(Schema.string()._schema.values).toEqual(undefined);
+  expect(Schema.enum(["a", "b"])._schema.values).toEqual(new Set(["a", "b"]));
+  expect(Schema.nativeEnum({ a: "A", b: "B" })._schema.values).toEqual(new Set(["A", "B"]));
+  expect(Schema.literal("test")._schema.values).toEqual(new Set(["test"]));
+  expect(Schema.literal(123)._schema.values).toEqual(new Set([123]));
+  expect(Schema.literal(true)._schema.values).toEqual(new Set([true]));
+  expect(Schema.literal(BigInt(123))._schema.values).toEqual(new Set([BigInt(123)]));
+  expect(Schema.undefined()._schema.values).toEqual(new Set([undefined]));
+  expect(Schema.null()._schema.values).toEqual(new Set([null]));
 
-  const t = z.literal("test");
-  expect(t.optional()._zod.values).toEqual(new Set(["test", undefined]));
-  expect(t.nullable()._zod.values).toEqual(new Set(["test", null]));
-  expect(t.default("test")._zod.values).toEqual(new Set(["test"]));
-  expect(t.catch("test")._zod.values).toEqual(new Set(["test"]));
+  const t = Schema.literal("test");
+  expect(t.optional()._schema.values).toEqual(new Set(["test", undefined]));
+  expect(t.nullable()._schema.values).toEqual(new Set(["test", null]));
+  expect(t.default("test")._schema.values).toEqual(new Set(["test"]));
+  expect(t.catch("test")._schema.values).toEqual(new Set(["test"]));
 
-  const pre = z.preprocess((val) => String(val), z.string()).pipe(z.literal("test"));
-  expect(pre._zod.values).toEqual(undefined);
+  const pre = Schema.preprocess((val) => String(val), Schema.string()).pipe(Schema.literal("test"));
+  expect(pre._schema.values).toEqual(undefined);
 
-  const post = z.literal("test").transform((_) => Math.random());
-  expect(post._zod.values).toEqual(new Set(["test"]));
+  const post = Schema.literal("test").transform((_) => Math.random());
+  expect(post._schema.values).toEqual(new Set(["test"]));
 
   // Test that readonly literals pass through their values property
-  expect(z.literal("test").readonly()._zod.values).toEqual(new Set(["test"]));
+  expect(Schema.literal("test").readonly()._schema.values).toEqual(new Set(["test"]));
 });
 
 test("valid parse - object", () => {
   expect(
     z
       .discriminatedUnion("type", [
-        z.object({ type: z.literal("a"), a: z.string() }),
-        z.object({ type: z.literal("b"), b: z.string() }),
+        Schema.object({ type: Schema.literal("a"), a: Schema.string() }),
+        Schema.object({ type: Schema.literal("b"), b: Schema.string() }),
       ])
       .parse({ type: "a", a: "abc" })
   ).toEqual({ type: "a", a: "abc" });
@@ -44,88 +44,88 @@ test("valid - include discriminator key (deprecated)", () => {
   expect(
     z
       .discriminatedUnion("type", [
-        z.object({ type: z.literal("a"), a: z.string() }),
-        z.object({ type: z.literal("b"), b: z.string() }),
+        Schema.object({ type: Schema.literal("a"), a: Schema.string() }),
+        Schema.object({ type: Schema.literal("b"), b: Schema.string() }),
       ])
       .parse({ type: "a", a: "abc" })
   ).toEqual({ type: "a", a: "abc" });
 });
 
 test("valid - optional discriminator (object)", () => {
-  const schema = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("a").optional(), a: z.string() }),
-    z.object({ type: z.literal("b"), b: z.string() }),
+  const schema = Schema.discriminatedUnion("type", [
+    Schema.object({ type: Schema.literal("a").optional(), a: Schema.string() }),
+    Schema.object({ type: Schema.literal("b"), b: Schema.string() }),
   ]);
-  expect(schema.parse({ type: "a", a: "abc" })).toEqual({ type: "a", a: "abc" });
-  expect(schema.parse({ a: "abc" })).toEqual({ a: "abc" });
+  expect(Schema.parse({ type: "a", a: "abc" })).toEqual({ type: "a", a: "abc" });
+  expect(Schema.parse({ a: "abc" })).toEqual({ a: "abc" });
 });
 
 test("valid - discriminator value of various primitive types", () => {
-  const schema = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("1"), val: z.string() }),
-    z.object({ type: z.literal(1), val: z.string() }),
-    z.object({ type: z.literal(BigInt(1)), val: z.string() }),
-    z.object({ type: z.literal("true"), val: z.string() }),
-    z.object({ type: z.literal(true), val: z.string() }),
-    z.object({ type: z.literal("null"), val: z.string() }),
-    z.object({ type: z.null(), val: z.string() }),
-    z.object({ type: z.literal("undefined"), val: z.string() }),
-    z.object({ type: z.undefined(), val: z.string() }),
+  const schema = Schema.discriminatedUnion("type", [
+    Schema.object({ type: Schema.literal("1"), val: Schema.string() }),
+    Schema.object({ type: Schema.literal(1), val: Schema.string() }),
+    Schema.object({ type: Schema.literal(BigInt(1)), val: Schema.string() }),
+    Schema.object({ type: Schema.literal("true"), val: Schema.string() }),
+    Schema.object({ type: Schema.literal(true), val: Schema.string() }),
+    Schema.object({ type: Schema.literal("null"), val: Schema.string() }),
+    Schema.object({ type: Schema.null(), val: Schema.string() }),
+    Schema.object({ type: Schema.literal("undefined"), val: Schema.string() }),
+    Schema.object({ type: Schema.undefined(), val: Schema.string() }),
   ]);
 
-  expect(schema.parse({ type: "1", val: "val" })).toEqual({ type: "1", val: "val" });
-  expect(schema.parse({ type: 1, val: "val" })).toEqual({ type: 1, val: "val" });
-  expect(schema.parse({ type: BigInt(1), val: "val" })).toEqual({
+  expect(Schema.parse({ type: "1", val: "val" })).toEqual({ type: "1", val: "val" });
+  expect(Schema.parse({ type: 1, val: "val" })).toEqual({ type: 1, val: "val" });
+  expect(Schema.parse({ type: BigInt(1), val: "val" })).toEqual({
     type: BigInt(1),
     val: "val",
   });
-  expect(schema.parse({ type: "true", val: "val" })).toEqual({
+  expect(Schema.parse({ type: "true", val: "val" })).toEqual({
     type: "true",
     val: "val",
   });
-  expect(schema.parse({ type: true, val: "val" })).toEqual({
+  expect(Schema.parse({ type: true, val: "val" })).toEqual({
     type: true,
     val: "val",
   });
-  expect(schema.parse({ type: "null", val: "val" })).toEqual({
+  expect(Schema.parse({ type: "null", val: "val" })).toEqual({
     type: "null",
     val: "val",
   });
-  expect(schema.parse({ type: null, val: "val" })).toEqual({
+  expect(Schema.parse({ type: null, val: "val" })).toEqual({
     type: null,
     val: "val",
   });
-  expect(schema.parse({ type: "undefined", val: "val" })).toEqual({
+  expect(Schema.parse({ type: "undefined", val: "val" })).toEqual({
     type: "undefined",
     val: "val",
   });
-  expect(schema.parse({ type: undefined, val: "val" })).toEqual({
+  expect(Schema.parse({ type: undefined, val: "val" })).toEqual({
     type: undefined,
     val: "val",
   });
 
-  const fail = schema.safeParse({
+  const fail = Schema.safeParse({
     type: "not_a_key",
     val: "val",
   });
-  expect(fail.error).toBeInstanceOf(z.ZodError);
+  expect(fail.error).toBeInstanceOf(Schema.SchemaError);
 });
 
 test("invalid - null", () => {
   try {
-    z.discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("b"), b: z.string() }),
+    Schema.discriminatedUnion("type", [
+      Schema.object({ type: Schema.literal("a"), a: Schema.string() }),
+      Schema.object({ type: Schema.literal("b"), b: Schema.string() }),
     ]).parse(null);
     throw new Error();
   } catch (e: any) {
     // [
     //   {
-    //     code: z.ZodIssueCode.invalid_type,
-    //     expected: z.ZodParsedType.object,
+    //     code: Schema.SchemaIssueCode.invalid_type,
+    //     expected: Schema.SchemaParsedType.object,
     //     input: null,
     //     message: "Expected object, received null",
-    //     received: z.ZodParsedType.null,
+    //     received: Schema.SchemaParsedType.null,
     //     path: [],
     //   },
     // ];
@@ -145,14 +145,14 @@ test("invalid - null", () => {
 test("invalid discriminator value", () => {
   const result = z
     .discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("b"), b: z.string() }),
+      Schema.object({ type: Schema.literal("a"), a: Schema.string() }),
+      Schema.object({ type: Schema.literal("b"), b: Schema.string() }),
     ])
     .safeParse({ type: "x", a: "abc" });
 
   expect(result).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_union",
         "errors": [],
@@ -177,13 +177,13 @@ test("invalid discriminator value - unionFallback", () => {
   const result = z
     .discriminatedUnion(
       "type",
-      [z.object({ type: z.literal("a"), a: z.string() }), z.object({ type: z.literal("b"), b: z.string() })],
+      [Schema.object({ type: Schema.literal("a"), a: Schema.string() }), Schema.object({ type: Schema.literal("b"), b: Schema.string() })],
       { unionFallback: true }
     )
     .safeParse({ type: "x", a: "abc" });
   expect(result).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_union",
         "errors": [
@@ -232,23 +232,23 @@ test("invalid discriminator value - unionFallback", () => {
 test("valid discriminator value, invalid data", () => {
   const result = z
     .discriminatedUnion("type", [
-      z.object({ type: z.literal("a"), a: z.string() }),
-      z.object({ type: z.literal("b"), b: z.string() }),
+      Schema.object({ type: Schema.literal("a"), a: Schema.string() }),
+      Schema.object({ type: Schema.literal("b"), b: Schema.string() }),
     ])
     .safeParse({ type: "a", b: "abc" });
 
   // [
   //   {
-  //     code: z.ZodIssueCode.invalid_type,
-  //     expected: z.ZodParsedType.string,
+  //     code: Schema.SchemaIssueCode.invalid_type,
+  //     expected: Schema.SchemaParsedType.string,
   //     message: "Required",
   //     path: ["a"],
-  //     received: z.ZodParsedType.undefined,
+  //     received: Schema.SchemaParsedType.undefined,
   //   },
   // ];
   expect(result).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -265,63 +265,63 @@ test("valid discriminator value, invalid data", () => {
 
 test("wrong schema - missing discriminator", () => {
   // An option whose properties can be listed is checked when the union is constructed.
-  expect(() => z.discriminatedUnion("type", [z.object({ value: z.string() })])).toThrow(
+  expect(() => Schema.discriminatedUnion("type", [Schema.object({ value: Schema.string() })])).toThrow(
     /Invalid discriminated union option at index "0"/
   );
   expect(() =>
-    z.discriminatedUnion("type", [z.object({ type: z.literal("a"), a: z.string() }), z.object({ b: z.string() })])
+    Schema.discriminatedUnion("type", [Schema.object({ type: Schema.literal("a"), a: Schema.string() }), Schema.object({ b: Schema.string() })])
   ).toThrow(/Invalid discriminated union option at index "1"/);
 
   // An option whose shape cannot be listed without resolving it — a pipe here — is left to the lookup map, and fails on the first object parsed.
-  const viaPipe = z.discriminatedUnion("type", [
-    z.object({ value: z.literal("x") }).pipe(z.object({ value: z.literal("x") })),
+  const viaPipe = Schema.discriminatedUnion("type", [
+    Schema.object({ value: Schema.literal("x") }).pipe(Schema.object({ value: Schema.literal("x") })),
   ]);
   expect(() => viaPipe.safeParse({ value: "x" })).toThrow(/Invalid discriminated union option at index "0"/);
 });
 
 test("the construction check follows shape through both of its phases", () => {
   // `shape` answers from the object the caller passed until the first read, then from a frozen copy. A key list derived at either moment would disagree with it at the other and reject an option that does carry the discriminator.
-  const mutatedBeforeRead: Record<string, z.ZodType> = { value: z.string() };
-  const A = z.object(mutatedBeforeRead);
-  mutatedBeforeRead.type = z.literal("a");
+  const mutatedBeforeRead: Record<string, Schema.SchemaType> = { value: Schema.string() };
+  const A = Schema.object(mutatedBeforeRead);
+  mutatedBeforeRead.type = Schema.literal("a");
   expect(
-    z.discriminatedUnion("type", [A, z.object({ type: z.literal("b") })]).parse({ type: "a", value: "x" })
+    Schema.discriminatedUnion("type", [A, Schema.object({ type: Schema.literal("b") })]).parse({ type: "a", value: "x" })
   ).toEqual({ type: "a", value: "x" });
 
-  const mutatedAfterRead: Record<string, z.ZodType> = { type: z.literal("a"), value: z.string() };
-  const B = z.object(mutatedAfterRead);
+  const mutatedAfterRead: Record<string, Schema.SchemaType> = { type: Schema.literal("a"), value: Schema.string() };
+  const B = Schema.object(mutatedAfterRead);
   B.parse({ type: "a", value: "x" });
   delete mutatedAfterRead.type;
-  expect(() => z.discriminatedUnion("type", [B])).not.toThrow();
+  expect(() => Schema.discriminatedUnion("type", [B])).not.toThrow();
 });
 
 test("deriving a schema neither clobbers nor is inherited by the source", () => {
   // `.describe()` and friends reuse the def by identity, so the source keeps its own check.
-  const A = z.object({ value: z.literal("x") });
+  const A = Schema.object({ value: Schema.literal("x") });
   A.describe("just documenting this");
-  expect(() => z.discriminatedUnion("type", [A])).toThrow(/Invalid discriminated union option/);
-  expect(() => z.discriminatedUnion("type", [A.describe("d")])).toThrow(/Invalid discriminated union option/);
+  expect(() => Schema.discriminatedUnion("type", [A])).toThrow(/Invalid discriminated union option/);
+  expect(() => Schema.discriminatedUnion("type", [A.describe("d")])).toThrow(/Invalid discriminated union option/);
 
   // A def rebuilt by a builder is a different object, so it inherits nothing and is left to the lookup map.
-  const Base = z.object({ status: z.literal("failed"), message: z.string() });
-  expect(() => z.discriminatedUnion("code", [Base.extend({ code: z.literal(400) })])).not.toThrow();
+  const Base = Schema.object({ status: Schema.literal("failed"), message: Schema.string() });
+  expect(() => Schema.discriminatedUnion("code", [Base.extend({ code: Schema.literal(400) })])).not.toThrow();
 });
 
 test("mutually-recursive getter options are checked without resolving them", () => {
   // `Object.keys` lists a shape's keys without invoking them, so the check sees `child` without running the getter that references the union being constructed.
-  const variantA = z.object({
-    kind: z.literal("a"),
+  const variantA = Schema.object({
+    kind: Schema.literal("a"),
     get child() {
       return tree.optional();
     },
   });
-  const variantB = z.object({
-    kind: z.literal("b"),
+  const variantB = Schema.object({
+    kind: Schema.literal("b"),
     get sibling() {
       return tree.optional();
     },
   });
-  const tree = z.discriminatedUnion("kind", [variantA, variantB]);
+  const tree = Schema.discriminatedUnion("kind", [variantA, variantB]);
 
   expect(tree.parse({ kind: "a", child: { kind: "b" } })).toEqual({ kind: "a", child: { kind: "b" } });
 });
@@ -329,9 +329,9 @@ test("mutually-recursive getter options are checked without resolving them", () 
 // removed to account for unions of unions
 // test("wrong schema - duplicate discriminator values", () => {
 //   try {
-//     z.discriminatedUnion("type",[
-//       z.object({ type: z.literal("a"), a: z.string() }),
-//       z.object({ type: z.literal("a"), b: z.string() }),
+//     Schema.discriminatedUnion("type",[
+//       Schema.object({ type: Schema.literal("a"), a: Schema.string() }),
+//       Schema.object({ type: Schema.literal("a"), b: Schema.string() }),
 //     ]);
 //     throw new Error();
 //   } catch (e: any) {
@@ -340,37 +340,37 @@ test("mutually-recursive getter options are checked without resolving them", () 
 // });
 
 test("async - valid", async () => {
-  const schema = await z.discriminatedUnion("type", [
-    z.object({
-      type: z.literal("a"),
+  const schema = await Schema.discriminatedUnion("type", [
+    Schema.object({
+      type: Schema.literal("a"),
       a: z
         .string()
         .refine(async () => true)
         .transform(async (val) => Number(val)),
     }),
-    z.object({
-      type: z.literal("b"),
-      b: z.string(),
+    Schema.object({
+      type: Schema.literal("b"),
+      b: Schema.string(),
     }),
   ]);
   const data = { type: "a", a: "1" };
-  const result = await schema.safeParseAsync(data);
+  const result = await Schema.safeParseAsync(data);
   expect(result.data).toEqual({ type: "a", a: 1 });
 });
 
 test("async - invalid", async () => {
   // try {
-  const a = z.discriminatedUnion("type", [
-    z.object({
-      type: z.literal("a"),
+  const a = Schema.discriminatedUnion("type", [
+    Schema.object({
+      type: Schema.literal("a"),
       a: z
         .string()
         .refine(async () => true)
         .transform(async (val) => val),
     }),
-    z.object({
-      type: z.literal("b"),
-      b: z.string(),
+    Schema.object({
+      type: Schema.literal("b"),
+      b: Schema.string(),
     }),
   ]);
   const result = await a.safeParseAsync({ type: "a", a: 1 });
@@ -386,7 +386,7 @@ test("async - invalid", async () => {
   //   },
   // ]);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -400,21 +400,21 @@ test("async - invalid", async () => {
 });
 
 test("valid - literals with .default or .pipe", () => {
-  const schema = z.discriminatedUnion("type", [
-    z.object({
-      type: z.literal("foo").default("foo"),
-      a: z.string(),
+  const schema = Schema.discriminatedUnion("type", [
+    Schema.object({
+      type: Schema.literal("foo").default("foo"),
+      a: Schema.string(),
     }),
-    z.object({
-      type: z.literal("custom"),
-      method: z.string(),
+    Schema.object({
+      type: Schema.literal("custom"),
+      method: Schema.string(),
     }),
-    z.object({
-      type: z.literal("bar").transform((val) => val),
-      c: z.string(),
+    Schema.object({
+      type: Schema.literal("bar").transform((val) => val),
+      c: Schema.string(),
     }),
   ]);
-  expect(schema.parse({ type: "foo", a: "foo" })).toEqual({
+  expect(Schema.parse({ type: "foo", a: "foo" })).toEqual({
     type: "foo",
     a: "foo",
   });
@@ -426,82 +426,82 @@ test("enum and nativeEnum", () => {
     e = "e",
   }
 
-  const schema = z.discriminatedUnion("key", [
-    z.object({
-      key: z.literal("a"),
+  const schema = Schema.discriminatedUnion("key", [
+    Schema.object({
+      key: Schema.literal("a"),
       // Add other properties specific to this option
     }),
-    z.object({
-      key: z.enum(["b", "c"]),
+    Schema.object({
+      key: Schema.enum(["b", "c"]),
       // Add other properties specific to this option
     }),
-    z.object({
-      key: z.nativeEnum(MyEnum),
+    Schema.object({
+      key: Schema.nativeEnum(MyEnum),
       // Add other properties specific to this option
     }),
   ]);
 
-  type schema = z.infer<typeof schema>;
+  type schema = Schema.infer<typeof schema>;
   expectTypeOf<schema>().toEqualTypeOf<{ key: "a" } | { key: "b" | "c" } | { key: MyEnum.d | MyEnum.e }>();
 
-  schema.parse({ key: "a" });
-  schema.parse({ key: "b" });
-  schema.parse({ key: "c" });
-  schema.parse({ key: MyEnum.d });
-  schema.parse({ key: MyEnum.e });
-  schema.parse({ key: "e" });
+  Schema.parse({ key: "a" });
+  Schema.parse({ key: "b" });
+  Schema.parse({ key: "c" });
+  Schema.parse({ key: MyEnum.d });
+  Schema.parse({ key: MyEnum.e });
+  Schema.parse({ key: "e" });
 });
 
 test("branded", () => {
-  const schema = z.discriminatedUnion("key", [
-    z.object({
-      key: z.literal("a"),
+  const schema = Schema.discriminatedUnion("key", [
+    Schema.object({
+      key: Schema.literal("a"),
       // Add other properties specific to this option
     }),
-    z.object({
-      key: z.literal("b").brand<"asdfasdf">(),
+    Schema.object({
+      key: Schema.literal("b").brand<"asdfasdf">(),
       // Add other properties specific to this option
     }),
   ]);
 
-  type schema = z.infer<typeof schema>;
-  expectTypeOf<schema>().toEqualTypeOf<{ key: "a" } | { key: "b" & z.core.$brand<"asdfasdf"> }>();
+  type schema = Schema.infer<typeof schema>;
+  expectTypeOf<schema>().toEqualTypeOf<{ key: "a" } | { key: "b" & Schema.core.$brand<"asdfasdf"> }>();
 
-  schema.parse({ key: "a" });
-  schema.parse({ key: "b" });
+  Schema.parse({ key: "a" });
+  Schema.parse({ key: "b" });
   expect(() => {
-    schema.parse({ key: "c" });
+    Schema.parse({ key: "c" });
   }).toThrow();
 });
 
 test("optional and nullable", () => {
-  const schema = z.discriminatedUnion("key", [
-    z.object({
-      key: z.literal("a").optional(),
-      a: z.literal(true),
+  const schema = Schema.discriminatedUnion("key", [
+    Schema.object({
+      key: Schema.literal("a").optional(),
+      a: Schema.literal(true),
     }),
-    z.object({
-      key: z.literal("b").nullable(),
-      b: z.literal(true),
+    Schema.object({
+      key: Schema.literal("b").nullable(),
+      b: Schema.literal(true),
       // Add other properties specific to this option
     }),
   ]);
 
-  type schema = z.infer<typeof schema>;
+  type schema = Schema.infer<typeof schema>;
   expectTypeOf<schema>().toEqualTypeOf<{ key?: "a" | undefined; a: true } | { key: "b" | null; b: true }>();
 
-  schema.parse({ key: "a", a: true });
-  schema.parse({ key: undefined, a: true });
-  schema.parse({ key: "b", b: true });
-  schema.parse({ key: null, b: true });
+  Schema.parse({ key: "a", a: true });
+  Schema.parse({ key: undefined, a: true });
+  Schema.parse({ key: "b", b: true });
+  Schema.parse({ key: null, b: true });
   expect(() => {
-    schema.parse({ key: null, a: true });
+    Schema.parse({ key: null, a: true });
   }).toThrow();
   expect(() => {
-    schema.parse({ key: "b", a: true });
+    Schema.parse({ key: "b", a: true });
   }).toThrow();
 
-  const value = schema.parse({ key: null, b: true });
+  const value = Schema.parse({ key: null, b: true });
 
   if (!("key" in value)) value.a;
   if (value.key === undefined) value.a;
@@ -511,19 +511,19 @@ test("optional and nullable", () => {
 });
 
 test("multiple discriminators", () => {
-  const FreeConfig = z.object({
-    type: z.literal("free"),
-    min_cents: z.null(),
+  const FreeConfig = Schema.object({
+    type: Schema.literal("free"),
+    min_cents: Schema.null(),
   });
 
   // console.log(FreeConfig.shape.type);
-  const PricedConfig = z.object({
-    type: z.literal("fiat-price"),
-    // min_cents: z.int().nullable(),
-    min_cents: z.null(),
+  const PricedConfig = Schema.object({
+    type: Schema.literal("fiat-price"),
+    // min_cents: Schema.int().nullable(),
+    min_cents: Schema.null(),
   });
 
-  const Config = z.discriminatedUnion("type", [FreeConfig, PricedConfig]);
+  const Config = Schema.discriminatedUnion("type", [FreeConfig, PricedConfig]);
 
   Config.parse({
     min_cents: null,
@@ -541,10 +541,10 @@ test("multiple discriminators", () => {
 });
 
 test("single element union", () => {
-  const schema = z.object({
-    a: z.literal("discKey"),
-    b: z.enum(["apple", "banana"]),
-    c: z.object({ id: z.string() }),
+  const schema = Schema.object({
+    a: Schema.literal("discKey"),
+    b: Schema.enum(["apple", "banana"]),
+    c: Schema.object({ id: Schema.string() }),
   });
 
   const input = {
@@ -555,12 +555,12 @@ test("single element union", () => {
 
   // Validation must fail here, but it doesn't
 
-  const u = z.discriminatedUnion("a", [schema]);
+  const u = Schema.discriminatedUnion("a", [schema]);
   const result = u.safeParse(input);
   expect(result).toMatchObject({ success: false });
   expect(result).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -579,19 +579,19 @@ test("single element union", () => {
 });
 
 test("nested discriminated unions", () => {
-  const BaseError = z.object({ status: z.literal("failed"), message: z.string() });
-  const MyErrors = z.discriminatedUnion("code", [
-    BaseError.extend({ code: z.literal(400) }),
-    BaseError.extend({ code: z.literal(401) }),
-    BaseError.extend({ code: z.literal(500) }),
+  const BaseError = Schema.object({ status: Schema.literal("failed"), message: Schema.string() });
+  const MyErrors = Schema.discriminatedUnion("code", [
+    BaseError.extend({ code: Schema.literal(400) }),
+    BaseError.extend({ code: Schema.literal(401) }),
+    BaseError.extend({ code: Schema.literal(500) }),
   ]);
 
-  const MyResult = z.discriminatedUnion("status", [
-    z.object({ status: z.literal("success"), data: z.string() }),
+  const MyResult = Schema.discriminatedUnion("status", [
+    Schema.object({ status: Schema.literal("success"), data: Schema.string() }),
     MyErrors,
   ]);
 
-  expect(MyErrors._zod.propValues).toMatchInlineSnapshot(`
+  expect(MyErrors._schema.propValues).toMatchInlineSnapshot(`
     {
       "code": Set {
         400,
@@ -603,7 +603,7 @@ test("nested discriminated unions", () => {
       },
     }
   `);
-  expect(MyResult._zod.propValues).toMatchInlineSnapshot(`
+  expect(MyResult._schema.propValues).toMatchInlineSnapshot(`
     {
       "code": Set {
         400,
@@ -651,13 +651,13 @@ test("nested discriminated unions", () => {
 });
 
 test("readonly literal discriminator", () => {
-  const discUnion = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("a").readonly(), a: z.string() }),
-    z.object({ type: z.literal("b"), b: z.number() }),
+  const discUnion = Schema.discriminatedUnion("type", [
+    Schema.object({ type: Schema.literal("a").readonly(), a: Schema.string() }),
+    Schema.object({ type: Schema.literal("b"), b: Schema.number() }),
   ]);
 
   // Test that both discriminator values are correctly included in propValues
-  const propValues = discUnion._zod.propValues;
+  const propValues = discUnion._schema.propValues;
   expect(propValues?.type?.has("a")).toBe(true);
   expect(propValues?.type?.has("b")).toBe(true);
 
@@ -677,11 +677,11 @@ test("readonly literal discriminator", () => {
 test("pipes", () => {
   const schema = z
     .object({
-      type: z.literal("foo"),
+      type: Schema.literal("foo"),
     })
     .transform((s) => ({ ...s, v: 2 }));
 
-  expect(schema._zod.propValues).toMatchInlineSnapshot(`
+  expect(Schema._schema.propValues).toMatchInlineSnapshot(`
     {
       "type": Set {
         "foo",
@@ -689,11 +689,11 @@ test("pipes", () => {
     }
   `);
 
-  const schema2 = z.object({
-    type: z.literal("bar"),
+  const schema2 = Schema.object({
+    type: Schema.literal("bar"),
   });
 
-  const combinedSchema = z.discriminatedUnion("type", [schema, schema2], {
+  const combinedSchema = Schema.discriminatedUnion("type", [schema, schema2], {
     unionFallback: false,
   });
 
@@ -704,127 +704,127 @@ test("pipes", () => {
 });
 
 test("def", () => {
-  const schema = z.discriminatedUnion(
+  const schema = Schema.discriminatedUnion(
     "type",
-    [z.object({ type: z.literal("play") }), z.object({ type: z.literal("pause") })],
+    [Schema.object({ type: Schema.literal("play") }), Schema.object({ type: Schema.literal("pause") })],
     { unionFallback: true }
   );
 
-  expect(schema.def).toBeDefined();
-  expect(schema.def.discriminator).toEqual("type");
-  expect(schema.def.unionFallback).toEqual(true);
+  expect(Schema.def).toBeDefined();
+  expect(Schema.def.discriminator).toEqual("type");
+  expect(Schema.def.unionFallback).toEqual(true);
 });
 
 test("encode with codec discriminator", () => {
-  const codec1 = z.codec(z.literal(1), z.literal("one"), {
+  const codec1 = Schema.codec(Schema.literal(1), Schema.literal("one"), {
     decode: () => "one" as const,
     encode: () => 1 as const,
   });
 
-  const codec2 = z.codec(z.literal(2), z.literal("two"), {
+  const codec2 = Schema.codec(Schema.literal(2), Schema.literal("two"), {
     decode: () => "two" as const,
     encode: () => 2 as const,
   });
 
-  const schema = z.discriminatedUnion("type", [
-    z.object({ type: codec1, value: z.string() }),
-    z.object({ type: codec2, value: z.number() }),
+  const schema = Schema.discriminatedUnion("type", [
+    Schema.object({ type: codec1, value: Schema.string() }),
+    Schema.object({ type: codec2, value: Schema.number() }),
   ]);
 
   // decode (forward) should work
-  const decoded = schema.decode({ type: 1, value: "hello" });
+  const decoded = Schema.decode({ type: 1, value: "hello" });
   expect(decoded).toEqual({ type: "one", value: "hello" });
 
   // encode (backward) should also work — the discriminator values differ between forward (1, 2) and backward ("one", "two") directions
-  const encoded = z.encode(schema, { type: "one", value: "hello" });
+  const encoded = Schema.encode(schema, { type: "one", value: "hello" });
   expect(encoded).toEqual({ type: 1, value: "hello" });
 });
 
 test("nested encoding does not select a sibling from forward discriminator values", async () => {
   const tag = (value: "a" | "b") =>
-    z.codec(z.literal(value).default(value), z.undefined(), {
+    Schema.codec(Schema.literal(value).default(value), Schema.undefined(), {
       decode: () => undefined,
       encode: () => value,
     });
-  const inner = z.discriminatedUnion("type", [
-    z.object({ type: tag("a"), value: z.literal("a") }),
-    z.object({ type: tag("b"), value: z.literal("b") }),
+  const inner = Schema.discriminatedUnion("type", [
+    Schema.object({ type: tag("a"), value: Schema.literal("a") }),
+    Schema.object({ type: tag("b"), value: Schema.literal("b") }),
   ]);
-  const outer = z.discriminatedUnion("type", [inner, z.object({ type: z.undefined(), value: z.string() })]);
+  const outer = Schema.discriminatedUnion("type", [inner, Schema.object({ type: Schema.undefined(), value: Schema.string() })]);
   for (const value of ["a", "b"] as const) {
     const input = { type: undefined, value };
     const expected = { type: value, value };
-    expect(z.encode(inner, input)).toEqual(expected);
-    expect(z.encode(outer, input)).toEqual(expected);
-    expect(await z.encodeAsync(outer, input)).toEqual(expected);
+    expect(Schema.encode(inner, input)).toEqual(expected);
+    expect(Schema.encode(outer, input)).toEqual(expected);
+    expect(await Schema.encodeAsync(outer, input)).toEqual(expected);
   }
 });
 
 test("getDiscriminatedOption", () => {
-  const fruit = z.object({ type: z.literal("fruit"), seeds: z.boolean() });
-  const veg = z.object({ type: z.literal("vegetable"), leafy: z.boolean() });
-  const schema = z.discriminatedUnion("type", [fruit, veg]);
+  const fruit = Schema.object({ type: Schema.literal("fruit"), seeds: Schema.boolean() });
+  const veg = Schema.object({ type: Schema.literal("vegetable"), leafy: Schema.boolean() });
+  const schema = Schema.discriminatedUnion("type", [fruit, veg]);
 
-  expect(z.getDiscriminatedOption(schema, "fruit")).toBe(fruit);
-  expect(z.getDiscriminatedOption(schema, "vegetable")).toBe(veg);
+  expect(Schema.getDiscriminatedOption(schema, "fruit")).toBe(fruit);
+  expect(Schema.getDiscriminatedOption(schema, "vegetable")).toBe(veg);
 
   // The result is narrowed to the one member, not the union of all of them.
-  expectTypeOf(z.getDiscriminatedOption(schema, "fruit")).toEqualTypeOf<typeof fruit>();
-  expectTypeOf(z.getDiscriminatedOption(schema, "vegetable")).toEqualTypeOf<typeof veg>();
+  expectTypeOf(Schema.getDiscriminatedOption(schema, "fruit")).toEqualTypeOf<typeof fruit>();
+  expectTypeOf(Schema.getDiscriminatedOption(schema, "vegetable")).toEqualTypeOf<typeof veg>();
   // @ts-expect-error — "unknown" is not a declared discriminator value
-  z.getDiscriminatedOption(schema, "unknown");
+  Schema.getDiscriminatedOption(schema, "unknown");
 });
 
 test("getDiscriminatedOption — multi-value members and non-string discriminators", () => {
-  const a = z.object({ type: z.literal(["x", "y"]), payload: z.string() });
-  const b = z.object({ type: z.literal("z"), payload: z.number() });
-  const multi = z.discriminatedUnion("type", [a, b]);
-  expect(z.getDiscriminatedOption(multi, "x")).toBe(a);
-  expect(z.getDiscriminatedOption(multi, "y")).toBe(a);
-  expect(z.getDiscriminatedOption(multi, "z")).toBe(b);
+  const a = Schema.object({ type: Schema.literal(["x", "y"]), payload: Schema.string() });
+  const b = Schema.object({ type: Schema.literal("z"), payload: Schema.number() });
+  const multi = Schema.discriminatedUnion("type", [a, b]);
+  expect(Schema.getDiscriminatedOption(multi, "x")).toBe(a);
+  expect(Schema.getDiscriminatedOption(multi, "y")).toBe(a);
+  expect(Schema.getDiscriminatedOption(multi, "z")).toBe(b);
 
-  const num = z.object({ type: z.literal(1) });
-  const bool = z.object({ type: z.literal(true) });
-  const nul = z.object({ type: z.null() });
-  const mixed = z.discriminatedUnion("type", [num, bool, nul]);
-  expect(z.getDiscriminatedOption(mixed, 1)).toBe(num);
-  expect(z.getDiscriminatedOption(mixed, true)).toBe(bool);
-  expect(z.getDiscriminatedOption(mixed, null)).toBe(nul);
+  const num = Schema.object({ type: Schema.literal(1) });
+  const bool = Schema.object({ type: Schema.literal(true) });
+  const nul = Schema.object({ type: Schema.null() });
+  const mixed = Schema.discriminatedUnion("type", [num, bool, nul]);
+  expect(Schema.getDiscriminatedOption(mixed, 1)).toBe(num);
+  expect(Schema.getDiscriminatedOption(mixed, true)).toBe(bool);
+  expect(Schema.getDiscriminatedOption(mixed, null)).toBe(nul);
 
   // An omittable discriminator claims undefined, so it resolves like any other value.
-  const opt = z.object({ type: z.literal("a").optional(), a: z.string() });
-  const req = z.object({ type: z.literal("b"), b: z.string() });
-  expect(z.getDiscriminatedOption(z.discriminatedUnion("type", [opt, req]), undefined)).toBe(opt);
+  const opt = Schema.object({ type: Schema.literal("a").optional(), a: Schema.string() });
+  const req = Schema.object({ type: Schema.literal("b"), b: Schema.string() });
+  expect(Schema.getDiscriminatedOption(Schema.discriminatedUnion("type", [opt, req]), undefined)).toBe(opt);
 });
 
 test("getDiscriminatedOption caches in the bag and costs nothing until called", () => {
-  const schema = z.discriminatedUnion("type", [z.object({ type: z.literal("a") }), z.object({ type: z.literal("b") })]);
+  const schema = Schema.discriminatedUnion("type", [Schema.object({ type: Schema.literal("a") }), Schema.object({ type: Schema.literal("b") })]);
 
-  expect(schema._zod.bag.optionsMap).toBeUndefined();
-  expect(z.getDiscriminatedOption(schema, "a")).toBe(schema.options[0]);
-  const map = schema._zod.bag.optionsMap;
+  expect(Schema._schema.bag.optionsMap).toBeUndefined();
+  expect(Schema.getDiscriminatedOption(schema, "a")).toBe(Schema.options[0]);
+  const map = Schema._schema.bag.optionsMap;
   expect(map).toBeInstanceOf(Map);
-  expect(z.getDiscriminatedOption(schema, "b")).toBe(schema.options[1]);
-  expect(schema._zod.bag.optionsMap).toBe(map);
+  expect(Schema.getDiscriminatedOption(schema, "b")).toBe(Schema.options[1]);
+  expect(Schema._schema.bag.optionsMap).toBe(map);
 
   // A clone recomputes rather than inheriting the cache.
-  expect(schema.clone()._zod.bag.optionsMap).toBeUndefined();
+  expect(Schema.clone()._schema.bag.optionsMap).toBeUndefined();
 });
 
 test.each(["__proto__", "constructor", "toString", "hasOwnProperty", "valueOf"])(
   "Object.prototype discriminator name: %s",
   (key) => {
-    const first = z.object({ [key]: z.literal("a"), value: z.string() });
-    const second = z.object({ [key]: z.literal("b"), value: z.number() });
-    const schema = z.discriminatedUnion(key, [first, second]);
+    const first = Schema.object({ [key]: Schema.literal("a"), value: Schema.string() });
+    const second = Schema.object({ [key]: Schema.literal("b"), value: Schema.number() });
+    const schema = Schema.discriminatedUnion(key, [first, second]);
 
-    expect(schema._zod.propValues?.[key]).toEqual(new Set(["a", "b"]));
+    expect(Schema._schema.propValues?.[key]).toEqual(new Set(["a", "b"]));
 
     const input = Object.fromEntries([
       [key, "a"],
       ["value", "ok"],
     ]);
-    const parsed: any = schema.parse(input);
+    const parsed: any = Schema.parse(input);
     expect(Object.prototype.hasOwnProperty.call(parsed, key)).toBe(key !== "__proto__");
     if (key !== "__proto__") expect(parsed[key]).toBe("a");
     expect(parsed.value).toBe("ok");
@@ -833,110 +833,110 @@ test.each(["__proto__", "constructor", "toString", "hasOwnProperty", "valueOf"])
 
 test("an omittable discriminator claims undefined", () => {
   const omittable = [
-    z.exactOptional(z.literal("a")),
-    z.optional(z.literal("a")),
-    z.literal("a").default("a"),
-    z.literal("a").prefault("a"),
-    z.literal("a").catch("a"),
+    Schema.exactOptional(Schema.literal("a")),
+    Schema.optional(Schema.literal("a")),
+    Schema.literal("a").default("a"),
+    Schema.literal("a").prefault("a"),
+    Schema.literal("a").catch("a"),
   ];
   for (const k of omittable) {
-    expect(z.object({ k })._zod.propValues.k).toEqual(new Set(["a", undefined]));
+    expect(Schema.object({ k })._schema.propValues.k).toEqual(new Set(["a", undefined]));
   }
 
   // one option omits the key: it claims undefined, so an absent key routes there and the union agrees
   const options = [
-    z.object({ k: z.exactOptional(z.literal("a")), x: z.string() }),
-    z.object({ k: z.literal("b"), y: z.number() }),
+    Schema.object({ k: Schema.exactOptional(Schema.literal("a")), x: Schema.string() }),
+    Schema.object({ k: Schema.literal("b"), y: Schema.number() }),
   ] as const;
-  expect(z.discriminatedUnion("k", options).safeParse({ x: "s" }).success).toEqual(true);
-  expect(z.union(options).safeParse({ x: "s" }).success).toEqual(true);
-  expect(z.discriminatedUnion("k", options).safeParse({ k: "b", y: 1 }).success).toEqual(true);
+  expect(Schema.discriminatedUnion("k", options).safeParse({ x: "s" }).success).toEqual(true);
+  expect(Schema.union(options).safeParse({ x: "s" }).success).toEqual(true);
+  expect(Schema.discriminatedUnion("k", options).safeParse({ k: "b", y: 1 }).success).toEqual(true);
 
   // ambiguous absence does not prevent explicit tags from routing
   for (const k of omittable) {
-    const schema = z.discriminatedUnion("k", [z.object({ k }), z.object({ k: z.exactOptional(z.literal("c")) })]);
-    expect(schema.parse({ k: "a" })).toEqual({ k: "a" });
-    expect(schema.parse({ k: "c" })).toEqual({ k: "c" });
-    expect(schema.safeParse({}).success).toBe(false);
+    const schema = Schema.discriminatedUnion("k", [Schema.object({ k }), Schema.object({ k: Schema.exactOptional(Schema.literal("c")) })]);
+    expect(Schema.parse({ k: "a" })).toEqual({ k: "a" });
+    expect(Schema.parse({ k: "c" })).toEqual({ k: "c" });
+    expect(Schema.safeParse({}).success).toBe(false);
   }
 });
 
 test("defaulted discriminators preserve tagged parsing without guessing a member", async () => {
-  const a = z.object({ type: z.literal("a").default("a"), x: z.number().positive() });
-  const b = z.object({ type: z.literal("b").default("b"), y: z.string() });
-  const c = z.object({ type: z.literal("c").default("c"), z: z.boolean() });
+  const a = Schema.object({ type: Schema.literal("a").default("a"), x: Schema.number().positive() });
+  const b = Schema.object({ type: Schema.literal("b").default("b"), y: Schema.string() });
+  const c = Schema.object({ type: Schema.literal("c").default("c"), z: Schema.boolean() });
   for (const options of [
     [a, b, c],
     [c, b, a],
   ] as const) {
-    const schema = z.discriminatedUnion("type", options);
-    for (const input of [a.parse({ x: 1 }), b.parse({ y: "s" }), c.parse({ z: true })]) {
-      expect(schema.parse(input)).toEqual(input);
-      expect((await schema.safeParseAsync(input)).success).toBe(true);
+    const schema = Schema.discriminatedUnion("type", options);
+    for (const input of [a.parse({ x: 1 }), b.parse({ y: "s" }), c.parse({ Schema: true })]) {
+      expect(Schema.parse(input)).toEqual(input);
+      expect((await Schema.safeParseAsync(input)).success).toBe(true);
     }
     for (const input of [{ x: 1, y: "s", z: true }, { type: undefined }, { type: "other" }, { type: "a", x: -1 }]) {
-      expect(schema.safeParse(input).success).toBe(false);
-      expect((await schema.safeParseAsync(input)).success).toBe(false);
+      expect(Schema.safeParse(input).success).toBe(false);
+      expect((await Schema.safeParseAsync(input)).success).toBe(false);
     }
-    const result = schema.safeParse({});
+    const result = Schema.safeParse({});
     expect(result.error?.issues[0]).toMatchObject({
       code: "invalid_union",
       path: ["type"],
       options: options.map((o) => o.shape.type.unwrap().value),
     });
-    expect(z.getDiscriminatedOption(schema, "a")).toBe(a);
+    expect(Schema.getDiscriminatedOption(schema, "a")).toBe(a);
   }
-  const unique = z.discriminatedUnion("type", [a, b.safeExtend({ type: b.shape.type.unwrap() })]);
+  const unique = Schema.discriminatedUnion("type", [a, b.safeExtend({ type: b.shape.type.unwrap() })]);
   expect(unique.parse({ x: 1 })).toEqual({ type: "a", x: 1 });
 });
 
 test("undefined collisions are value-based and discriminator lookup rejects ambiguity", () => {
-  const a = z.object({ type: z.literal("a").optional() });
-  const absent = z.object({ type: z.undefined() });
+  const a = Schema.object({ type: Schema.literal("a").optional() });
+  const absent = Schema.object({ type: Schema.undefined() });
   for (const options of [
     [a, absent],
     [absent, a],
     [absent, absent, a],
   ] as const) {
-    const schema = z.discriminatedUnion("type", options);
-    expect(schema.parse({ type: "a" })).toEqual({ type: "a" });
-    expect(schema.safeParse({}).success).toBe(false);
-    expect(() => z.getDiscriminatedOption(schema, undefined)).toThrow('Ambiguous discriminator value "undefined"');
+    const schema = Schema.discriminatedUnion("type", options);
+    expect(Schema.parse({ type: "a" })).toEqual({ type: "a" });
+    expect(Schema.safeParse({}).success).toBe(false);
+    expect(() => Schema.getDiscriminatedOption(schema, undefined)).toThrow('Ambiguous discriminator value "undefined"');
   }
-  const unique = z.discriminatedUnion("type", [absent, z.object({ type: z.literal("a") })]);
+  const unique = Schema.discriminatedUnion("type", [absent, Schema.object({ type: Schema.literal("a") })]);
   expect(unique.parse({ type: undefined })).toEqual({ type: undefined });
-  expect(z.getDiscriminatedOption(unique, undefined)).toBe(absent);
+  expect(Schema.getDiscriminatedOption(unique, undefined)).toBe(absent);
 });
 
 test("non-undefined discriminator collisions remain schema errors", () => {
-  for (const tag of [z.literal("a").default("a"), z.literal(["a", "b"]), z.literal("a").nullable()]) {
-    const schema = z.discriminatedUnion("type", [z.object({ type: tag }), z.object({ type: tag })]);
-    expect(() => schema.safeParse({ type: "a" })).toThrow(/Duplicate discriminator value/);
-    expect(() => z.encode(schema, { type: "a" })).toThrow(/Duplicate discriminator value/);
-    expect(() => z.getDiscriminatedOption(schema, "a")).toThrow(/Duplicate discriminator value/);
+  for (const tag of [Schema.literal("a").default("a"), Schema.literal(["a", "b"]), Schema.literal("a").nullable()]) {
+    const schema = Schema.discriminatedUnion("type", [Schema.object({ type: tag }), Schema.object({ type: tag })]);
+    expect(() => Schema.safeParse({ type: "a" })).toThrow(/Duplicate discriminator value/);
+    expect(() => Schema.encode(schema, { type: "a" })).toThrow(/Duplicate discriminator value/);
+    expect(() => Schema.getDiscriminatedOption(schema, "a")).toThrow(/Duplicate discriminator value/);
   }
-  const nullable = z.discriminatedUnion("type", [
-    z.object({ type: z.literal("a").nullable() }),
-    z.object({ type: z.literal("b").nullable() }),
+  const nullable = Schema.discriminatedUnion("type", [
+    Schema.object({ type: Schema.literal("a").nullable() }),
+    Schema.object({ type: Schema.literal("b").nullable() }),
   ]);
   expect(() => nullable.safeParse({ type: "a" })).toThrow('Duplicate discriminator value "null"');
 });
 
 test("nested defaulted unions only advertise routable discriminator values", () => {
-  const a = z.object({ type: z.literal("a").default("a"), group: z.literal("inner") });
-  const b = z.object({ type: z.literal("b").default("b"), group: z.literal("inner") });
-  const inner = z.discriminatedUnion("type", [a, b]);
-  const c = z.object({ type: z.literal("c").default("c"), group: z.literal("outer") });
-  expect(inner._zod.propValues.type).toEqual(new Set(["a", "b"]));
+  const a = Schema.object({ type: Schema.literal("a").default("a"), group: Schema.literal("inner") });
+  const b = Schema.object({ type: Schema.literal("b").default("b"), group: Schema.literal("inner") });
+  const inner = Schema.discriminatedUnion("type", [a, b]);
+  const c = Schema.object({ type: Schema.literal("c").default("c"), group: Schema.literal("outer") });
+  expect(inner._schema.propValues.type).toEqual(new Set(["a", "b"]));
   for (const schema of [
-    z.discriminatedUnion("type", [z.lazy(() => inner), c]),
-    z.discriminatedUnion("group", [inner, c]),
+    Schema.discriminatedUnion("type", [Schema.lazy(() => inner), c]),
+    Schema.discriminatedUnion("group", [inner, c]),
   ]) {
-    expect(schema.parse({ type: "a", group: "inner" })).toEqual({ type: "a", group: "inner" });
-    expect(schema.parse({ group: "outer" })).toEqual({ type: "c", group: "outer" });
-    expect(schema.safeParse({ group: "inner" }).success).toBe(false);
+    expect(Schema.parse({ type: "a", group: "inner" })).toEqual({ type: "a", group: "inner" });
+    expect(Schema.parse({ group: "outer" })).toEqual({ type: "c", group: "outer" });
+    expect(Schema.safeParse({ group: "inner" }).success).toBe(false);
   }
-  const fallback = z.discriminatedUnion("type", [a, b], { unionFallback: true });
-  expect(fallback._zod.propValues.type.has(undefined)).toBe(true);
+  const fallback = Schema.discriminatedUnion("type", [a, b], { unionFallback: true });
+  expect(fallback._schema.propValues.type.has(undefined)).toBe(true);
   expect(fallback.parse({ group: "inner" })).toEqual({ type: "a", group: "inner" });
 });

@@ -1,5 +1,5 @@
 {
-  "name": "@zod/resolution",
+  "name": "@schema/resolution",
   "type": "module",
   "private": true,
   "version": "1.0.0",
@@ -29,7 +29,7 @@
     }
   },
   "dependencies": {
-    "zod": "workspace:*",
-    "@zod/mini": "workspace:*"
+    "schema": "workspace:*",
+    "@schema/mini": "workspace:*"
   }
 }

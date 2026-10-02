@@ -1,18 +1,18 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
-import { ZodIssueCode } from "zod/v3";
+import * as Schema from "schema/v3";
+import { SchemaIssueCode } from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const stringSet = z.set(z.string());
-type stringSet = z.infer<typeof stringSet>;
+const stringSet = Schema.set(Schema.string());
+type stringSet = Schema.infer<typeof stringSet>;
 
-const minTwo = z.set(z.string()).min(2);
-const maxTwo = z.set(z.string()).max(2);
-const justTwo = z.set(z.string()).size(2);
-const nonEmpty = z.set(z.string()).nonempty();
-const nonEmptyMax = z.set(z.string()).nonempty().max(2);
+const minTwo = Schema.set(Schema.string()).min(2);
+const maxTwo = Schema.set(Schema.string()).max(2);
+const justTwo = Schema.set(Schema.string()).size(2);
+const nonEmpty = Schema.set(Schema.string()).nonempty();
+const nonEmptyMax = Schema.set(Schema.string()).nonempty().max(2);
 
 test("type inference", () => {
   util.assertEqual<stringSet, Set<string>>(true);
@@ -80,7 +80,7 @@ test("failing when parsing empty set in nonempty ", () => {
 
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(1);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.too_small);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.too_small);
   }
 });
 
@@ -90,7 +90,7 @@ test("failing when set is smaller than min() ", () => {
 
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(1);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.too_small);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.too_small);
   }
 });
 
@@ -100,7 +100,7 @@ test("failing when set is bigger than max() ", () => {
 
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(1);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.too_big);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.too_big);
   }
 });
 
@@ -114,7 +114,7 @@ test("throws when a Map is given", () => {
   expect(result.success).toEqual(false);
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(1);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.invalid_type);
   }
 });
 
@@ -123,7 +123,7 @@ test("throws when the given set has invalid input", () => {
   expect(result.success).toEqual(false);
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(1);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[0].path).toEqual([0]);
   }
 });
@@ -134,9 +134,9 @@ test("throws when the given set has multiple invalid entries", () => {
   expect(result.success).toEqual(false);
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(2);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[0].path).toEqual([0]);
-    expect(result.error.issues[1].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[1].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[1].path).toEqual([1]);
   }
 });

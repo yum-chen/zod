@@ -1,31 +1,31 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const literalStringSchema = z.literal("asdf");
-const literalNumberSchema = z.literal(12);
-const literalBooleanSchema = z.literal(true);
-const literalBigIntSchema = z.literal(BigInt(42));
+const literalStringSchema = Schema.literal("asdf");
+const literalNumberSchema = Schema.literal(12);
+const literalBooleanSchema = Schema.literal(true);
+const literalBigIntSchema = Schema.literal(BigInt(42));
 
-const stringSchema = z.string();
-const numberSchema = z.number();
-const bigintSchema = z.bigint();
-const booleanSchema = z.boolean();
-const dateSchema = z.date();
-const symbolSchema = z.symbol();
-const nullSchema = z.null();
-const undefinedSchema = z.undefined();
-const stringSchemaOptional = z.string().optional();
-const stringSchemaNullable = z.string().nullable();
-const numberSchemaOptional = z.number().optional();
-const numberSchemaNullable = z.number().nullable();
-const bigintSchemaOptional = z.bigint().optional();
-const bigintSchemaNullable = z.bigint().nullable();
-const booleanSchemaOptional = z.boolean().optional();
-const booleanSchemaNullable = z.boolean().nullable();
-const dateSchemaOptional = z.date().optional();
-const dateSchemaNullable = z.date().nullable();
-const symbolSchemaOptional = z.symbol().optional();
-const symbolSchemaNullable = z.symbol().nullable();
+const stringSchema = Schema.string();
+const numberSchema = Schema.number();
+const bigintSchema = Schema.bigint();
+const booleanSchema = Schema.boolean();
+const dateSchema = Schema.date();
+const symbolSchema = Schema.symbol();
+const nullSchema = Schema.null();
+const undefinedSchema = Schema.undefined();
+const stringSchemaOptional = Schema.string().optional();
+const stringSchemaNullable = Schema.string().nullable();
+const numberSchemaOptional = Schema.number().optional();
+const numberSchemaNullable = Schema.number().nullable();
+const bigintSchemaOptional = Schema.bigint().optional();
+const bigintSchemaNullable = Schema.bigint().nullable();
+const booleanSchemaOptional = Schema.boolean().optional();
+const booleanSchemaNullable = Schema.boolean().nullable();
+const dateSchemaOptional = Schema.date().optional();
+const dateSchemaNullable = Schema.date().nullable();
+const symbolSchemaOptional = Schema.symbol().optional();
+const symbolSchemaNullable = Schema.symbol().nullable();
 
 test("literal string schema", () => {
   expect(literalStringSchema.parse("asdf")).toBe("asdf");
@@ -102,7 +102,7 @@ test("date schema", async () => {
   expect(() => dateSchema.parse(null)).toThrow();
   expect(await dateSchema.safeParseAsync(new Date("invalid"))).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "date",
         "code": "invalid_type",
@@ -143,33 +143,33 @@ test("null schema", () => {
 });
 
 test("primitive inference", () => {
-  expectTypeOf<z.TypeOf<typeof literalStringSchema>>().toEqualTypeOf<"asdf">();
-  expectTypeOf<z.TypeOf<typeof literalNumberSchema>>().toEqualTypeOf<12>();
-  expectTypeOf<z.TypeOf<typeof literalBooleanSchema>>().toEqualTypeOf<true>();
-  expectTypeOf<z.TypeOf<typeof literalBigIntSchema>>().toEqualTypeOf<bigint>();
-  expectTypeOf<z.TypeOf<typeof stringSchema>>().toEqualTypeOf<string>();
-  expectTypeOf<z.TypeOf<typeof numberSchema>>().toEqualTypeOf<number>();
-  expectTypeOf<z.TypeOf<typeof bigintSchema>>().toEqualTypeOf<bigint>();
-  expectTypeOf<z.TypeOf<typeof booleanSchema>>().toEqualTypeOf<boolean>();
-  expectTypeOf<z.TypeOf<typeof dateSchema>>().toEqualTypeOf<Date>();
-  expectTypeOf<z.TypeOf<typeof symbolSchema>>().toEqualTypeOf<symbol>();
-  expectTypeOf<z.TypeOf<typeof nullSchema>>().toEqualTypeOf<null>();
-  expectTypeOf<z.TypeOf<typeof undefinedSchema>>().toEqualTypeOf<undefined>();
-  expectTypeOf<z.TypeOf<typeof stringSchemaOptional>>().toEqualTypeOf<string | undefined>();
-  expectTypeOf<z.TypeOf<typeof stringSchemaNullable>>().toEqualTypeOf<string | null>();
-  expectTypeOf<z.TypeOf<typeof numberSchemaOptional>>().toEqualTypeOf<number | undefined>();
-  expectTypeOf<z.TypeOf<typeof numberSchemaNullable>>().toEqualTypeOf<number | null>();
-  expectTypeOf<z.TypeOf<typeof bigintSchemaOptional>>().toEqualTypeOf<bigint | undefined>();
-  expectTypeOf<z.TypeOf<typeof bigintSchemaNullable>>().toEqualTypeOf<bigint | null>();
-  expectTypeOf<z.TypeOf<typeof booleanSchemaOptional>>().toEqualTypeOf<boolean | undefined>();
-  expectTypeOf<z.TypeOf<typeof booleanSchemaNullable>>().toEqualTypeOf<boolean | null>();
-  expectTypeOf<z.TypeOf<typeof dateSchemaOptional>>().toEqualTypeOf<Date | undefined>();
-  expectTypeOf<z.TypeOf<typeof dateSchemaNullable>>().toEqualTypeOf<Date | null>();
-  expectTypeOf<z.TypeOf<typeof symbolSchemaOptional>>().toEqualTypeOf<symbol | undefined>();
-  expectTypeOf<z.TypeOf<typeof symbolSchemaNullable>>().toEqualTypeOf<symbol | null>();
+  expectTypeOf<Schema.TypeOf<typeof literalStringSchema>>().toEqualTypeOf<"asdf">();
+  expectTypeOf<Schema.TypeOf<typeof literalNumberSchema>>().toEqualTypeOf<12>();
+  expectTypeOf<Schema.TypeOf<typeof literalBooleanSchema>>().toEqualTypeOf<true>();
+  expectTypeOf<Schema.TypeOf<typeof literalBigIntSchema>>().toEqualTypeOf<bigint>();
+  expectTypeOf<Schema.TypeOf<typeof stringSchema>>().toEqualTypeOf<string>();
+  expectTypeOf<Schema.TypeOf<typeof numberSchema>>().toEqualTypeOf<number>();
+  expectTypeOf<Schema.TypeOf<typeof bigintSchema>>().toEqualTypeOf<bigint>();
+  expectTypeOf<Schema.TypeOf<typeof booleanSchema>>().toEqualTypeOf<boolean>();
+  expectTypeOf<Schema.TypeOf<typeof dateSchema>>().toEqualTypeOf<Date>();
+  expectTypeOf<Schema.TypeOf<typeof symbolSchema>>().toEqualTypeOf<symbol>();
+  expectTypeOf<Schema.TypeOf<typeof nullSchema>>().toEqualTypeOf<null>();
+  expectTypeOf<Schema.TypeOf<typeof undefinedSchema>>().toEqualTypeOf<undefined>();
+  expectTypeOf<Schema.TypeOf<typeof stringSchemaOptional>>().toEqualTypeOf<string | undefined>();
+  expectTypeOf<Schema.TypeOf<typeof stringSchemaNullable>>().toEqualTypeOf<string | null>();
+  expectTypeOf<Schema.TypeOf<typeof numberSchemaOptional>>().toEqualTypeOf<number | undefined>();
+  expectTypeOf<Schema.TypeOf<typeof numberSchemaNullable>>().toEqualTypeOf<number | null>();
+  expectTypeOf<Schema.TypeOf<typeof bigintSchemaOptional>>().toEqualTypeOf<bigint | undefined>();
+  expectTypeOf<Schema.TypeOf<typeof bigintSchemaNullable>>().toEqualTypeOf<bigint | null>();
+  expectTypeOf<Schema.TypeOf<typeof booleanSchemaOptional>>().toEqualTypeOf<boolean | undefined>();
+  expectTypeOf<Schema.TypeOf<typeof booleanSchemaNullable>>().toEqualTypeOf<boolean | null>();
+  expectTypeOf<Schema.TypeOf<typeof dateSchemaOptional>>().toEqualTypeOf<Date | undefined>();
+  expectTypeOf<Schema.TypeOf<typeof dateSchemaNullable>>().toEqualTypeOf<Date | null>();
+  expectTypeOf<Schema.TypeOf<typeof symbolSchemaOptional>>().toEqualTypeOf<symbol | undefined>();
+  expectTypeOf<Schema.TypeOf<typeof symbolSchemaNullable>>().toEqualTypeOf<symbol | null>();
 });
 
 test("get literal values", () => {
   expect(literalStringSchema.values).toEqual(new Set(["asdf"]));
-  expect(literalStringSchema._zod.def.values).toEqual(["asdf"]);
+  expect(literalStringSchema._schema.def.values).toEqual(["asdf"]);
 });

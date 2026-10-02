@@ -1,4 +1,4 @@
-import * as z from "./external.js";
+import * as Schema from "./external.js";
 export * from "./external.js";
-export { z };
+export { Schema };
 export default z;

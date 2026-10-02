@@ -1,12 +1,12 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const args1 = z.tuple([z.string()]);
-const returns1 = z.number();
-const func1 = z.function(args1, returns1);
+const args1 = Schema.tuple([Schema.string()]);
+const returns1 = Schema.number();
+const func1 = Schema.function(args1, returns1);
 
 test("function parsing", () => {
   const parsed = func1.parse((arg: any) => arg.length);
@@ -25,14 +25,14 @@ test("parsed function fail 2", () => {
 });
 
 test("function inference 1", () => {
-  type func1 = z.TypeOf<typeof func1>;
+  type func1 = Schema.TypeOf<typeof func1>;
   util.assertEqual<func1, (k: string) => number>(true);
 });
 
 test("method parsing", () => {
-  const methodObject = z.object({
-    property: z.number(),
-    method: z.function().args(z.string()).returns(z.number()),
+  const methodObject = Schema.object({
+    property: Schema.number(),
+    method: Schema.function().args(Schema.string()).returns(Schema.number()),
   });
   const methodInstance = {
     property: 3,
@@ -45,9 +45,9 @@ test("method parsing", () => {
 });
 
 test("async method parsing", async () => {
-  const methodObject = z.object({
-    property: z.number(),
-    method: z.function().args(z.string()).returns(z.promise(z.number())),
+  const methodObject = Schema.object({
+    property: Schema.number(),
+    method: Schema.function().args(Schema.string()).returns(Schema.promise(Schema.number())),
   });
   const methodInstance = {
     property: 3,
@@ -60,32 +60,32 @@ test("async method parsing", async () => {
 });
 
 test("args method", () => {
-  const t1 = z.function();
-  type t1 = z.infer<typeof t1>;
+  const t1 = Schema.function();
+  type t1 = Schema.infer<typeof t1>;
   util.assertEqual<t1, (...args_1: unknown[]) => unknown>(true);
 
-  const t2 = t1.args(z.string());
-  type t2 = z.infer<typeof t2>;
+  const t2 = t1.args(Schema.string());
+  type t2 = Schema.infer<typeof t2>;
   util.assertEqual<t2, (arg: string, ...args_1: unknown[]) => unknown>(true);
 
-  const t3 = t2.returns(z.boolean());
-  type t3 = z.infer<typeof t3>;
+  const t3 = t2.returns(Schema.boolean());
+  type t3 = Schema.infer<typeof t3>;
   util.assertEqual<t3, (arg: string, ...args_1: unknown[]) => boolean>(true);
 });
 
-const args2 = z.tuple([
-  z.object({
-    f1: z.number(),
-    f2: z.string().nullable(),
-    f3: z.array(z.boolean().optional()).optional(),
+const args2 = Schema.tuple([
+  Schema.object({
+    f1: Schema.number(),
+    f2: Schema.string().nullable(),
+    f3: Schema.array(Schema.boolean().optional()).optional(),
   }),
 ]);
-const returns2 = z.union([z.string(), z.number()]);
+const returns2 = Schema.union([Schema.string(), Schema.number()]);
 
-const func2 = z.function(args2, returns2);
+const func2 = Schema.function(args2, returns2);
 
 test("function inference 2", () => {
-  type func2 = z.TypeOf<typeof func2>;
+  type func2 = Schema.TypeOf<typeof func2>;
   util.assertEqual<
     func2,
     (arg: {
@@ -140,37 +140,37 @@ test("output validation error", () => {
   expect(checker).toThrow();
 });
 
-z.function(z.tuple([z.string()])).args()._def.args;
+Schema.function(Schema.tuple([Schema.string()])).args()._def.args;
 
 test("special function error codes", () => {
-  const checker = z.function(z.tuple([z.string()]), z.boolean()).implement((arg) => {
+  const checker = Schema.function(Schema.tuple([Schema.string()]), Schema.boolean()).implement((arg) => {
     return arg.length as any;
   });
   try {
     checker("12" as any);
   } catch (err) {
-    const zerr = err as z.ZodError;
+    const zerr = err as Schema  .SchemaError;
     const first = zerr.issues[0];
-    if (first.code !== z.ZodIssueCode.invalid_return_type) throw new Error();
+    if (first.code !== Schema.SchemaIssueCode.invalid_return_type) throw new Error();
 
-    expect(first.returnTypeError).toBeInstanceOf(z.ZodError);
+    expect(first.returnTypeError).toBeInstanceOf(Schema.SchemaError);
   }
 
   try {
     checker(12 as any);
   } catch (err) {
-    const zerr = err as z.ZodError;
+    const zerr = err as Schema  .SchemaError;
     const first = zerr.issues[0];
-    if (first.code !== z.ZodIssueCode.invalid_arguments) throw new Error();
-    expect(first.argumentsError).toBeInstanceOf(z.ZodError);
+    if (first.code !== Schema.SchemaIssueCode.invalid_arguments) throw new Error();
+    expect(first.argumentsError).toBeInstanceOf(Schema.SchemaError);
   }
 });
 
 test("function with async refinements", async () => {
   const func = z
     .function()
-    .args(z.string().refine(async (val) => val.length > 10))
-    .returns(z.promise(z.number().refine(async (val) => val > 10)))
+    .args(Schema.string().refine(async (val) => val.length > 10))
+    .returns(Schema.promise(Schema.number().refine(async (val) => val > 10)))
     .implement(async (val) => {
       return val.length;
     });
@@ -194,8 +194,8 @@ test("function with async refinements", async () => {
 test("non async function with async refinements should fail", async () => {
   const func = z
     .function()
-    .args(z.string().refine(async (val) => val.length > 10))
-    .returns(z.number().refine(async (val) => val > 10))
+    .args(Schema.string().refine(async (val) => val.length > 10))
+    .returns(Schema.number().refine(async (val) => val > 10))
     .implement((val) => {
       return val.length;
     });
@@ -214,8 +214,8 @@ test("non async function with async refinements should fail", async () => {
 test("allow extra parameters", () => {
   const maxLength5 = z
     .function()
-    .args(z.string())
-    .returns(z.boolean())
+    .args(Schema.string())
+    .returns(Schema.boolean())
     .implement((str, _arg, _qewr) => {
       return str.length <= 5;
     });
@@ -225,7 +225,7 @@ test("allow extra parameters", () => {
 });
 
 test("params and returnType getters", () => {
-  const func = z.function().args(z.string()).returns(z.string());
+  const func = Schema.function().args(Schema.string()).returns(Schema.string());
 
   const paramResult = func.parameters().items[0].parse("asdf");
   expect(paramResult).toBe("asdf");
@@ -237,8 +237,8 @@ test("params and returnType getters", () => {
 test("inference with transforms", () => {
   const funcSchema = z
     .function()
-    .args(z.string().transform((val) => val.length))
-    .returns(z.object({ val: z.number() }));
+    .args(Schema.string().transform((val) => val.length))
+    .returns(Schema.object({ val: Schema.number() }));
   const myFunc = funcSchema.implement((val) => {
     return { val, extra: "stuff" };
   });
@@ -250,8 +250,8 @@ test("inference with transforms", () => {
 test("fallback to OuterTypeOfFunction", () => {
   const funcSchema = z
     .function()
-    .args(z.string().transform((val) => val.length))
-    .returns(z.object({ arg: z.number() }).transform((val) => val.arg));
+    .args(Schema.string().transform((val) => val.length))
+    .returns(Schema.object({ arg: Schema.number() }).transform((val) => val.arg));
 
   const myFunc = funcSchema.implement((val) => {
     return { arg: val, arg2: false };

@@ -54,10 +54,10 @@ function findIndexJsFiles(dir: string, relativePath = ""): string[] {
  * This resolves TypeScript assignability issues by providing explicit type declarations.
  */
 function writeStubPackageJsons() {
-  const zodPackageRoot = join(import.meta.dirname, "../packages/zod");
+  const schemaPackageRoot = join(import.meta.dirname, "../packages/schema");
 
   // Find all directories containing index.d.cts files
-  const dirsWithIndexJs = findIndexJsFiles(zodPackageRoot);
+  const dirsWithIndexJs = findIndexJsFiles(schemaPackageRoot);
 
   const processedDirs = new Set<string>();
 
@@ -73,7 +73,7 @@ function writeStubPackageJsons() {
     }
     processedDirs.add(dir);
 
-    const packageJsonPath = join(zodPackageRoot, dir, "package.json");
+    const packageJsonPath = join(schemaPackageRoot, dir, "package.json");
 
     // Write the stub package.json
     writeFileSync(packageJsonPath, STUB_PACKAGE_JSON_CONTENT, "utf8");

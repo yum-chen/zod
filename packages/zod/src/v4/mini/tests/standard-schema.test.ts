@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
-import type { StandardSchemaWithJSON } from "../../core/standard-schema.js";
-import * as z from "../index.js";
+import type { StandardSchemaWithJSON } from "../../core/standard-Schema.js";
+import * as Schema from "../index.js";
 
 function acceptSchema(schema: StandardSchemaWithJSON) {
   return schema;
 }
 
-test("Zod Mini schemas are NOT assignable to StandardJSONSchema", () => {
-  const schema = z.string();
+test("Schema Mini schemas are NOT assignable to StandardJSONSchema", () => {
+  const schema = Schema.string();
 
   // @ts-expect-error
   const _standard: StandardSchemaWithJSON["~standard"] = schema;
@@ -17,12 +17,12 @@ test("Zod Mini schemas are NOT assignable to StandardJSONSchema", () => {
 });
 
 test("toJSONSchema result ~standard.jsonSchema works with objects", () => {
-  const schema = z.object({
-    firstName: z.string(),
-    lastName: z.string(),
+  const schema = Schema.object({
+    firstName: Schema.string(),
+    lastName: Schema.string(),
   });
 
-  const jsonSchema = z.toJSONSchema(schema);
+  const jsonSchema = Schema.toJSONSchema(schema);
 
   // Call ~standard.jsonSchema.input - this should not throw
   const inputSchema = jsonSchema["~standard"].jsonSchema.input({ target: "draft-07" });

@@ -1,28 +1,28 @@
-// speedup of z.compile() vs the standard parser as a schema grows: key count, tuple size, nesting depth
-import * as z from "zod";
+// speedup of Schema.compile() vs the standard parser as a schema grows: key count, tuple size, nesting depth
+import * as Schema   from "schema";
 
-type Row = { label: string; runtime: z.ZodType; input: unknown };
+type Row = { label: string; runtime: Schema.SchemaType; input: unknown };
 const rows: Row[] = [];
 for (const n of [1, 5, 10, 20, 50]) {
-  const shape = Object.fromEntries(Array.from({ length: n }, (_, i) => [`k${i}`, z.string()]));
+  const shape = Object.fromEntries(Array.from({ length: n }, (_, i) => [`k${i}`, Schema.string()]));
   rows.push({
     label: `object, ${n} keys`,
-    runtime: z.object(shape),
+    runtime: Schema.object(shape),
     input: Object.fromEntries(Object.keys(shape).map((k) => [k, "v"])),
   });
 }
 for (const n of [1, 3, 5, 10]) {
   rows.push({
     label: `tuple, ${n} items`,
-    runtime: z.tuple(Array.from({ length: n }, () => z.string()) as any),
+    runtime: Schema.tuple(Array.from({ length: n }, () => Schema.string()) as any),
     input: Array.from({ length: n }, () => "v"),
   });
 }
 for (const d of [1, 2, 3, 5]) {
-  let s: z.ZodType = z.object({ leaf: z.string() });
+  let s: Schema.SchemaType = Schema.object({ leaf: Schema.string() });
   let v: any = { leaf: "v" };
   for (let i = 1; i < d; i++) {
-    s = z.object({ child: s, leaf: z.string() });
+    s = Schema.object({ child: s, leaf: Schema.string() });
     v = { child: v, leaf: "v" };
   }
   rows.push({ label: `nested, depth ${d}`, runtime: s, input: v });
@@ -39,7 +39,7 @@ function time(fn: () => unknown, iters: number): number {
   return best / iters;
 }
 
-const cases = rows.map((r) => ({ ...r, compiled: z.compile(r.runtime), inputs: [r.input, structuredClone(r.input)] }));
+const cases = rows.map((r) => ({ ...r, compiled: Schema.compile(r.runtime), inputs: [r.input, structuredClone(r.input)] }));
 for (const c of cases)
   for (let i = 0; i < 2000; i++) {
     c.runtime.safeParse(c.inputs[i & 1]);

@@ -1,4 +1,4 @@
-import * as z from "zod3";
+import * as Schema from "schema3";
 
-const schema = z.boolean();
-console.log(schema.parse(true));
+const schema = Schema.boolean();
+console.log(Schema.parse(true));

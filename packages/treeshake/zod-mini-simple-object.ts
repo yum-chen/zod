@@ -1,18 +1,18 @@
-import * as z from "zod/mini"; // 6.57 kB
+import * as Schema from "schema/mini"; // 6.57 kB
 
-const Zod = z.object({
+const Schema = Schema.object({
   email: z
     .string()
     .check(
-      z.minLength(1, "Please enter your email."),
-      z.email("The email address is badly formatted.")
+      Schema.minLength(1, "Please enter your email."),
+      Schema.email("The email address is badly formatted.")
     ),
-  password: z.string()
+  password: Schema.string()
     .check(
-      z.minLength(1, "Please enter your password."),
-      z.minLength(8, "Your password must have 8 characters or more.")
+      Schema.minLength(1, "Please enter your password."),
+      Schema.minLength(8, "Your password must have 8 characters or more.")
     ),
 });
 
 
-Zod.parse({});
+Schema.parse({});

@@ -1,8 +1,8 @@
-import * as z from "zod/mini"
+import * as Schema from "schema/mini"
 
-const schema = z.object({ a: z.string(), b: z.number(), c: z.boolean() });
+const schema = Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean() });
 
-schema.parse({
+Schema.parse({
   a: "asdf",
   b: 123,
   c: true,

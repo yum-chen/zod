@@ -1,8 +1,8 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const stringMap = z.map(z.string(), z.string());
-type stringMap = z.infer<typeof stringMap>;
+const stringMap = Schema.map(Schema.string(), Schema.string());
+type stringMap = Schema.infer<typeof stringMap>;
 
 const minTwo = stringMap.min(2);
 const maxTwo = stringMap.max(2);
@@ -112,14 +112,14 @@ test("failing when map does not match size() ", () => {
 });
 
 test("valid parse async", async () => {
-  const asyncMap = z.map(
-    z.string().refine(async () => false, "bad key"),
-    z.string().refine(async () => false, "bad value")
+  const asyncMap = Schema.map(
+    Schema.string().refine(async () => false, "bad key"),
+    Schema.string().refine(async () => false, "bad value")
   );
   const result = await asyncMap.safeParseAsync(new Map([["first", "foo"]]));
   expect(result.success).toEqual(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "custom",
         "path": [
@@ -153,7 +153,7 @@ test("throws when the given map has invalid key and invalid input", () => {
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(2);
     expect(result.error).toMatchInlineSnapshot(`
-      [ZodError: [
+      [SchemaError: [
         {
           "expected": "string",
           "code": "invalid_type",
@@ -213,11 +213,11 @@ test("throws when the given map has multiple invalid entries", () => {
 });
 
 test("dirty", async () => {
-  const map = z.map(
-    z.string().refine((val) => val === val.toUpperCase(), {
+  const map = Schema.map(
+    Schema.string().refine((val) => val === val.toUpperCase(), {
       message: "Keys must be uppercase",
     }),
-    z.string()
+    Schema.string()
   );
   const result = await map.spa(
     new Map([
@@ -229,7 +229,7 @@ test("dirty", async () => {
   if (!result.success) {
     expect(result.error.issues.length).toEqual(2);
     expect(result.error).toMatchInlineSnapshot(`
-      [ZodError: [
+      [SchemaError: [
         {
           "code": "custom",
           "path": [
@@ -250,12 +250,12 @@ test("dirty", async () => {
 });
 
 test("map with object keys", () => {
-  const map = z.map(
-    z.object({
-      name: z.string(),
-      age: z.number(),
+  const map = Schema.map(
+    Schema.object({
+      name: Schema.string(),
+      age: Schema.number(),
     }),
-    z.string()
+    Schema.string()
   );
   const data = new Map([
     [{ name: "John", age: 30 }, "foo"],
@@ -269,7 +269,7 @@ test("map with object keys", () => {
   const badResult = map.safeParse(badData);
   expect(badResult.success).toEqual(false);
   expect(badResult.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "object",
         "code": "invalid_type",
@@ -285,7 +285,7 @@ test("map with object keys", () => {
 test("min/max", async () => {
   const schema = stringMap.min(4).max(5);
 
-  const r1 = schema.safeParse(
+  const r1 = Schema.safeParse(
     new Map([
       ["a", "a"],
       ["b", "b"],
@@ -295,7 +295,7 @@ test("min/max", async () => {
   );
   expect(r1.success).toEqual(true);
 
-  const r2 = schema.safeParse(
+  const r2 = Schema.safeParse(
     new Map([
       ["a", "a"],
       ["b", "b"],
@@ -316,7 +316,7 @@ test("min/max", async () => {
     ]
   `);
 
-  const r3 = schema.safeParse(
+  const r3 = Schema.safeParse(
     new Map([
       ["a", "a"],
       ["b", "b"],

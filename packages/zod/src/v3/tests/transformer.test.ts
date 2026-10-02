@@ -1,20 +1,20 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const stringToNumber = z.string().transform((arg) => Number.parseFloat(arg));
+const stringToNumber = Schema.string().transform((arg) => Number.parseFloat(arg));
 // const numberToString = z
-//   .transformer(z.number())
+//   .transformer(Schema.number())
 //   .transform((n) => String(n));
-const asyncNumberToString = z.number().transform(async (n) => String(n));
+const asyncNumberToString = Schema.number().transform(async (n) => String(n));
 
 test("transform ctx.addIssue with parse", () => {
   const strs = ["foo", "bar"];
 
   expect(() => {
-    z.string()
+    Schema.string()
       .transform((data, ctx) => {
         const i = strs.indexOf(data);
         if (i === -1) {
@@ -68,23 +68,23 @@ test("transform ctx.addIssue with parseAsync", async () => {
           path: [],
         },
       ],
-      name: "ZodError",
+      name: "SchemaError",
     },
   });
 });
 
-test("z.NEVER in transform", () => {
+test("Schema.NEVER in transform", () => {
   const foo = z
     .number()
     .optional()
     .transform((val, ctx) => {
       if (!val) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "bad" });
-        return z.NEVER;
+        ctx.addIssue({ code: Schema.SchemaIssueCode.custom, message: "bad" });
+        return Schema.NEVER;
       }
       return val;
     });
-  type foo = z.infer<typeof foo>;
+  type foo = Schema.infer<typeof foo>;
   util.assertEqual<foo, number>(true);
   const arg = foo.safeParse(undefined);
   if (!arg.success) {
@@ -101,7 +101,7 @@ test("basic transformations", () => {
 });
 
 test("coercion", () => {
-  const numToString = z.number().transform((n) => String(n));
+  const numToString = Schema.number().transform((n) => String(n));
   const data = z
     .object({
       id: numToString,
@@ -112,7 +112,7 @@ test("coercion", () => {
 });
 
 test("async coercion", async () => {
-  const numToString = z.number().transform(async (n) => String(n));
+  const numToString = Schema.number().transform(async (n) => String(n));
   const data = await z
     .object({
       id: numToString,
@@ -134,7 +134,7 @@ test("sync coercion async error", async () => {
 });
 
 test("default", () => {
-  const data = z.string().default("asdf").parse(undefined); // => "asdf"
+  const data = Schema.string().default("asdf").parse(undefined); // => "asdf"
   expect(data).toEqual("asdf");
 });
 
@@ -149,8 +149,8 @@ test("dynamic default", () => {
 test("default when property is null or undefined", () => {
   const data = z
     .object({
-      foo: z.boolean().nullable().default(true),
-      bar: z.boolean().default(true),
+      foo: Schema.boolean().nullable().default(true),
+      bar: Schema.boolean().default(true),
     })
     .parse({ foo: null });
 
@@ -158,34 +158,34 @@ test("default when property is null or undefined", () => {
 });
 
 test("default with falsy values", () => {
-  const schema = z.object({
-    emptyStr: z.string().default("def"),
-    zero: z.number().default(5),
-    falseBoolean: z.boolean().default(true),
+  const schema = Schema.object({
+    emptyStr: Schema.string().default("def"),
+    zero: Schema.number().default(5),
+    falseBoolean: Schema.boolean().default(true),
   });
   const input = { emptyStr: "", zero: 0, falseBoolean: true };
-  const output = schema.parse(input);
+  const output = Schema.parse(input);
   // defaults are not supposed to be used
   expect(output).toEqual(input);
 });
 
 test("object typing", () => {
-  const t1 = z.object({
+  const t1 = Schema.object({
     stringToNumber,
   });
 
-  type t1 = z.input<typeof t1>;
-  type t2 = z.output<typeof t1>;
+  type t1 = Schema.input<typeof t1>;
+  type t2 = Schema.output<typeof t1>;
 
   util.assertEqual<t1, { stringToNumber: string }>(true);
   util.assertEqual<t2, { stringToNumber: number }>(true);
 });
 
 test("transform method overloads", () => {
-  const t1 = z.string().transform((val) => val.toUpperCase());
+  const t1 = Schema.string().transform((val) => val.toUpperCase());
   expect(t1.parse("asdf")).toEqual("ASDF");
 
-  const t2 = z.string().transform((val) => val.length);
+  const t2 = Schema.string().transform((val) => val.length);
   expect(t2.parse("asdf")).toEqual(4);
 });
 
@@ -201,16 +201,16 @@ test("short circuit on dirty", () => {
     .string()
     .refine(() => false)
     .transform((val) => val.toUpperCase());
-  const result = schema.safeParse("asdf");
+  const result = Schema.safeParse("asdf");
   expect(result.success).toEqual(false);
   if (!result.success) {
-    expect(result.error.issues[0].code).toEqual(z.ZodIssueCode.custom);
+    expect(result.error.issues[0].code).toEqual(Schema.SchemaIssueCode.custom);
   }
 
-  const result2 = schema.safeParse(1234);
+  const result2 = Schema.safeParse(1234);
   expect(result2.success).toEqual(false);
   if (!result2.success) {
-    expect(result2.error.issues[0].code).toEqual(z.ZodIssueCode.invalid_type);
+    expect(result2.error.issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_type);
   }
 });
 
@@ -219,15 +219,15 @@ test("async short circuit on dirty", async () => {
     .string()
     .refine(() => false)
     .transform((val) => val.toUpperCase());
-  const result = await schema.spa("asdf");
+  const result = await Schema.spa("asdf");
   expect(result.success).toEqual(false);
   if (!result.success) {
-    expect(result.error.issues[0].code).toEqual(z.ZodIssueCode.custom);
+    expect(result.error.issues[0].code).toEqual(Schema.SchemaIssueCode.custom);
   }
 
-  const result2 = await schema.spa(1234);
+  const result2 = await Schema.spa(1234);
   expect(result2.success).toEqual(false);
   if (!result2.success) {
-    expect(result2.error.issues[0].code).toEqual(z.ZodIssueCode.invalid_type);
+    expect(result2.error.issues[0].code).toEqual(Schema.SchemaIssueCode.invalid_type);
   }
 });

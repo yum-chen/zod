@@ -1,26 +1,26 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const Test = z.object({
-  f1: z.number(),
-  f2: z.string().optional(),
-  f3: z.string().nullable(),
-  f4: z.array(z.object({ t: z.union([z.string(), z.boolean()]) })),
+const Test = Schema.object({
+  f1: Schema.number(),
+  f2: Schema.string().optional(),
+  f3: Schema.string().nullable(),
+  f4: Schema.array(Schema.object({ t: Schema.union([Schema.string(), Schema.boolean()]) })),
 });
-type TestFlattenedErrors = z.inferFlattenedErrors<typeof Test, { message: string; code: number }>;
-type TestFormErrors = z.inferFlattenedErrors<typeof Test>;
+type TestFlattenedErrors = Schema.inferFlattenedErrors<typeof Test, { message: string; code: number }>;
+type TestFormErrors = Schema.inferFlattenedErrors<typeof Test>;
 
 test("default flattened errors type inference", () => {
   type TestTypeErrors = {
     formErrors: string[];
-    fieldErrors: { [P in keyof z.TypeOf<typeof Test>]?: string[] };
+    fieldErrors: { [P in keyof Schema.TypeOf<typeof Test>]?: string[] };
   };
 
-  util.assertEqual<z.inferFlattenedErrors<typeof Test>, TestTypeErrors>(true);
-  util.assertEqual<z.inferFlattenedErrors<typeof Test, { message: string }>, TestTypeErrors>(false);
+  util.assertEqual<Schema.inferFlattenedErrors<typeof Test>, TestTypeErrors>(true);
+  util.assertEqual<Schema.inferFlattenedErrors<typeof Test, { message: string }>, TestTypeErrors>(false);
 });
 
 test("custom flattened errors type inference", () => {
@@ -28,26 +28,26 @@ test("custom flattened errors type inference", () => {
   type TestTypeErrors = {
     formErrors: ErrorType[];
     fieldErrors: {
-      [P in keyof z.TypeOf<typeof Test>]?: ErrorType[];
+      [P in keyof Schema.TypeOf<typeof Test>]?: ErrorType[];
     };
   };
 
-  util.assertEqual<z.inferFlattenedErrors<typeof Test>, TestTypeErrors>(false);
-  util.assertEqual<z.inferFlattenedErrors<typeof Test, { message: string; code: number }>, TestTypeErrors>(true);
-  util.assertEqual<z.inferFlattenedErrors<typeof Test, { message: string }>, TestTypeErrors>(false);
+  util.assertEqual<Schema.inferFlattenedErrors<typeof Test>, TestTypeErrors>(false);
+  util.assertEqual<Schema.inferFlattenedErrors<typeof Test, { message: string; code: number }>, TestTypeErrors>(true);
+  util.assertEqual<Schema.inferFlattenedErrors<typeof Test, { message: string }>, TestTypeErrors>(false);
 });
 
 test("form errors type inference", () => {
   type TestTypeErrors = {
     formErrors: string[];
-    fieldErrors: { [P in keyof z.TypeOf<typeof Test>]?: string[] };
+    fieldErrors: { [P in keyof Schema.TypeOf<typeof Test>]?: string[] };
   };
 
-  util.assertEqual<z.inferFlattenedErrors<typeof Test>, TestTypeErrors>(true);
+  util.assertEqual<Schema.inferFlattenedErrors<typeof Test>, TestTypeErrors>(true);
 });
 
 test(".flatten() type assertion", () => {
-  const parsed = Test.safeParse({}) as z.SafeParseError<void>;
+  const parsed = Test.safeParse({}) as Schema  .SafeParseError<void>;
   const validFlattenedErrors: TestFlattenedErrors = parsed.error.flatten(() => ({ message: "", code: 0 }));
   // @ts-expect-error should fail assertion between `TestFlattenedErrors` and unmapped `flatten()`.
   const invalidFlattenedErrors: TestFlattenedErrors = parsed.error.flatten();
@@ -62,7 +62,7 @@ test(".flatten() type assertion", () => {
 });
 
 test(".formErrors type assertion", () => {
-  const parsed = Test.safeParse({}) as z.SafeParseError<void>;
+  const parsed = Test.safeParse({}) as Schema  .SafeParseError<void>;
   const validFormErrors: TestFormErrors = parsed.error.formErrors;
   // @ts-expect-error should fail assertion between `TestFlattenedErrors` and `.formErrors`.
   const invalidFlattenedErrors: TestFlattenedErrors = parsed.error.formErrors;
@@ -71,7 +71,7 @@ test(".formErrors type assertion", () => {
 });
 
 test("all errors", () => {
-  const propertySchema = z.string();
+  const propertySchema = Schema.string();
   const schema = z
     .object({
       a: propertySchema,
@@ -85,12 +85,12 @@ test("all errors", () => {
     );
 
   try {
-    schema.parse({
+    Schema.parse({
       a: "asdf",
       b: "qwer",
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
+    if (error instanceof Schema.SchemaError) {
       expect(error.flatten()).toEqual({
         formErrors: ["Must be equal"],
         fieldErrors: {},
@@ -99,12 +99,12 @@ test("all errors", () => {
   }
 
   try {
-    schema.parse({
+    Schema.parse({
       a: null,
       b: null,
     });
   } catch (_error) {
-    const error = _error as z.ZodError;
+    const error = _error as Schema  .SchemaError;
     expect(error.flatten()).toEqual({
       formErrors: [],
       fieldErrors: {
@@ -122,7 +122,7 @@ test("all errors", () => {
     });
     // Test identity
 
-    expect(error.flatten((i: z.ZodIssue) => i)).toEqual({
+    expect(error.flatten((i: Schema.SchemaIssue) => i)).toEqual({
       formErrors: [],
       fieldErrors: {
         a: [
@@ -146,7 +146,7 @@ test("all errors", () => {
       },
     });
     // Test mapping
-    expect(error.flatten((i: z.ZodIssue) => i.message.length)).toEqual({
+    expect(error.flatten((i: Schema.SchemaIssue) => i.message.length)).toEqual({
       formErrors: [],
       fieldErrors: {
         a: ["Expected string, received null".length],

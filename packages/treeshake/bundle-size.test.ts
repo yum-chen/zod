@@ -8,10 +8,10 @@ import { beforeAll, expect, test } from "vitest";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Like the other tests here, this bundles the BUILT package: esbuild is given no
-// `@zod/source` condition, so `zod/mini` resolves through `exports` to what a
+// `@schema/source` condition, so `schema/mini` resolves through `exports` to what a
 // consumer actually installs. That makes the numbers meaningful and the file
 // stale until `nub run build` has run — fine in CI, which builds first.
-const BUILT_ENTRY = path.join(__dirname, "node_modules", "zod", "index.js");
+const BUILT_ENTRY = path.join(__dirname, "node_modules", "schema", "index.js");
 
 /**
  * Ceilings exist because the bundle axis had no automated guard and two
@@ -39,31 +39,31 @@ const BUILT_ENTRY = path.join(__dirname, "node_modules", "zod", "index.js");
  */
 const CEILINGS: Record<string, number> = {
   // raised from 2903 / 3366 / 4437 by the commit that caused it: installing a trait's members from `$constructor` rather than from its initializer costs mini +70 / +83 / +95, and every bundle carries `core.ts`; measured 2946 / 3420 / 4503 plus 28 headroom, and the per-fixture notes below record what each already carried. About half of it is the guard that keeps the install off a user subclass's prototype; the rest is writing the members as `this`-methods, since `this` is not renameable and a block body cannot collapse to an arrow.
-  // Also carries the Standard Schema issue bag: a failing `~standard.validate` parses with a plain issue holder instead of constructing a ZodError. Measured 2974 / 3455 / 4540 locally plus 28 headroom.
+  // Also carries the Standard Schema issue bag: a failing `~standard.validate` parses with a plain issue holder instead of constructing a SchemaError. Measured 2974 / 3455 / 4540 locally plus 28 headroom.
   // Also carries the lazy `safeParse` error: a getter and a setter on the failing result, and the async wrapper that keeps a sync throw a rejection. Measured 3021 / 3497 / 4581 locally plus 18 headroom.
-  // Also carries the symbol-key loop in `util.members`, which is what installs `$ZodProperties`'s `Symbol.iterator` on its prototype, and the memoizer's shared reference predicate. Measured 3036 / 3516 / 4611 locally plus 18 headroom.
-  // Lowered by the measured −17 / −16 / −16 from making z.properties() a check again: the symbol-key loop in `util.members` and the memoizer's callable arm left with the schema role. Measured 3044 / 3418 / 4629 locally plus 18 headroom; the object ceiling had been overtaken to zero headroom on main, so its number moves up by two while the bundle moves down.
-  "zod-mini-boolean": 3062,
+  // Also carries the symbol-key loop in `util.members`, which is what installs `$SchemaProperties`'s `Symbol.iterator` on its prototype, and the memoizer's shared reference predicate. Measured 3036 / 3516 / 4611 locally plus 18 headroom.
+  // Lowered by the measured −17 / −16 / −16 from making Schema.properties() a check again: the symbol-key loop in `util.members` and the memoizer's callable arm left with the schema role. Measured 3044 / 3418 / 4629 locally plus 18 headroom; the object ceiling had been overtaken to zero headroom on main, so its number moves up by two while the bundle moves down.
+  "schema-mini-boolean": 3062,
   // Also carries the code-point string length scan: `.min`/`.max`/`.length` on a string pulls in the surrogate walk.
-  // Also carries the Standard Schema issue bag: a failing `~standard.validate` parses with a plain issue holder instead of constructing a ZodError. Measured 2974 / 3455 / 4540 locally plus 28 headroom.
+  // Also carries the Standard Schema issue bag: a failing `~standard.validate` parses with a plain issue holder instead of constructing a SchemaError. Measured 2974 / 3455 / 4540 locally plus 28 headroom.
   // Also carries the lazy `safeParse` error: a getter and a setter on the failing result, and the async wrapper that keeps a sync throw a rejection. Measured 3021 / 3497 / 4581 locally plus 18 headroom.
-  // Also carries the symbol-key loop in `util.members`, which is what installs `$ZodProperties`'s `Symbol.iterator` on its prototype, and the memoizer's shared reference predicate. Measured 3036 / 3516 / 4611 locally plus 18 headroom.
+  // Also carries the symbol-key loop in `util.members`, which is what installs `$SchemaProperties`'s `Symbol.iterator` on its prototype, and the memoizer's shared reference predicate. Measured 3036 / 3516 / 4611 locally plus 18 headroom.
   // Lowered by the measured −105 when checks stopped writing metadata into the bag at attach time: the string length/format closures and the per-instance bounded regex left every string bundle, and the template literal now derives its own part patterns.
-  // Lowered by the measured −17 / −16 / −16 from making z.properties() a check again: the symbol-key loop in `util.members` and the memoizer's callable arm left with the schema role. Measured 3044 / 3418 / 4629 locally plus 18 headroom; the object ceiling had been overtaken to zero headroom on main, so its number moves up by two while the bundle moves down.
+  // Lowered by the measured −17 / −16 / −16 from making Schema.properties() a check again: the symbol-key loop in `util.members` and the memoizer's callable arm left with the schema role. Measured 3044 / 3418 / 4629 locally plus 18 headroom; the object ceiling had been overtaken to zero headroom on main, so its number moves up by two while the bundle moves down.
 
   // factory check snapshots on the check-only properties base measure 3438 gzip bytes plus 28 headroom
-  "zod-mini-string": 3466,
-  // Also carries the construction-time discriminator check, which writes a WeakMap entry from `$ZodObject`, so every bundle containing `z.object` pays for it whether or not it builds a discriminated union.
+  "schema-mini-string": 3466,
+  // Also carries the construction-time discriminator check, which writes a WeakMap entry from `$SchemaObject`, so every bundle containing `Schema.object` pays for it whether or not it builds a discriminated union.
   // Also carries the declared symbol keys from #6448: `normalizeDef` collects the shape's own symbols and the parse loop walks them. Almost none of that is the `Reflect.ownKeys` conversions — reverting all eight of them measures a byte larger.
-  // Also carries the memoizer seam from #6482: each container init reads `globalConfig.memoizer` and calls `attach`, which is what lets `zod/mini` opt into cycle support. Measured 4512 locally but 4533 on CI — the gzip stream differs across zlib builds — so the headroom rides on the CI number.
-  // Also carries the Standard Schema issue bag: a failing `~standard.validate` parses with a plain issue holder instead of constructing a ZodError. Measured 2974 / 3455 / 4540 locally plus 28 headroom.
+  // Also carries the memoizer seam from #6482: each container init reads `globalConfig.memoizer` and calls `attach`, which is what lets `schema/mini` opt into cycle support. Measured 4512 locally but 4533 on CI — the gzip stream differs across zlib builds — so the headroom rides on the CI number.
+  // Also carries the Standard Schema issue bag: a failing `~standard.validate` parses with a plain issue holder instead of constructing a SchemaError. Measured 2974 / 3455 / 4540 locally plus 28 headroom.
   // Also carries the lazy `safeParse` error: a getter and a setter on the failing result, and the async wrapper that keeps a sync throw a rejection. Measured 3021 / 3497 / 4581 locally plus 18 headroom.
-  // Also carries the symbol-key loop in `util.members`, which is what installs `$ZodProperties`'s `Symbol.iterator` on its prototype, and the memoizer's shared reference predicate. Measured 3036 / 3516 / 4611 locally plus 18 headroom.
+  // Also carries the symbol-key loop in `util.members`, which is what installs `$SchemaProperties`'s `Symbol.iterator` on its prototype, and the memoizer's shared reference predicate. Measured 3036 / 3516 / 4611 locally plus 18 headroom.
   // Also carries the guards `validate` parses under: an `aborted` check in each container loop, and two early exits in the generated object parser. Only a bundle containing a container pays — boolean is byte-identical to main and string measures three bytes smaller — so this ceiling rises by the measured +76 and the other two do not move. Measured 4696 locally plus 18 headroom.
   // Lowered by the measured −69 for the same bag strip: the string and number inits no longer carry pattern derivation or attach-time metadata writes.
 
   // factory check snapshots on the check-only properties base measure 4654 gzip bytes plus 28 headroom
-  "zod-mini-object": 4682,
+  "schema-mini-object": 4682,
 };
 
 /**
@@ -103,16 +103,16 @@ for (const [fixture, ceiling] of Object.entries(CEILINGS)) {
 }
 
 test("a mini bundle carries nothing from features it never uses", async () => {
-  const code = await bundle("zod-mini-boolean");
+  const code = await bundle("schema-mini-boolean");
   for (const identifier of MUST_NOT_APPEAR) {
-    expect(code, `${identifier} reached a bundle that only uses z.boolean()`).not.toContain(identifier);
+    expect(code, `${identifier} reached a bundle that only uses Schema.boolean()`).not.toContain(identifier);
   }
 });
 
 // the custom formats read `core/regexes.ts` through a direct namespace import; reaching it as `core.regexes.x` made esbuild materialize every regex in the module, 2 KB on a hostname bundle
 test("a hostname bundle carries no other format's regex", async () => {
   const result = await build({
-    stdin: { contents: `import * as z from "zod/mini"; console.log(z.hostname().parse("a.com"));`, resolveDir: __dirname, loader: "ts" },
+    stdin: { contents: `import * as Schema from "schema/mini"; console.log(Schema.hostname().parse("a.com"));`, resolveDir: __dirname, loader: "ts" },
     bundle: true,
     minify: true,
     format: "esm",
@@ -121,6 +121,6 @@ test("a hostname bundle carries no other format's regex", async () => {
   });
   const code = Buffer.from(result.outputFiles[0]!.contents).toString("utf8");
   // the xid regex, which nothing on a hostname path can need
-  expect(code, "another format's regex reached a bundle that only uses z.hostname()").not.toContain("[0-9a-vA-V]{20}");
+  expect(code, "another format's regex reached a bundle that only uses Schema.hostname()").not.toContain("[0-9a-vA-V]{20}");
 });
 

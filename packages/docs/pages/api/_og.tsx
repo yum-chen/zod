@@ -32,10 +32,10 @@ declare module 'react' {
 export default async function (request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const imagePrefix = process.env.VERCEL_URL ? `https://zod.dev` : "http://localhost:3000";
+    const imagePrefix = process.env.VERCEL_URL ? `https://Schema.dev` : "http://localhost:3000";
 
     // Get dynamic params
-    const title = searchParams.get("title") || "Zod Documentation";
+    const title = searchParams.get("title") || "Schema Documentation";
     const description = searchParams.get("description"); // || "TypeScript-first schema validation with static type inference";
     const path = searchParams.get("path");
 
@@ -66,14 +66,14 @@ export default async function (request: NextRequest) {
             justifyContent: "center",
           }}
         >
-          <img width="200" height="165" alt="Zod logo" src={`${imagePrefix}/logo/logo.png`} />
+          <img width="200" height="165" alt="Schema logo" src={`${imagePrefix}/logo/logo.png`} />
         </div>
 
         {/* Main content */}
         <div tw="flex flex-col w-full pr-52">
           {/* Added right padding to avoid text overlapping with logo */}
           {/* <p tw="text-4xl font-bold tracking-tight text-white m-0 leading-none mb-6 border-b border-gray-700 pb-4">
-            Zod
+            Schema
           </p> */}
           <h1 tw="text-8xl font-bold tracking-tight text-white m-0 leading-none">{title}</h1>
           {description ? <p tw="text-2xl text-gray-300 mt-6 max-w-4xl">{description}</p> : null}
@@ -106,7 +106,7 @@ export default async function (request: NextRequest) {
                 height={225}
                 tw="h-10 w-10 mr-2"
               />
-              <span tw="text-3xl font-semibold text-gray-300">colinhacks/zod</span>
+              <span tw="text-3xl font-semibold text-gray-300">colinhacks/schema</span>
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { util } from "zod/v4/core";
+import { util } from "schema/v4/core";
 
 test("cached defers the getter until the first read", () => {
   let runs = 0;

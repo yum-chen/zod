@@ -10,7 +10,7 @@
  * one-time cost (module init, lazily-installed prototypes) doesn't read as a
  * leak: only the SLOPE matters.
  */
-import * as z from "zod";
+import * as Schema   from "schema";
 import { collect, fmtBytes, table } from "./harness.js";
 
 interface Scenario {
@@ -25,7 +25,7 @@ const scenarios: Scenario[] = [
   // --- controls: these MUST show a leak, proving the detector is sensitive ---
   {
     label: "CONTROL: push to module array",
-    run: (i) => void leakSink.push(z.string().min(i % 5)),
+    run: (i) => void leakSink.push(Schema.string().min(i % 5)),
     expectLeak: true,
   },
   {
@@ -34,31 +34,31 @@ const scenarios: Scenario[] = [
   },
 
   // --- schema construction, all references dropped ---
-  { label: "z.string()", run: () => void z.string() },
-  { label: "z.string().min(1)", run: () => void z.string().min(1) },
-  { label: "z.object({...})", run: () => void z.object({ a: z.string(), b: z.number() }) },
-  { label: "z.object().extend()", run: () => void z.object({ a: z.string() }).extend({ b: z.number() }) },
-  { label: "z.object().partial()", run: () => void z.object({ a: z.string() }).partial() },
+  { label: "Schema.string()", run: () => void Schema.string() },
+  { label: "Schema.string().min(1)", run: () => void Schema.string().min(1) },
+  { label: "Schema.object({...})", run: () => void Schema.object({ a: Schema.string(), b: Schema.number() }) },
+  { label: "Schema.object().extend()", run: () => void Schema.object({ a: Schema.string() }).extend({ b: Schema.number() }) },
+  { label: "Schema.object().partial()", run: () => void Schema.object({ a: Schema.string() }).partial() },
   {
-    label: "z.discriminatedUnion",
-    run: () => void z.discriminatedUnion("t", [z.object({ t: z.literal("a") }), z.object({ t: z.literal("b") })]),
+    label: "Schema.discriminatedUnion",
+    run: () => void Schema.discriminatedUnion("t", [Schema.object({ t: Schema.literal("a") }), Schema.object({ t: Schema.literal("b") })]),
   },
   {
-    label: "z.lazy recursive",
+    label: "Schema.lazy recursive",
     run: () => {
-      const s: any = z.lazy(() => z.object({ v: z.string(), next: s.optional() }));
+      const s: any = Schema.lazy(() => Schema.object({ v: Schema.string(), next: s.optional() }));
       void s.safeParse({ v: "x", next: { v: "y" } });
     },
   },
 
   // --- registry / metadata ---
-  { label: ".describe()", run: (i) => void z.string().describe(`d${i}`) },
-  { label: ".meta() no id", run: (i) => void z.string().meta({ title: `t${i}` }) },
-  { label: ".meta() WITH id", run: (i) => void z.string().meta({ id: `id-${i}` }) },
-  { label: "custom registry .add() w/ id", run: (i) => void localRegistry.add(z.string(), { id: `r-${i}` }) },
+  { label: ".describe()", run: (i) => void Schema.string().describe(`d${i}`) },
+  { label: ".meta() no id", run: (i) => void Schema.string().meta({ title: `t${i}` }) },
+  { label: ".meta() WITH id", run: (i) => void Schema.string().meta({ id: `id-${i}` }) },
+  { label: "custom registry .add() w/ id", run: (i) => void localRegistry.add(Schema.string(), { id: `r-${i}` }) },
 
   // --- parsing: input data must not be retained ---
-  { label: "parse (fresh schema each time)", run: (i) => void z.object({ a: z.string() }).parse({ a: `v${i}` }) },
+  { label: "parse (fresh schema each time)", run: (i) => void Schema.object({ a: Schema.string() }).parse({ a: `v${i}` }) },
   { label: "parse big payload (shared schema)", run: (i) => void bigSchema.parse(makeBig(i)) },
   {
     label: "safeParse FAILURE (shared schema)",
@@ -75,22 +75,22 @@ const scenarios: Scenario[] = [
   { label: "refine failure (shared schema)", run: (i) => void refined.safeParse(`x${i}`) },
 
   // --- JSON schema generation ---
-  { label: "toJSONSchema (shared schema)", run: () => void z.toJSONSchema(bigSchema) },
-  { label: "toJSONSchema (fresh schema)", run: () => void z.toJSONSchema(z.object({ a: z.string() })) },
+  { label: "toJSONSchema (shared schema)", run: () => void Schema.toJSONSchema(bigSchema) },
+  { label: "toJSONSchema (fresh schema)", run: () => void Schema.toJSONSchema(Schema.object({ a: Schema.string() })) },
 
   // --- standard-schema surface ---
   { label: "~standard.validate", run: (i) => void bigSchema["~standard"].validate(makeBig(i)) },
 ];
 
 const leakSink: unknown[] = [];
-const localRegistry = z.registry<{ id: string }>();
-const bigSchema = z.object({
-  s: z.string(),
-  n: z.number(),
-  arr: z.array(z.string()),
-  nested: z.object({ deep: z.object({ deeper: z.string() }) }),
+const localRegistry = Schema.registry<{ id: string }>();
+const bigSchema = Schema.object({
+  s: Schema.string(),
+  n: Schema.number(),
+  arr: Schema.array(Schema.string()),
+  nested: Schema.object({ deep: Schema.object({ deeper: Schema.string() }) }),
 });
-const refined = z.string().refine((s) => s.length > 1000, "too short");
+const refined = Schema.string().refine((s) => s.length > 1000, "too short");
 
 function makeBig(i: number) {
   return {

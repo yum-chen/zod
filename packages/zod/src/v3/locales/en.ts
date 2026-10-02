@@ -1,41 +1,41 @@
-import { type ZodErrorMap, ZodIssueCode } from "../ZodError.js";
-import { util, ZodParsedType } from "../helpers/util.js";
+import { type SchemaErrorMap, SchemaIssueCode } from "../SchemaError.js";
+import { util, SchemaParsedType } from "../helpers/util.js";
 
-const errorMap: ZodErrorMap = (issue, _ctx) => {
+const errorMap: SchemaErrorMap = (issue, _ctx) => {
   let message: string;
   switch (issue.code) {
-    case ZodIssueCode.invalid_type:
-      if (issue.received === ZodParsedType.undefined) {
+    case SchemaIssueCode.invalid_type:
+      if (issue.received === SchemaParsedType.undefined) {
         message = "Required";
       } else {
         message = `Expected ${issue.expected}, received ${issue.received}`;
       }
       break;
-    case ZodIssueCode.invalid_literal:
+    case SchemaIssueCode.invalid_literal:
       message = `Invalid literal value, expected ${JSON.stringify(issue.expected, util.jsonStringifyReplacer)}`;
       break;
-    case ZodIssueCode.unrecognized_keys:
+    case SchemaIssueCode.unrecognized_keys:
       message = `Unrecognized key(s) in object: ${util.joinValues(issue.keys, ", ")}`;
       break;
-    case ZodIssueCode.invalid_union:
+    case SchemaIssueCode.invalid_union:
       message = `Invalid input`;
       break;
-    case ZodIssueCode.invalid_union_discriminator:
+    case SchemaIssueCode.invalid_union_discriminator:
       message = `Invalid discriminator value. Expected ${util.joinValues(issue.options)}`;
       break;
-    case ZodIssueCode.invalid_enum_value:
+    case SchemaIssueCode.invalid_enum_value:
       message = `Invalid enum value. Expected ${util.joinValues(issue.options)}, received '${issue.received}'`;
       break;
-    case ZodIssueCode.invalid_arguments:
+    case SchemaIssueCode.invalid_arguments:
       message = `Invalid function arguments`;
       break;
-    case ZodIssueCode.invalid_return_type:
+    case SchemaIssueCode.invalid_return_type:
       message = `Invalid function return type`;
       break;
-    case ZodIssueCode.invalid_date:
+    case SchemaIssueCode.invalid_date:
       message = `Invalid date`;
       break;
-    case ZodIssueCode.invalid_string:
+    case SchemaIssueCode.invalid_string:
       if (typeof issue.validation === "object") {
         if ("includes" in issue.validation) {
           message = `Invalid input: must include "${issue.validation.includes}"`;
@@ -56,7 +56,7 @@ const errorMap: ZodErrorMap = (issue, _ctx) => {
         message = "Invalid";
       }
       break;
-    case ZodIssueCode.too_small:
+    case SchemaIssueCode.too_small:
       if (issue.type === "array")
         message = `Array must contain ${
           issue.exact ? "exactly" : issue.inclusive ? `at least` : `more than`
@@ -79,7 +79,7 @@ const errorMap: ZodErrorMap = (issue, _ctx) => {
         }${new Date(Number(issue.minimum))}`;
       else message = "Invalid input";
       break;
-    case ZodIssueCode.too_big:
+    case SchemaIssueCode.too_big:
       if (issue.type === "array")
         message = `Array must contain ${
           issue.exact ? `exactly` : issue.inclusive ? `at most` : `less than`
@@ -102,16 +102,16 @@ const errorMap: ZodErrorMap = (issue, _ctx) => {
         } ${new Date(Number(issue.maximum))}`;
       else message = "Invalid input";
       break;
-    case ZodIssueCode.custom:
+    case SchemaIssueCode.custom:
       message = `Invalid input`;
       break;
-    case ZodIssueCode.invalid_intersection_types:
+    case SchemaIssueCode.invalid_intersection_types:
       message = `Intersection results could not be merged`;
       break;
-    case ZodIssueCode.not_multiple_of:
+    case SchemaIssueCode.not_multiple_of:
       message = `Number must be a multiple of ${issue.multipleOf}`;
       break;
-    case ZodIssueCode.not_finite:
+    case SchemaIssueCode.not_finite:
       message = "Number must be finite";
       break;
     default:

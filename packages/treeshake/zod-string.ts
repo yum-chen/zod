@@ -1,5 +1,5 @@
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const schema = z.string().min(5);
-console.log(schema.parse("hi"));
+const schema = Schema.string().min(5);
+console.log(Schema.parse("hi"));
 

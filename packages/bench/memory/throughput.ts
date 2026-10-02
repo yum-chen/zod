@@ -2,7 +2,7 @@
  * Construction and parse throughput, so memory work can be shown not to cost
  * speed. Reports ops/sec; compare runs across commits.
  */
-import * as z from "zod";
+import * as Schema   from "schema";
 import { table } from "./harness.js";
 
 function timeOnce(fn: () => void, ms: number): number {
@@ -43,22 +43,22 @@ function runAll(ms = 400): Array<{ label: string; opsPerSec: number; spreadPct: 
   });
 }
 
-const shape = { a: z.string(), b: z.number(), c: z.boolean() };
-const objSchema = z.object(shape);
-const strSchema = z.string();
-const minSchema = z.string().min(1);
-const arrSchema = z.array(z.string());
-const unionSchema = z.union([z.string(), z.number()]);
+const shape = { a: Schema.string(), b: Schema.number(), c: Schema.boolean() };
+const objSchema = Schema.object(shape);
+const strSchema = Schema.string();
+const minSchema = Schema.string().min(1);
+const arrSchema = Schema.array(Schema.string());
+const unionSchema = Schema.union([Schema.string(), Schema.number()]);
 const data = { a: "x", b: 1, c: true };
 const arrData = ["a", "b", "c", "d"];
 
 // construction
-bench("construct z.string()", () => void z.string());
-bench("construct z.number()", () => void z.number());
-bench("construct z.bigint()", () => void z.bigint());
-bench("construct z.object(3)", () => void z.object({ a: z.string(), b: z.number(), c: z.boolean() }));
-bench("construct z.array(str)", () => void z.array(z.string()));
-bench("construct .min(1)", () => void z.string().min(1));
+bench("construct Schema.string()", () => void Schema.string());
+bench("construct Schema.number()", () => void Schema.number());
+bench("construct Schema.bigint()", () => void Schema.bigint());
+bench("construct Schema.object(3)", () => void Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean() }));
+bench("construct Schema.array(str)", () => void Schema.array(Schema.string()));
+bench("construct .min(1)", () => void Schema.string().min(1));
 // parsing (hot path must not regress)
 bench("parse string", () => void strSchema.parse("hello"));
 bench("parse string.min", () => void minSchema.parse("hello"));
@@ -67,8 +67,8 @@ bench("parse array(4)", () => void arrSchema.parse(arrData));
 bench("parse union", () => void unionSchema.parse("hi"));
 bench("safeParse object", () => void objSchema.safeParse(data));
 // method access (the lazy-bind getters)
-bench("first .optional() on new", () => void z.string().optional());
-bench("first .email() on new", () => void z.string().email());
+bench("first .optional() on new", () => void Schema.string().optional());
+bench("first .email() on new", () => void Schema.string().email());
 
 table(
   runAll().map((r) => ({

@@ -46,7 +46,7 @@ export default async function Page(props: {
           <div className="flex items-center gap-2">
             <CopyMarkdownButton content={markdownContent} />
             <a
-              href={`https://github.com/colinhacks/zod/edit/main/packages/docs/content/${page.file.path}`}
+              href={`https://github.com/colinhacks/schema/edit/main/packages/docs/content/${page.file.path}`}
               target="_blank"
               rel="noreferrer noopener"
               className="inline-flex items-center gap-1.5 px-2 py-1 text-xs text-fd-muted-foreground hover:text-fd-foreground border border-[var(--color-fd-border)] rounded hover:bg-fd-muted/50 transition-colors"
@@ -92,7 +92,7 @@ export async function generateMetadata(props: {
   if (!page) notFound();
 
   const rootTitle = page.data.title ?? "Home";
-  const title = rootTitle + " | Zod";
+  const title = rootTitle + " | Schema";
   const description = page.data.description;
   return {
     title,
@@ -101,11 +101,11 @@ export async function generateMetadata(props: {
       type: "website",
       title,
       description,
-      siteName: "Zod",
-      url: `https://zod.dev/${page.slugs.join("/")}`,
+      siteName: "Schema",
+      url: `https://Schema.dev/${page.slugs.join("/")}`,
       images: [
         {
-          url: `/og.png?title=${encodeURIComponent(rootTitle)}&description=${encodeURIComponent(description ?? "")}&path=${encodeURIComponent(`${["zod.dev", ...page.slugs].join("/")}`)}`,
+          url: `/og.png?title=${encodeURIComponent(rootTitle)}&description=${encodeURIComponent(description ?? "")}&path=${encodeURIComponent(`${["Schema.dev", ...page.slugs].join("/")}`)}`,
           width: 1200,
           height: 630,
           alt: title,
@@ -119,6 +119,6 @@ export async function generateMetadata(props: {
       creator: "@colinhacks",
       site: "@colinhacks",
     },
-    keywords: ["zod", "typescript", "validation", "schema"],
+    keywords: ["schema", "typescript", "validation", "schema"],
   };
 }

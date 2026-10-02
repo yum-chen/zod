@@ -1,8 +1,8 @@
-import * as z from "zod/mini"
+import * as Schema from "schema/mini"
 
-export const schema = z.object({
-  name: z.string(),
-  age: z.number(),
-  email: z.boolean(),
+export const schema = Schema.object({
+  name: Schema.string(),
+  age: Schema.number(),
+  email: Schema.boolean(),
 });
 

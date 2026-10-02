@@ -1,14 +1,14 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const stringSet = z.set(z.string());
-type stringSet = z.infer<typeof stringSet>;
+const stringSet = Schema.set(Schema.string());
+type stringSet = Schema.infer<typeof stringSet>;
 
-const minTwo = z.set(z.string()).min(2);
-const maxTwo = z.set(z.string()).max(2);
-const justTwo = z.set(z.string()).size(2);
-const nonEmpty = z.set(z.string()).nonempty();
-const nonEmptyMax = z.set(z.string()).nonempty().max(2);
+const minTwo = Schema.set(Schema.string()).min(2);
+const maxTwo = Schema.set(Schema.string()).max(2);
+const justTwo = Schema.set(Schema.string()).size(2);
+const nonEmpty = Schema.set(Schema.string()).nonempty();
+const nonEmptyMax = Schema.set(Schema.string()).nonempty().max(2);
 
 test("type inference", () => {
   expectTypeOf<stringSet>().toEqualTypeOf<Set<string>>();
@@ -103,7 +103,7 @@ test("throws when a Map is given", () => {
   const result = stringSet.safeParse(new Map([]));
   expect(result.success).toEqual(false);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "set",
         "code": "invalid_type",
@@ -119,7 +119,7 @@ test("throws when the given set has invalid input", () => {
   expect(result.success).toEqual(false);
   expect(result.error!.issues.length).toEqual(1);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -135,7 +135,7 @@ test("throws when the given set has multiple invalid entries", () => {
   expect(result.success).toEqual(false);
   expect(result.error!.issues.length).toEqual(2);
   expect(result.error).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -153,12 +153,12 @@ test("throws when the given set has multiple invalid entries", () => {
 });
 
 test("min/max", async () => {
-  const schema = z.set(z.string()).min(4).max(5);
+  const schema = Schema.set(Schema.string()).min(4).max(5);
 
-  const r1 = schema.safeParse(new Set(["a", "b", "c", "d"]));
+  const r1 = Schema.safeParse(new Set(["a", "b", "c", "d"]));
   expect(r1.success).toEqual(true);
 
-  const r2 = schema.safeParse(new Set(["a", "b", "c"]));
+  const r2 = Schema.safeParse(new Set(["a", "b", "c"]));
   expect(r2.success).toEqual(false);
   expect(r2.error!.issues).toMatchInlineSnapshot(`
     [
@@ -173,7 +173,7 @@ test("min/max", async () => {
     ]
   `);
 
-  const r3 = schema.safeParse(new Set(["a", "b", "c", "d", "e", "f"]));
+  const r3 = Schema.safeParse(new Set(["a", "b", "c", "d", "e", "f"]));
   expect(r3.success).toEqual(false);
   expect(r3.error!.issues).toMatchInlineSnapshot(`
     [

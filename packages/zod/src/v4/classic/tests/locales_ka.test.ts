@@ -1,14 +1,14 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("Georgian locale uses 'ველი' instead of 'სტრინგი'", () => {
   // Save original error map to restore later if needed, though tests are usually isolated or we can reset
-  // const originalErrorMap = z.getErrorMap(); // z.getErrorMap might not exist, but let's assume isolation or just set it
+  // const originalErrorMap = Schema.getErrorMap(); // Schema.getErrorMap might not exist, but let's assume isolation or just set it
 
-  z.setErrorMap(z.locales.ka().localeError);
+  Schema.setErrorMap(Schema.locales.ka().localeError);
 
   // Test 1: Invalid type (Expected string, received number)
-  const stringSchema = z.string();
+  const stringSchema = Schema.string();
   const numberResult = stringSchema.safeParse(123);
   expect(numberResult.success).toBe(false);
   if (!numberResult.success) {
@@ -17,7 +17,7 @@ test("Georgian locale uses 'ველი' instead of 'სტრინგი'", (
   }
 
   // Test 2: Invalid base64
-  const base64Schema = z.string().base64();
+  const base64Schema = Schema.string().base64();
   const base64Result = base64Schema.safeParse("not base64!");
   expect(base64Result.success).toBe(false);
   if (!base64Result.success) {

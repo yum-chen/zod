@@ -1,6 +1,6 @@
 {
-  "name": "Zod",
-  "short_name": "Zod",
+  "name": "Schema",
+  "short_name": "Schema",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

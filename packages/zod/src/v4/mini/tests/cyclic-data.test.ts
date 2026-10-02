@@ -1,9 +1,9 @@
 import { beforeEach, expect, test } from "vitest";
-import * as z from "zod/mini";
+import * as Schema from "schema/mini";
 
 // the config object lives on globalThis, so only file isolation protects it; pin the unset precondition explicitly
 beforeEach(() => {
-  delete z.config().memoizer;
+  delete Schema.config().memoizer;
 });
 
 const cyclic = (): any => {
@@ -13,17 +13,17 @@ const cyclic = (): any => {
 };
 
 test("cyclic input needs the memoizer opt-in", () => {
-  const Before: any = z.object({
-    id: z.number(),
+  const Before: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return Before;
     },
   });
   expect(() => Before.parse(cyclic())).toThrow(RangeError);
 
-  z.config({ memoizer: z.memoizer() });
-  const After: any = z.object({
-    id: z.number(),
+  Schema.config({ memoizer: Schema.memoizer() });
+  const After: any = Schema.object({
+    id: Schema.number(),
     get self() {
       return After;
     },
@@ -36,8 +36,8 @@ test("cyclic input needs the memoizer opt-in", () => {
 });
 
 test("the opt-in reaches every core container", () => {
-  z.config({ memoizer: z.memoizer() });
-  const Arr: any = z.array(z.lazy(() => Arr));
+  Schema.config({ memoizer: Schema.memoizer() });
+  const Arr: any = Schema.array(Schema.lazy(() => Arr));
   const input: any = [];
   input.push(input);
   const out = Arr.parse(input);
@@ -45,16 +45,16 @@ test("the opt-in reaches every core container", () => {
 });
 
 test("rejects a cycle that closes through a transform", () => {
-  z.config({ memoizer: z.memoizer() });
-  const Inner: any = z.object({
-    name: z.string(),
+  Schema.config({ memoizer: Schema.memoizer() });
+  const Inner: any = Schema.object({
+    name: Schema.string(),
     get self() {
       return Wrapped;
     },
   });
-  const Wrapped: any = z.pipe(
+  const Wrapped: any = Schema.pipe(
     Inner,
-    z.transform((value: any) => ({ wrapped: value }))
+    Schema.transform((value: any) => ({ wrapped: value }))
   );
 
   const input: any = { name: "x" };
@@ -64,11 +64,11 @@ test("rejects a cycle that closes through a transform", () => {
 });
 
 test("leaves a transform that is not on the cycle alone", () => {
-  z.config({ memoizer: z.memoizer() });
-  const Node: any = z.object({
-    n: z.pipe(
-      z.number(),
-      z.transform((value: number) => value * 2)
+  Schema.config({ memoizer: Schema.memoizer() });
+  const Node: any = Schema.object({
+    n: Schema.pipe(
+      Schema.number(),
+      Schema.transform((value: number) => value * 2)
     ),
     get self() {
       return Node;

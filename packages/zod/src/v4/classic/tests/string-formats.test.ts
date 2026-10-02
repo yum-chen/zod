@@ -1,13 +1,13 @@
 import { expect, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("string format methods", () => {
-  const a = z.email().min(10);
-  const b = z.email().max(10);
-  const c = z.email().length(10);
-  const d = z.email().uppercase();
-  const e = z.email().lowercase();
+  const a = Schema.email().min(10);
+  const b = Schema.email().max(10);
+  const c = Schema.email().length(10);
+  const d = Schema.email().uppercase();
+  const e = Schema.email().lowercase();
 
   // Positive and negative cases for `a`
   expect(a.safeParse("longemail@example.com").success).toBe(true); // Positive
@@ -30,7 +30,7 @@ test("string format methods", () => {
   expect(e.safeParse("EMAIL@EXAMPLE.COM").success).toBe(false); // Negative
 });
 
-test("z.stringFormat", () => {
+test("Schema.stringFormat", () => {
   const ccRegex = /^(?:\d{14,19}|\d{4}(?: \d{3,6}){2,4}|\d{4}(?:-\d{3,6}){2,4})$/u;
 
   const a = z
@@ -41,7 +41,7 @@ test("z.stringFormat", () => {
 
   expect(a.safeParse("asdf")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "creditCard",
@@ -59,7 +59,7 @@ test("z.stringFormat", () => {
   `);
   expect(a.safeParse("1234-5678-9012-3456")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -80,7 +80,7 @@ test("z.stringFormat", () => {
 
   expect(b.safeParse("asdf")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "invalid_format",
         "format": "creditCard",
@@ -93,7 +93,7 @@ test("z.stringFormat", () => {
   `);
   expect(b.safeParse("1234-5678-9012-3456")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -108,8 +108,8 @@ test("z.stringFormat", () => {
   );
 });
 
-test("z.hex", () => {
-  const hexSchema = z.hex();
+test("Schema.hex", () => {
+  const hexSchema = Schema.hex();
 
   // Valid hex strings
   expect(hexSchema.safeParse("").success).toBe(true); // Empty string is valid hex

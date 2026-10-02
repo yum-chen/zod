@@ -2,7 +2,7 @@
   "extends": "../../.configs/tsconfig.base.json",
   "compilerOptions": {
     "module": "nodenext",
-    "customConditions": ["@zod/source"],
+    "customConditions": ["@schema/source"],
     "noEmit": true,
     "types": ["vitest"]
   },

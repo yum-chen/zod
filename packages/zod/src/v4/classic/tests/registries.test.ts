@@ -1,32 +1,32 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("globalRegistry", () => {
-  const reg = z.registry();
+  const reg = Schema.registry();
 
-  const a = z.string();
+  const a = Schema.string();
   reg.add(a);
   expect(reg.has(a)).toEqual(true);
 
   reg.remove(a);
   expect(reg.has(a)).toEqual(false);
 
-  a.register(z.globalRegistry, { field: "sup" });
-  expect(z.globalRegistry.has(a)).toEqual(true);
-  expect(z.globalRegistry.get(a)).toEqual({ field: "sup" });
+  a.register(Schema.globalRegistry, { field: "sup" });
+  expect(Schema.globalRegistry.has(a)).toEqual(true);
+  expect(Schema.globalRegistry.get(a)).toEqual({ field: "sup" });
 
-  z.globalRegistry.remove(a);
-  expect(z.globalRegistry.has(a)).toEqual(false);
+  Schema.globalRegistry.remove(a);
+  expect(Schema.globalRegistry.has(a)).toEqual(false);
 });
 
 test("globalRegistry is singleton and attached to globalThis", () => {
-  expect(z.globalRegistry).toBe((globalThis as any).__zod_globalRegistry);
+  expect(Schema.globalRegistry).toBe((globalThis as any).__schema_globalRegistry);
 });
 
-test("z.registry", () => {
-  const fieldRegistry = z.registry<{ name: string; description: string }>();
+test("Schema.registry", () => {
+  const fieldRegistry = Schema.registry<{ name: string; description: string }>();
 
-  const a = z.string();
+  const a = Schema.string();
   fieldRegistry.add(a, { name: "hello", description: "world" });
   const a_meta = fieldRegistry.get(a);
   expect(a_meta).toEqual({ name: "hello", description: "world" });
@@ -36,32 +36,32 @@ test("z.registry", () => {
   expect(fieldRegistry.get(a)).toEqual(undefined);
 });
 
-test("z.registry no metadata", () => {
-  const fieldRegistry = z.registry();
+test("Schema.registry no metadata", () => {
+  const fieldRegistry = Schema.registry();
 
-  const a = z.string();
+  const a = Schema.string();
   fieldRegistry.add(a);
-  fieldRegistry.add(z.number());
+  fieldRegistry.add(Schema.number());
   expect(fieldRegistry.get(a)).toEqual(undefined);
   expect(fieldRegistry.has(a)).toEqual(true);
 });
 
-test("z.registry with schema constraints", () => {
-  const fieldRegistry = z.registry<{ name: string; description: string }, z.ZodString>();
+test("Schema.registry with schema constraints", () => {
+  const fieldRegistry = Schema.registry<{ name: string; description: string }, Schema.SchemaString>();
 
-  const a = z.string();
+  const a = Schema.string();
   fieldRegistry.add(a, { name: "hello", description: "world" });
   // @ts-expect-error
-  fieldRegistry.add(z.number(), { name: "test" });
+  fieldRegistry.add(Schema.number(), { name: "test" });
   // @ts-expect-error
-  z.number().register(fieldRegistry, { name: "test", description: "test" });
+  Schema.number().register(fieldRegistry, { name: "test", description: "test" });
 });
 
-// test("z.namedRegistry", () => {
+// test("Schema.namedRegistry", () => {
 //   const namedReg = z
 //     .namedRegistry<{ name: string; description: string }>()
-//     .add(z.string(), { name: "hello", description: "world" })
-//     .add(z.number(), { name: "number", description: "number" });
+//     .add(Schema.string(), { name: "hello", description: "world" })
+//     .add(Schema.number(), { name: "number", description: "number" });
 
 //   expect(namedReg.get("hello")).toEqual({
 //     name: "hello",
@@ -91,8 +91,8 @@ test("z.registry with schema constraints", () => {
 // });
 
 test("output type in registry meta", () => {
-  const reg = z.registry<{ out: z.$output }>();
-  const a = z.string();
+  const reg = Schema.registry<{ out: Schema.$output }>();
+  const a = Schema.string();
   reg.add(a, { out: "asdf" });
   // @ts-expect-error
   reg.add(a, 1234);
@@ -100,8 +100,8 @@ test("output type in registry meta", () => {
 });
 
 test("output type in registry meta - objects and arrays", () => {
-  const reg = z.registry<{ name: string; examples: z.$output[] }>();
-  const a = z.string();
+  const reg = Schema.registry<{ name: string; examples: Schema.$output[] }>();
+  const a = Schema.string();
   reg.add(a, { name: "hello", examples: ["world"] });
 
   // @ts-expect-error
@@ -110,8 +110,8 @@ test("output type in registry meta - objects and arrays", () => {
 });
 
 test("input type in registry meta", () => {
-  const reg = z.registry<{ in: z.$input }>();
-  const a = z.pipe(z.number(), z.transform(String));
+  const reg = Schema.registry<{ in: Schema.$input }>();
+  const a = Schema.pipe(Schema.number(), Schema.transform(String));
   reg.add(a, { in: 1234 });
   // @ts-expect-error
   reg.add(a, "1234");
@@ -119,8 +119,8 @@ test("input type in registry meta", () => {
 });
 
 test("input type in registry meta - objects and arrays", () => {
-  const reg = z.registry<{ name: string; examples: z.$input[] }>();
-  const a = z.pipe(z.number(), z.transform(String));
+  const reg = Schema.registry<{ name: string; examples: Schema.$input[] }>();
+  const a = Schema.pipe(Schema.number(), Schema.transform(String));
   reg.add(a, { name: "hello", examples: [1234] });
 
   // @ts-expect-error
@@ -129,7 +129,7 @@ test("input type in registry meta - objects and arrays", () => {
 });
 
 test(".meta method", () => {
-  const a1 = z.string();
+  const a1 = Schema.string();
   const a2 = a1.meta({ name: "hello" });
 
   expect(a1.meta()).toEqual(undefined);
@@ -138,7 +138,7 @@ test(".meta method", () => {
 });
 
 test(".meta metadata does not bubble up", () => {
-  const a1 = z.string().meta({ name: "hello" });
+  const a1 = Schema.string().meta({ name: "hello" });
   const a2 = a1.optional();
 
   expect(a1.meta()).toEqual({ name: "hello" });
@@ -146,7 +146,7 @@ test(".meta metadata does not bubble up", () => {
 });
 
 test(".describe", () => {
-  const a1 = z.string();
+  const a1 = Schema.string();
   const a2 = a1.describe("Hello");
 
   expect(a1.description).toEqual(undefined);
@@ -154,7 +154,7 @@ test(".describe", () => {
 });
 
 test("inherit across clone", () => {
-  const A = z.string().meta({ a: true });
+  const A = Schema.string().meta({ a: true });
   expect(A.meta()).toEqual({ a: true });
   const B = A.meta({ b: true });
   expect(B.meta()).toEqual({ a: true, b: true });
@@ -163,17 +163,17 @@ test("inherit across clone", () => {
 });
 
 test("loose examples", () => {
-  z.string().register(z.globalRegistry, {
+  Schema.string().register(Schema.globalRegistry, {
     examples: ["example"],
   });
 });
 
 test("function meta without replacement", () => {
-  const myReg = z.registry<{
+  const myReg = Schema.registry<{
     defaulter: (arg: string, test: boolean) => number;
   }>();
 
-  const mySchema = z.date();
+  const mySchema = Schema.date();
   myReg.add(mySchema, {
     defaulter: (arg, _test) => {
       return arg.length;
@@ -184,11 +184,11 @@ test("function meta without replacement", () => {
 });
 
 test("function meta with replacement", () => {
-  const myReg = z.registry<{
-    defaulter: (arg: z.$input, test: boolean) => z.$output;
+  const myReg = Schema.registry<{
+    defaulter: (arg: Schema.$input, test: boolean) => Schema.$output;
   }>();
 
-  const mySchema = z.string().transform((val) => val.length);
+  const mySchema = Schema.string().transform((val) => val.length);
   myReg.add(mySchema, {
     defaulter: (arg, _test) => {
       return arg.length;
@@ -199,8 +199,8 @@ test("function meta with replacement", () => {
 });
 
 test("test .clear()", () => {
-  const reg = z.registry();
-  const a = z.string();
+  const reg = Schema.registry();
+  const a = Schema.string();
   reg.add(a);
   expect(reg.has(a)).toEqual(true);
   reg.clear();
@@ -208,9 +208,9 @@ test("test .clear()", () => {
 });
 
 test("re-registering same id silently overwrites", () => {
-  const reg = z.registry<z.core.GlobalMeta>();
-  const a = z.string();
-  const b = z.number();
+  const reg = Schema.registry<Schema.core.GlobalMeta>();
+  const a = Schema.string();
+  const b = Schema.number();
 
   reg.add(a, { id: "shared-id" });
   reg.add(b, { id: "shared-id" });
@@ -220,24 +220,24 @@ test("re-registering same id silently overwrites", () => {
 });
 
 test("toJSONSchema throws on duplicate id across different schemas", () => {
-  const reg = z.registry<z.core.GlobalMeta>();
-  const a = z.string().register(reg, { id: "duplicate-id" });
-  const b = z.number().register(reg, { id: "duplicate-id" });
+  const reg = Schema.registry<Schema.core.GlobalMeta>();
+  const a = Schema.string().register(reg, { id: "duplicate-id" });
+  const b = Schema.number().register(reg, { id: "duplicate-id" });
 
-  const wrapper = z.object({ a, b });
+  const wrapper = Schema.object({ a, b });
 
-  expect(() => z.toJSONSchema(wrapper, { metadata: reg })).toThrow(
+  expect(() => Schema.toJSONSchema(wrapper, { metadata: reg })).toThrow(
     'Duplicate schema id "duplicate-id" detected during JSON Schema conversion. Two different schemas cannot share the same id when converted together.'
   );
 });
 
 test("toJSONSchema allows same schema with same id", () => {
-  const reg = z.registry<z.core.GlobalMeta>();
-  const shared = z.string().register(reg, { id: "shared-id" });
+  const reg = Schema.registry<Schema.core.GlobalMeta>();
+  const shared = Schema.string().register(reg, { id: "shared-id" });
 
-  const wrapper = z.object({ a: shared, b: shared });
+  const wrapper = Schema.object({ a: shared, b: shared });
 
   // Should not throw - same schema instance used twice
-  const result = z.toJSONSchema(wrapper, { metadata: reg });
+  const result = Schema.toJSONSchema(wrapper, { metadata: reg });
   expect(result.$defs?.["shared-id"]).toBeDefined();
 });

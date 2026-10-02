@@ -1,4 +1,4 @@
-// import { $ZodType } from "./schemas.js";
+// import { $SchemaType } from "./schemas.js";
 
 import * as core from "./core.js";
 import type * as errors from "./errors.js";
@@ -8,33 +8,33 @@ import * as util from "./util.js";
 
 //////////////////////////////   CHECKS   ///////////////////////////////////////
 
-export interface $ZodCheckDef {
+export interface $SchemaCheckDef {
   check: string;
-  error?: errors.$ZodErrorMap<never> | undefined;
+  error?: errors.$SchemaErrorMap<never> | undefined;
   /** If true, no later checks will be executed if this check fails. Default `false`. */
   abort?: boolean | undefined;
   /** If provided, the check runs only when this returns `true`. By default, it is skipped if prior parsing produced aborting issues. */
   when?: ((payload: schemas.ParsePayload) => boolean) | undefined;
 }
 
-export interface $ZodCheckInternals<T> {
-  def: $ZodCheckDef;
+export interface $SchemaCheckInternals<T> {
+  def: $SchemaCheckDef;
   /** The set of issues this check might throw. */
-  issc?: errors.$ZodIssueBase;
+  issc?: errors.$SchemaIssueBase;
   check(payload: schemas.ParsePayload<T>): util.MaybeAsync<void>;
-  onattach: ((schema: schemas.$ZodType) => void)[];
+  onattach: ((schema: schemas.$SchemaType) => void)[];
 }
 
-export interface $ZodCheck<in T = never> {
-  _zod: $ZodCheckInternals<T>;
+export interface $SchemaCheck<in T = never> {
+  _schema: $SchemaCheckInternals<T>;
 }
 
-export const $ZodCheck: core.$constructor<$ZodCheck<any>> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheck",
+export const $SchemaCheck: core.$constructor<$SchemaCheck<any>> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheck",
   (inst, def) => {
-    inst._zod ??= {} as any;
-    inst._zod.def = def;
-    inst._zod.onattach ??= [];
+    inst._schema ??= {} as any;
+    inst._schema.def = def;
+    inst._schema.onattach ??= [];
   }
 );
 
@@ -51,17 +51,17 @@ const _whenHasLength = (payload: schemas.ParsePayload): boolean => {
 };
 
 ///////////////////////////////////////
-/////      $ZodCheckLessThan      /////
+/////      $SchemaCheckLessThan      /////
 ///////////////////////////////////////
-export interface $ZodCheckLessThanDef extends $ZodCheckDef {
+export interface $SchemaCheckLessThanDef extends $SchemaCheckDef {
   check: "less_than";
   value: util.Numeric;
   inclusive: boolean;
 }
 
-export interface $ZodCheckLessThanInternals<T extends util.Numeric = util.Numeric> extends $ZodCheckInternals<T> {
-  def: $ZodCheckLessThanDef;
-  issc: errors.$ZodIssueTooBig<T>;
+export interface $SchemaCheckLessThanInternals<T extends util.Numeric = util.Numeric> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckLessThanDef;
+  issc: errors.$SchemaIssueTooBig<T>;
 }
 
 const numericOriginMap = {
@@ -69,17 +69,17 @@ const numericOriginMap = {
   bigint: "bigint",
   object: "date",
 } as const;
-export interface $ZodCheckLessThan<T extends util.Numeric = util.Numeric> extends $ZodCheck<T> {
-  _zod: $ZodCheckLessThanInternals<T>;
+export interface $SchemaCheckLessThan<T extends util.Numeric = util.Numeric> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckLessThanInternals<T>;
 }
 
-export const $ZodCheckLessThan: core.$constructor<$ZodCheckLessThan> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckLessThan",
+export const $SchemaCheckLessThan: core.$constructor<$SchemaCheckLessThan> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckLessThan",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
     const origin = numericOriginMap[typeof def.value as "number" | "bigint" | "object"];
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (def.inclusive ? payload.value <= def.value : payload.value < def.value) {
         return;
       }
@@ -98,30 +98,30 @@ export const $ZodCheckLessThan: core.$constructor<$ZodCheckLessThan> = /*@__PURE
 );
 
 /////////////////////////////////////
-/////    $ZodCheckGreaterThan    /////
+/////    $SchemaCheckGreaterThan    /////
 /////////////////////////////////////
-export interface $ZodCheckGreaterThanDef extends $ZodCheckDef {
+export interface $SchemaCheckGreaterThanDef extends $SchemaCheckDef {
   check: "greater_than";
   value: util.Numeric;
   inclusive: boolean;
 }
 
-export interface $ZodCheckGreaterThanInternals<T extends util.Numeric = util.Numeric> extends $ZodCheckInternals<T> {
-  def: $ZodCheckGreaterThanDef;
-  issc: errors.$ZodIssueTooSmall<T>;
+export interface $SchemaCheckGreaterThanInternals<T extends util.Numeric = util.Numeric> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckGreaterThanDef;
+  issc: errors.$SchemaIssueTooSmall<T>;
 }
 
-export interface $ZodCheckGreaterThan<T extends util.Numeric = util.Numeric> extends $ZodCheck<T> {
-  _zod: $ZodCheckGreaterThanInternals<T>;
+export interface $SchemaCheckGreaterThan<T extends util.Numeric = util.Numeric> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckGreaterThanInternals<T>;
 }
 
-export const $ZodCheckGreaterThan: core.$constructor<$ZodCheckGreaterThan> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckGreaterThan",
+export const $SchemaCheckGreaterThan: core.$constructor<$SchemaCheckGreaterThan> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckGreaterThan",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
     const origin = numericOriginMap[typeof def.value as "number" | "bigint" | "object"];
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (def.inclusive ? payload.value >= def.value : payload.value > def.value) {
         return;
       }
@@ -140,30 +140,30 @@ export const $ZodCheckGreaterThan: core.$constructor<$ZodCheckGreaterThan> = /*@
 );
 
 /////////////////////////////////////
-/////    $ZodCheckMultipleOf    /////
+/////    $SchemaCheckMultipleOf    /////
 /////////////////////////////////////
 // https://stackoverflow.com/questions/3966484/why-does-modulus-operator-return-fractional-number-in-javascript/31711034#31711034
 
-export interface $ZodCheckMultipleOfDef<T extends number | bigint = number | bigint> extends $ZodCheckDef {
+export interface $SchemaCheckMultipleOfDef<T extends number | bigint = number | bigint> extends $SchemaCheckDef {
   check: "multiple_of";
   value: T;
 }
 
-export interface $ZodCheckMultipleOfInternals<T extends number | bigint = number | bigint>
-  extends $ZodCheckInternals<T> {
-  def: $ZodCheckMultipleOfDef<T>;
-  issc: errors.$ZodIssueNotMultipleOf;
+export interface $SchemaCheckMultipleOfInternals<T extends number | bigint = number | bigint>
+  extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckMultipleOfDef<T>;
+  issc: errors.$SchemaIssueNotMultipleOf;
 }
 
-export interface $ZodCheckMultipleOf<T extends number | bigint = number | bigint> extends $ZodCheck<T> {
-  _zod: $ZodCheckMultipleOfInternals<T>;
+export interface $SchemaCheckMultipleOf<T extends number | bigint = number | bigint> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckMultipleOfInternals<T>;
 }
 
-export const $ZodCheckMultipleOf: core.$constructor<$ZodCheckMultipleOf<number | bigint>> =
-  /*@__PURE__*/ core.$constructor("$ZodCheckMultipleOf", (inst, def) => {
-    $ZodCheck.init(inst, def);
+export const $SchemaCheckMultipleOf: core.$constructor<$SchemaCheckMultipleOf<number | bigint>> =
+  /*@__PURE__*/ core.$constructor("$SchemaCheckMultipleOf", (inst, def) => {
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (typeof payload.value !== typeof def.value)
         throw new Error("Cannot mix number and bigint in multiple_of check.");
       const isMultiple =
@@ -185,28 +185,28 @@ export const $ZodCheckMultipleOf: core.$constructor<$ZodCheckMultipleOf<number |
   });
 
 /////////////////////////////////////
-/////    $ZodCheckFinite    /////
+/////    $SchemaCheckFinite    /////
 /////////////////////////////////////
-// interface $ZodCheckFiniteDef extends $ZodCheckDef {
+// interface $SchemaCheckFiniteDef extends $SchemaCheckDef {
 //   check: "finite";
 // }
 
-// export interface $ZodCheckFinite extends $ZodCheckInternals<number> {
-//   _def: $ZodCheckFiniteDef;
+// export interface $SchemaCheckFinite extends $SchemaCheckInternals<number> {
+//   _def: $SchemaCheckFiniteDef;
 //   _issc:
-//     | errors.$ZodIssueTooBig<"number", number>
-//     | errors.$ZodIssueTooSmall<"number", number>;
+//     | errors.$SchemaIssueTooBig<"number", number>
+//     | errors.$SchemaIssueTooSmall<"number", number>;
 // }
 
-// export const $ZodCheckFinite: core.$constructor<$ZodCheckFinite> =
-//   core.$constructor("$ZodCheckFinite", (inst, def) => {
-//     $ZodCheck.init(inst, def);
+// export const $SchemaCheckFinite: core.$constructor<$SchemaCheckFinite> =
+//   core.$constructor("$SchemaCheckFinite", (inst, def) => {
+//     $SchemaCheck.init(inst, def);
 
-//     inst._zod.onattach = (inst) => {
+//     inst._schema.onattach = (inst) => {
 //       inst["_bag"].finite = true;
 //     };
 
-//     inst._zod.check = (payload) => {
+//     inst._schema.check = (payload) => {
 //       if (Number.isFinite(payload.value)) return;
 //       payload.issues.push({
 //         origin: "number",
@@ -229,41 +229,41 @@ export const $ZodCheckMultipleOf: core.$constructor<$ZodCheckMultipleOf<number |
 //   });
 
 ///////////////////////////////////////
-/////    $ZodCheckNumberFormat    /////
+/////    $SchemaCheckNumberFormat    /////
 ///////////////////////////////////////
 
-export type $ZodNumberFormats = "int32" | "uint32" | "float32" | "float64" | "safeint";
+export type $SchemaNumberFormats = "int32" | "uint32" | "float32" | "float64" | "safeint";
 
-export interface $ZodCheckNumberFormatDef<Format extends $ZodNumberFormats = $ZodNumberFormats> extends $ZodCheckDef {
+export interface $SchemaCheckNumberFormatDef<Format extends $SchemaNumberFormats = $SchemaNumberFormats> extends $SchemaCheckDef {
   check: "number_format";
   format: Format;
   // abort?: boolean;
 }
 
-export interface $ZodCheckNumberFormatInternals<Format extends $ZodNumberFormats = $ZodNumberFormats>
-  extends $ZodCheckInternals<number> {
-  def: $ZodCheckNumberFormatDef<Format>;
-  issc: errors.$ZodIssueInvalidType | errors.$ZodIssueTooBig<"number"> | errors.$ZodIssueTooSmall<"number">;
+export interface $SchemaCheckNumberFormatInternals<Format extends $SchemaNumberFormats = $SchemaNumberFormats>
+  extends $SchemaCheckInternals<number> {
+  def: $SchemaCheckNumberFormatDef<Format>;
+  issc: errors.$SchemaIssueInvalidType | errors.$SchemaIssueTooBig<"number"> | errors.$SchemaIssueTooSmall<"number">;
   // bag: util.LoosePartial<{
   //   minimum?: number | undefined;
   // }>;
 }
 
-export interface $ZodCheckNumberFormat<Format extends $ZodNumberFormats = $ZodNumberFormats> extends $ZodCheck<number> {
-  _zod: $ZodCheckNumberFormatInternals<Format>;
+export interface $SchemaCheckNumberFormat<Format extends $SchemaNumberFormats = $SchemaNumberFormats> extends $SchemaCheck<number> {
+  _schema: $SchemaCheckNumberFormatInternals<Format>;
 }
 
-export const $ZodCheckNumberFormat: core.$constructor<$ZodCheckNumberFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckNumberFormat",
+export const $SchemaCheckNumberFormat: core.$constructor<$SchemaCheckNumberFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckNumberFormat",
   (inst, def) => {
-    $ZodCheck.init(inst, def); // no format checks
+    $SchemaCheck.init(inst, def); // no format checks
     def.format = def.format || "float64";
 
     const isInt = def.format?.includes("int");
     const origin = isInt ? "int" : "number";
     const [minimum, maximum] = util.NUMBER_FORMAT_RANGES[def.format];
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
 
       if (isInt) {
@@ -356,34 +356,34 @@ export const $ZodCheckNumberFormat: core.$constructor<$ZodCheckNumberFormat> = /
 );
 
 /////////////////////////////////////
-/////    $ZodCheckBigIntFormat    /////
+/////    $SchemaCheckBigIntFormat    /////
 /////////////////////////////////////
 
-export type $ZodBigIntFormats = "int64" | "uint64";
+export type $SchemaBigIntFormats = "int64" | "uint64";
 
-export interface $ZodCheckBigIntFormatDef<Format extends $ZodBigIntFormats = $ZodBigIntFormats> extends $ZodCheckDef {
+export interface $SchemaCheckBigIntFormatDef<Format extends $SchemaBigIntFormats = $SchemaBigIntFormats> extends $SchemaCheckDef {
   check: "bigint_format";
   format: Format;
 }
 
-export interface $ZodCheckBigIntFormatInternals<Format extends $ZodBigIntFormats = $ZodBigIntFormats>
-  extends $ZodCheckInternals<bigint> {
-  def: $ZodCheckBigIntFormatDef<Format>;
-  issc: errors.$ZodIssueTooBig<"bigint"> | errors.$ZodIssueTooSmall<"bigint">;
+export interface $SchemaCheckBigIntFormatInternals<Format extends $SchemaBigIntFormats = $SchemaBigIntFormats>
+  extends $SchemaCheckInternals<bigint> {
+  def: $SchemaCheckBigIntFormatDef<Format>;
+  issc: errors.$SchemaIssueTooBig<"bigint"> | errors.$SchemaIssueTooSmall<"bigint">;
 }
 
-export interface $ZodCheckBigIntFormat<Format extends $ZodBigIntFormats = $ZodBigIntFormats> extends $ZodCheck<bigint> {
-  _zod: $ZodCheckBigIntFormatInternals<Format>;
+export interface $SchemaCheckBigIntFormat<Format extends $SchemaBigIntFormats = $SchemaBigIntFormats> extends $SchemaCheck<bigint> {
+  _schema: $SchemaCheckBigIntFormatInternals<Format>;
 }
 
-export const $ZodCheckBigIntFormat: core.$constructor<$ZodCheckBigIntFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckBigIntFormat",
+export const $SchemaCheckBigIntFormat: core.$constructor<$SchemaCheckBigIntFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckBigIntFormat",
   (inst, def) => {
-    $ZodCheck.init(inst, def); // no format checks
+    $SchemaCheck.init(inst, def); // no format checks
 
     const [minimum, maximum] = util.BIGINT_FORMAT_RANGES[def.format];
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
 
       if (input < minimum) {
@@ -414,30 +414,30 @@ export const $ZodCheckBigIntFormat: core.$constructor<$ZodCheckBigIntFormat> = /
 );
 
 //////////////////////////////////
-/////    $ZodCheckMaxSize    /////
+/////    $SchemaCheckMaxSize    /////
 //////////////////////////////////
-export interface $ZodCheckMaxSizeDef extends $ZodCheckDef {
+export interface $SchemaCheckMaxSizeDef extends $SchemaCheckDef {
   check: "max_size";
   maximum: number;
 }
 
-export interface $ZodCheckMaxSizeInternals<T extends util.HasSize = util.HasSize> extends $ZodCheckInternals<T> {
-  def: $ZodCheckMaxSizeDef;
-  issc: errors.$ZodIssueTooBig<T>;
+export interface $SchemaCheckMaxSizeInternals<T extends util.HasSize = util.HasSize> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckMaxSizeDef;
+  issc: errors.$SchemaIssueTooBig<T>;
 }
 
-export interface $ZodCheckMaxSize<T extends util.HasSize = util.HasSize> extends $ZodCheck<T> {
-  _zod: $ZodCheckMaxSizeInternals<T>;
+export interface $SchemaCheckMaxSize<T extends util.HasSize = util.HasSize> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckMaxSizeInternals<T>;
 }
 
-export const $ZodCheckMaxSize: core.$constructor<$ZodCheckMaxSize> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckMaxSize",
+export const $SchemaCheckMaxSize: core.$constructor<$SchemaCheckMaxSize> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckMaxSize",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.def.when ??= _whenHasSize;
+    inst._schema.def.when ??= _whenHasSize;
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
       const size = input.size;
 
@@ -456,30 +456,30 @@ export const $ZodCheckMaxSize: core.$constructor<$ZodCheckMaxSize> = /*@__PURE__
 );
 
 //////////////////////////////////
-/////    $ZodCheckMinSize    /////
+/////    $SchemaCheckMinSize    /////
 //////////////////////////////////
-export interface $ZodCheckMinSizeDef extends $ZodCheckDef {
+export interface $SchemaCheckMinSizeDef extends $SchemaCheckDef {
   check: "min_size";
   minimum: number;
 }
 
-export interface $ZodCheckMinSizeInternals<T extends util.HasSize = util.HasSize> extends $ZodCheckInternals<T> {
-  def: $ZodCheckMinSizeDef;
-  issc: errors.$ZodIssueTooSmall<T>;
+export interface $SchemaCheckMinSizeInternals<T extends util.HasSize = util.HasSize> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckMinSizeDef;
+  issc: errors.$SchemaIssueTooSmall<T>;
 }
 
-export interface $ZodCheckMinSize<T extends util.HasSize = util.HasSize> extends $ZodCheck<T> {
-  _zod: $ZodCheckMinSizeInternals<T>;
+export interface $SchemaCheckMinSize<T extends util.HasSize = util.HasSize> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckMinSizeInternals<T>;
 }
 
-export const $ZodCheckMinSize: core.$constructor<$ZodCheckMinSize> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckMinSize",
+export const $SchemaCheckMinSize: core.$constructor<$SchemaCheckMinSize> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckMinSize",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.def.when ??= _whenHasSize;
+    inst._schema.def.when ??= _whenHasSize;
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
       const size = input.size;
 
@@ -498,30 +498,30 @@ export const $ZodCheckMinSize: core.$constructor<$ZodCheckMinSize> = /*@__PURE__
 );
 
 /////////////////////////////////////
-/////    $ZodCheckSizeEquals    /////
+/////    $SchemaCheckSizeEquals    /////
 /////////////////////////////////////
-export interface $ZodCheckSizeEqualsDef extends $ZodCheckDef {
+export interface $SchemaCheckSizeEqualsDef extends $SchemaCheckDef {
   check: "size_equals";
   size: number;
 }
 
-export interface $ZodCheckSizeEqualsInternals<T extends util.HasSize = util.HasSize> extends $ZodCheckInternals<T> {
-  def: $ZodCheckSizeEqualsDef;
-  issc: errors.$ZodIssueTooBig<T> | errors.$ZodIssueTooSmall<T>;
+export interface $SchemaCheckSizeEqualsInternals<T extends util.HasSize = util.HasSize> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckSizeEqualsDef;
+  issc: errors.$SchemaIssueTooBig<T> | errors.$SchemaIssueTooSmall<T>;
 }
 
-export interface $ZodCheckSizeEquals<T extends util.HasSize = util.HasSize> extends $ZodCheck<T> {
-  _zod: $ZodCheckSizeEqualsInternals<T>;
+export interface $SchemaCheckSizeEquals<T extends util.HasSize = util.HasSize> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckSizeEqualsInternals<T>;
 }
 
-export const $ZodCheckSizeEquals: core.$constructor<$ZodCheckSizeEquals> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckSizeEquals",
+export const $SchemaCheckSizeEquals: core.$constructor<$SchemaCheckSizeEquals> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckSizeEquals",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.def.when ??= _whenHasSize;
+    inst._schema.def.when ??= _whenHasSize;
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
       const size = input.size;
       if (size === def.size) return;
@@ -541,31 +541,31 @@ export const $ZodCheckSizeEquals: core.$constructor<$ZodCheckSizeEquals> = /*@__
 );
 
 //////////////////////////////////
-/////    $ZodCheckMaxLength    /////
+/////    $SchemaCheckMaxLength    /////
 //////////////////////////////////
 
-export interface $ZodCheckMaxLengthDef extends $ZodCheckDef {
+export interface $SchemaCheckMaxLengthDef extends $SchemaCheckDef {
   check: "max_length";
   maximum: number;
 }
 
-export interface $ZodCheckMaxLengthInternals<T extends util.HasLength = util.HasLength> extends $ZodCheckInternals<T> {
-  def: $ZodCheckMaxLengthDef;
-  issc: errors.$ZodIssueTooBig<T>;
+export interface $SchemaCheckMaxLengthInternals<T extends util.HasLength = util.HasLength> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckMaxLengthDef;
+  issc: errors.$SchemaIssueTooBig<T>;
 }
 
-export interface $ZodCheckMaxLength<T extends util.HasLength = util.HasLength> extends $ZodCheck<T> {
-  _zod: $ZodCheckMaxLengthInternals<T>;
+export interface $SchemaCheckMaxLength<T extends util.HasLength = util.HasLength> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckMaxLengthInternals<T>;
 }
 
-export const $ZodCheckMaxLength: core.$constructor<$ZodCheckMaxLength> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckMaxLength",
+export const $SchemaCheckMaxLength: core.$constructor<$SchemaCheckMaxLength> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckMaxLength",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.def.when ??= _whenHasLength;
+    inst._schema.def.when ??= _whenHasLength;
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
       const units = input.length;
       // Strings are measured in Unicode code points, not UTF-16 units. A code point is at most two units, so a string that already fits in units fits in code points; only an overflow has to be counted.
@@ -587,30 +587,30 @@ export const $ZodCheckMaxLength: core.$constructor<$ZodCheckMaxLength> = /*@__PU
 );
 
 //////////////////////////////////
-/////    $ZodCheckMinLength    /////
+/////    $SchemaCheckMinLength    /////
 //////////////////////////////////
-export interface $ZodCheckMinLengthDef extends $ZodCheckDef {
+export interface $SchemaCheckMinLengthDef extends $SchemaCheckDef {
   check: "min_length";
   minimum: number;
 }
 
-export interface $ZodCheckMinLengthInternals<T extends util.HasLength = util.HasLength> extends $ZodCheckInternals<T> {
-  def: $ZodCheckMinLengthDef;
-  issc: errors.$ZodIssueTooSmall<T>;
+export interface $SchemaCheckMinLengthInternals<T extends util.HasLength = util.HasLength> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckMinLengthDef;
+  issc: errors.$SchemaIssueTooSmall<T>;
 }
 
-export interface $ZodCheckMinLength<T extends util.HasLength = util.HasLength> extends $ZodCheck<T> {
-  _zod: $ZodCheckMinLengthInternals<T>;
+export interface $SchemaCheckMinLength<T extends util.HasLength = util.HasLength> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckMinLengthInternals<T>;
 }
 
-export const $ZodCheckMinLength: core.$constructor<$ZodCheckMinLength> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckMinLength",
+export const $SchemaCheckMinLength: core.$constructor<$SchemaCheckMinLength> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckMinLength",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.def.when ??= _whenHasLength;
+    inst._schema.def.when ??= _whenHasLength;
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
       const units = input.length;
       // A code point is one or two UTF-16 units, so fewer units than the floor can never reach it and twice the floor always clears it. Only in between is the exact count in doubt.
@@ -635,31 +635,31 @@ export const $ZodCheckMinLength: core.$constructor<$ZodCheckMinLength> = /*@__PU
 );
 
 /////////////////////////////////////
-/////    $ZodCheckLengthEquals    /////
+/////    $SchemaCheckLengthEquals    /////
 /////////////////////////////////////
-export interface $ZodCheckLengthEqualsDef extends $ZodCheckDef {
+export interface $SchemaCheckLengthEqualsDef extends $SchemaCheckDef {
   check: "length_equals";
   length: number;
 }
 
-export interface $ZodCheckLengthEqualsInternals<T extends util.HasLength = util.HasLength>
-  extends $ZodCheckInternals<T> {
-  def: $ZodCheckLengthEqualsDef;
-  issc: errors.$ZodIssueTooBig<T> | errors.$ZodIssueTooSmall<T>;
+export interface $SchemaCheckLengthEqualsInternals<T extends util.HasLength = util.HasLength>
+  extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckLengthEqualsDef;
+  issc: errors.$SchemaIssueTooBig<T> | errors.$SchemaIssueTooSmall<T>;
 }
 
-export interface $ZodCheckLengthEquals<T extends util.HasLength = util.HasLength> extends $ZodCheck<T> {
-  _zod: $ZodCheckLengthEqualsInternals<T>;
+export interface $SchemaCheckLengthEquals<T extends util.HasLength = util.HasLength> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckLengthEqualsInternals<T>;
 }
 
-export const $ZodCheckLengthEquals: core.$constructor<$ZodCheckLengthEquals> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckLengthEquals",
+export const $SchemaCheckLengthEquals: core.$constructor<$SchemaCheckLengthEquals> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckLengthEquals",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.def.when ??= _whenHasLength;
+    inst._schema.def.when ??= _whenHasLength;
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       const input = payload.value;
       const units = input.length;
       // A code point is one or two UTF-16 units, so outside `[length, length * 2]` units the target is missed either way — and missed in the same direction in both measures.
@@ -684,9 +684,9 @@ export const $ZodCheckLengthEquals: core.$constructor<$ZodCheckLengthEquals> = /
 );
 
 /////////////////////////////////////////////
-/////    $ZodCheckStringFormatRegex    /////
+/////    $SchemaCheckStringFormatRegex    /////
 /////////////////////////////////////////////
-export type $ZodStringFormats =
+export type $SchemaStringFormats =
   | "email"
   | "url"
   | "emoji"
@@ -719,28 +719,28 @@ export type $ZodStringFormats =
   | "starts_with"
   | "ends_with"
   | "includes";
-export interface $ZodCheckStringFormatDef<Format extends string = string> extends $ZodCheckDef {
+export interface $SchemaCheckStringFormatDef<Format extends string = string> extends $SchemaCheckDef {
   check: "string_format";
   format: Format;
   pattern?: RegExp | undefined;
 }
 
-export interface $ZodCheckStringFormatInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckStringFormatDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckStringFormatInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckStringFormatDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckStringFormat extends $ZodCheck<string> {
-  _zod: $ZodCheckStringFormatInternals;
+export interface $SchemaCheckStringFormat extends $SchemaCheck<string> {
+  _schema: $SchemaCheckStringFormatInternals;
 }
 
-export const $ZodCheckStringFormat: core.$constructor<$ZodCheckStringFormat> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckStringFormat",
+export const $SchemaCheckStringFormat: core.$constructor<$SchemaCheckStringFormat> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckStringFormat",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
     if (def.pattern)
-      inst._zod.check ??= (payload) => {
+      inst._schema.check ??= (payload) => {
         def.pattern!.lastIndex = 0;
         if (def.pattern!.test(payload.value)) return;
         payload.issues.push({
@@ -753,33 +753,33 @@ export const $ZodCheckStringFormat: core.$constructor<$ZodCheckStringFormat> = /
           continue: !def.abort,
         });
       };
-    else inst._zod.check ??= () => {};
+    else inst._schema.check ??= () => {};
   }
 );
 
 ////////////////////////////////
-/////    $ZodCheckRegex    /////
+/////    $SchemaCheckRegex    /////
 ////////////////////////////////
-export interface $ZodCheckRegexDef extends $ZodCheckStringFormatDef {
+export interface $SchemaCheckRegexDef extends $SchemaCheckStringFormatDef {
   format: "regex";
   pattern: RegExp;
 }
 
-export interface $ZodCheckRegexInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckRegexDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckRegexInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckRegexDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckRegex extends $ZodCheck<string> {
-  _zod: $ZodCheckRegexInternals;
+export interface $SchemaCheckRegex extends $SchemaCheck<string> {
+  _schema: $SchemaCheckRegexInternals;
 }
 
-export const $ZodCheckRegex: core.$constructor<$ZodCheckRegex> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckRegex",
+export const $SchemaCheckRegex: core.$constructor<$SchemaCheckRegex> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckRegex",
   (inst, def) => {
-    $ZodCheckStringFormat.init(inst, def);
+    $SchemaCheckStringFormat.init(inst, def);
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       def.pattern.lastIndex = 0;
       if (def.pattern.test(payload.value)) return;
       payload.issues.push({
@@ -796,24 +796,24 @@ export const $ZodCheckRegex: core.$constructor<$ZodCheckRegex> = /*@__PURE__*/ c
 );
 
 ///////////////////////////////////
-/////    $ZodCheckJSONString    /////
+/////    $SchemaCheckJSONString    /////
 ///////////////////////////////////
-// interface $ZodCheckJSONStringDef extends $ZodCheckStringFormatDef<"json_string"> {
+// interface $SchemaCheckJSONStringDef extends $SchemaCheckStringFormatDef<"json_string"> {
 //   // check: "string_format";
 //   // format: "json_string";
-//   // error?: errors.$ZodErrorMap<errors.$ZodIssueInvalidStringFormat> | undefined;
+//   // error?: errors.$SchemaErrorMap<errors.$SchemaIssueInvalidStringFormat> | undefined;
 // }
 
-// export interface $ZodCheckJSONString extends $ZodCheckStringFormat {
-//   _def: $ZodCheckJSONStringDef;
+// export interface $SchemaCheckJSONString extends $SchemaCheckStringFormat {
+//   _def: $SchemaCheckJSONStringDef;
 // }
 
-// export const $ZodCheckJSONString: core.$constructor<$ZodCheckJSONString> = /*@__PURE__*/ core.$constructor(
-//   "$ZodCheckJSONString",
+// export const $SchemaCheckJSONString: core.$constructor<$SchemaCheckJSONString> = /*@__PURE__*/ core.$constructor(
+//   "$SchemaCheckJSONString",
 //   (inst, def) => {
-//     $ZodCheck.init(inst, def);
+//     $SchemaCheck.init(inst, def);
 
-//     inst._zod.check = (payload) => {
+//     inst._schema.check = (payload) => {
 //       try {
 //         JSON.parse(payload.value);
 //         return;
@@ -832,70 +832,70 @@ export const $ZodCheckRegex: core.$constructor<$ZodCheckRegex> = /*@__PURE__*/ c
 // );
 
 //////////////////////////////////////
-/////    $ZodCheckLowerCase    /////
+/////    $SchemaCheckLowerCase    /////
 //////////////////////////////////////
-export interface $ZodCheckLowerCaseDef extends $ZodCheckStringFormatDef<"lowercase"> {}
+export interface $SchemaCheckLowerCaseDef extends $SchemaCheckStringFormatDef<"lowercase"> {}
 
-export interface $ZodCheckLowerCaseInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckLowerCaseDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckLowerCaseInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckLowerCaseDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckLowerCase extends $ZodCheck<string> {
-  _zod: $ZodCheckLowerCaseInternals;
+export interface $SchemaCheckLowerCase extends $SchemaCheck<string> {
+  _schema: $SchemaCheckLowerCaseInternals;
 }
 
-export const $ZodCheckLowerCase: core.$constructor<$ZodCheckLowerCase> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckLowerCase",
+export const $SchemaCheckLowerCase: core.$constructor<$SchemaCheckLowerCase> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckLowerCase",
   (inst, def) => {
     def.pattern ??= regexes.lowercase;
-    $ZodCheckStringFormat.init(inst, def);
+    $SchemaCheckStringFormat.init(inst, def);
   }
 );
 
 //////////////////////////////////////
-/////    $ZodCheckUpperCase    /////
+/////    $SchemaCheckUpperCase    /////
 //////////////////////////////////////
-export interface $ZodCheckUpperCaseDef extends $ZodCheckStringFormatDef<"uppercase"> {}
+export interface $SchemaCheckUpperCaseDef extends $SchemaCheckStringFormatDef<"uppercase"> {}
 
-export interface $ZodCheckUpperCaseInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckUpperCaseDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckUpperCaseInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckUpperCaseDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckUpperCase extends $ZodCheck<string> {
-  _zod: $ZodCheckUpperCaseInternals;
+export interface $SchemaCheckUpperCase extends $SchemaCheck<string> {
+  _schema: $SchemaCheckUpperCaseInternals;
 }
 
-export const $ZodCheckUpperCase: core.$constructor<$ZodCheckUpperCase> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckUpperCase",
+export const $SchemaCheckUpperCase: core.$constructor<$SchemaCheckUpperCase> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckUpperCase",
   (inst, def) => {
     def.pattern ??= regexes.uppercase;
-    $ZodCheckStringFormat.init(inst, def);
+    $SchemaCheckStringFormat.init(inst, def);
   }
 );
 
 ///////////////////////////////////
-/////    $ZodCheckIncludes    /////
+/////    $SchemaCheckIncludes    /////
 ///////////////////////////////////
-export interface $ZodCheckIncludesDef extends $ZodCheckStringFormatDef<"includes"> {
+export interface $SchemaCheckIncludesDef extends $SchemaCheckStringFormatDef<"includes"> {
   includes: string;
   position?: number | undefined;
 }
 
-export interface $ZodCheckIncludesInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckIncludesDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckIncludesInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckIncludesDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckIncludes extends $ZodCheck<string> {
-  _zod: $ZodCheckIncludesInternals;
+export interface $SchemaCheckIncludes extends $SchemaCheck<string> {
+  _schema: $SchemaCheckIncludesInternals;
 }
 
-export const $ZodCheckIncludes: core.$constructor<$ZodCheckIncludes> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckIncludes",
+export const $SchemaCheckIncludes: core.$constructor<$SchemaCheckIncludes> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckIncludes",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
     const escapedRegex = util.escapeRegex(def.includes);
     // `String.prototype.includes(sub, position)` matches `sub` at `position`
@@ -903,7 +903,7 @@ export const $ZodCheckIncludes: core.$constructor<$ZodCheckIncludes> = /*@__PURE
     // (`{N,}`), not exactly `position` chars (`{N}`).
     const pattern = new RegExp(typeof def.position === "number" ? `^.{${def.position},}${escapedRegex}` : escapedRegex);
     def.pattern = pattern;
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (payload.value.includes(def.includes, def.position)) return;
       payload.issues.push({
         origin: "string",
@@ -919,29 +919,29 @@ export const $ZodCheckIncludes: core.$constructor<$ZodCheckIncludes> = /*@__PURE
 );
 
 /////////////////////////////////////
-/////    $ZodCheckStartsWith    /////
+/////    $SchemaCheckStartsWith    /////
 /////////////////////////////////////
-export interface $ZodCheckStartsWithDef extends $ZodCheckStringFormatDef<"starts_with"> {
+export interface $SchemaCheckStartsWithDef extends $SchemaCheckStringFormatDef<"starts_with"> {
   prefix: string;
 }
 
-export interface $ZodCheckStartsWithInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckStartsWithDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckStartsWithInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckStartsWithDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckStartsWith extends $ZodCheck<string> {
-  _zod: $ZodCheckStartsWithInternals;
+export interface $SchemaCheckStartsWith extends $SchemaCheck<string> {
+  _schema: $SchemaCheckStartsWithInternals;
 }
 
-export const $ZodCheckStartsWith: core.$constructor<$ZodCheckStartsWith> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckStartsWith",
+export const $SchemaCheckStartsWith: core.$constructor<$SchemaCheckStartsWith> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckStartsWith",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
     const pattern = new RegExp(`^${util.escapeRegex(def.prefix)}.*`);
     def.pattern ??= pattern;
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (payload.value.startsWith(def.prefix)) return;
       payload.issues.push({
         origin: "string",
@@ -957,29 +957,29 @@ export const $ZodCheckStartsWith: core.$constructor<$ZodCheckStartsWith> = /*@__
 );
 
 //////////////////////////////////
-/////   $ZodCheckEndsWith    /////
+/////   $SchemaCheckEndsWith    /////
 //////////////////////////////////
-export interface $ZodCheckEndsWithDef extends $ZodCheckStringFormatDef<"ends_with"> {
+export interface $SchemaCheckEndsWithDef extends $SchemaCheckStringFormatDef<"ends_with"> {
   suffix: string;
 }
 
-export interface $ZodCheckEndsWithInternals extends $ZodCheckInternals<string> {
-  def: $ZodCheckEndsWithDef;
-  issc: errors.$ZodIssueInvalidStringFormat;
+export interface $SchemaCheckEndsWithInternals extends $SchemaCheckInternals<string> {
+  def: $SchemaCheckEndsWithDef;
+  issc: errors.$SchemaIssueInvalidStringFormat;
 }
 
-export interface $ZodCheckEndsWith extends $ZodCheckInternals<string> {
-  _zod: $ZodCheckEndsWithInternals;
+export interface $SchemaCheckEndsWith extends $SchemaCheckInternals<string> {
+  _schema: $SchemaCheckEndsWithInternals;
 }
 
-export const $ZodCheckEndsWith: core.$constructor<$ZodCheckEndsWith> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckEndsWith",
+export const $SchemaCheckEndsWith: core.$constructor<$SchemaCheckEndsWith> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckEndsWith",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
     const pattern = new RegExp(`.*${util.escapeRegex(def.suffix)}$`);
     def.pattern ??= pattern;
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (payload.value.endsWith(def.suffix)) return;
       payload.issues.push({
         origin: "string",
@@ -995,7 +995,7 @@ export const $ZodCheckEndsWith: core.$constructor<$ZodCheckEndsWith> = /*@__PURE
 );
 
 ///////////////////////////////////
-/////    $ZodCheckProperty    /////
+/////    $SchemaCheckProperty    /////
 ///////////////////////////////////
 function handleCheckPropertyResult(
   result: schemas.ParsePayload<unknown>,
@@ -1006,28 +1006,28 @@ function handleCheckPropertyResult(
     payload.issues.push(...util.prefixIssues(property, result.issues));
   }
 }
-export interface $ZodCheckPropertyDef extends $ZodCheckDef {
+export interface $SchemaCheckPropertyDef extends $SchemaCheckDef {
   check: "property";
   property: string;
-  schema: schemas.$ZodType;
+  schema: schemas.$SchemaType;
 }
 
-export interface $ZodCheckPropertyInternals<T extends object = object> extends $ZodCheckInternals<T> {
-  def: $ZodCheckPropertyDef;
-  issc: errors.$ZodIssue;
+export interface $SchemaCheckPropertyInternals<T extends object = object> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckPropertyDef;
+  issc: errors.$SchemaIssue;
 }
 
-export interface $ZodCheckProperty<T extends object = object> extends $ZodCheck<T> {
-  _zod: $ZodCheckPropertyInternals<T>;
+export interface $SchemaCheckProperty<T extends object = object> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckPropertyInternals<T>;
 }
 
-export const $ZodCheckProperty: core.$constructor<$ZodCheckProperty> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckProperty",
+export const $SchemaCheckProperty: core.$constructor<$SchemaCheckProperty> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckProperty",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.check = (payload) => {
-      const result = def.schema._zod.run(
+    inst._schema.check = (payload) => {
+      const result = def.Schema._schema.run(
         {
           value: (payload.value as any)[def.property],
           issues: [],
@@ -1046,52 +1046,52 @@ export const $ZodCheckProperty: core.$constructor<$ZodCheckProperty> = /*@__PURE
 );
 
 /////////////////////////////////////
-/////    $ZodCheckProperties    /////
+/////    $SchemaCheckProperties    /////
 /////////////////////////////////////
-export interface $ZodCheckPropertiesDef<Shape extends schemas.$ZodShape = schemas.$ZodShape> extends $ZodCheckDef {
+export interface $SchemaCheckPropertiesDef<Shape extends schemas.$SchemaShape = schemas.$SchemaShape> extends $SchemaCheckDef {
   check: "properties";
   shape: Shape;
 }
 
 // typed over the input side, since each child's result is discarded; a literal widens to its primitive so spreading over a `string` property still type-checks (#6520)
-export type $ZodCheckPropertiesInput<Shape extends schemas.$ZodShape = schemas.$ZodShape> = {
+export type $SchemaCheckPropertiesInput<Shape extends schemas.$SchemaShape = schemas.$SchemaShape> = {
   -readonly [k in keyof Shape]: util.Widen<core.input<Shape[k]>>;
 };
 
-export interface $ZodCheckPropertiesInternals<Shape extends schemas.$ZodShape = schemas.$ZodShape>
-  extends $ZodCheckInternals<$ZodCheckPropertiesInput<Shape>> {
-  def: $ZodCheckPropertiesDef<Shape>;
-  issc: errors.$ZodIssue;
+export interface $SchemaCheckPropertiesInternals<Shape extends schemas.$SchemaShape = schemas.$SchemaShape>
+  extends $SchemaCheckInternals<$SchemaCheckPropertiesInput<Shape>> {
+  def: $SchemaCheckPropertiesDef<Shape>;
+  issc: errors.$SchemaIssue;
 }
 
-export interface $ZodCheckProperties<Shape extends schemas.$ZodShape = schemas.$ZodShape>
-  extends $ZodCheck<$ZodCheckPropertiesInput<Shape>> {
-  _zod: $ZodCheckPropertiesInternals<Shape>;
-  // yields the check itself, so `.check(...z.properties(shape))` spread call sites keep working
+export interface $SchemaCheckProperties<Shape extends schemas.$SchemaShape = schemas.$SchemaShape>
+  extends $SchemaCheck<$SchemaCheckPropertiesInput<Shape>> {
+  _schema: $SchemaCheckPropertiesInternals<Shape>;
+  // yields the check itself, so `.check(...Schema.properties(shape))` spread call sites keep working
   [Symbol.iterator](): Iterator<this>;
 }
 
-export const $ZodCheckProperties: core.$constructor<$ZodCheckProperties> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckProperties",
+export const $SchemaCheckProperties: core.$constructor<$SchemaCheckProperties> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckProperties",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
     util.hide(inst, Symbol.iterator, function* () {
       yield inst;
     });
 
     // key and schema snapshotted together: reading one live and the other cached lets a later mutation of the caller's shape object pair a stale key with a missing schema
-    let entries!: [string | symbol, schemas.$ZodType][];
-    inst._zod.check = (payload) => {
-      // the base schema already typed the value, so only a nullish one is rejected here: the properties read on a primitive too, matching z.property() on a string's length
+    let entries!: [string | symbol, schemas.$SchemaType][];
+    inst._schema.check = (payload) => {
+      // the base schema already typed the value, so only a nullish one is rejected here: the properties read on a primitive too, matching Schema.property() on a string's length
       if (payload.value == null) {
         payload.issues.push({ expected: "object", code: "invalid_type", input: payload.value, inst });
         return undefined;
       }
-      entries ??= Reflect.ownKeys(def.shape).map((key) => [key, (def.shape as any)[key] as schemas.$ZodType]);
+      entries ??= Reflect.ownKeys(def.shape).map((key) => [key, (def.shape as any)[key] as schemas.$SchemaType]);
       const input = payload.value as any;
       let proms: Promise<any>[] | undefined;
       for (const [key, schema] of entries) {
-        const result = schema._zod.run({ value: input[key], issues: [] }, {});
+        const result = Schema._schema.run({ value: input[key], issues: [] }, {});
         if (result instanceof Promise) {
           proms ??= [];
           proms.push(result.then((result) => handleCheckPropertyResult(result, payload, key)));
@@ -1106,28 +1106,28 @@ export const $ZodCheckProperties: core.$constructor<$ZodCheckProperties> = /*@__
 );
 
 ///////////////////////////////////
-/////    $ZodCheckMimeType    /////
+/////    $SchemaCheckMimeType    /////
 ///////////////////////////////////
-export interface $ZodCheckMimeTypeDef extends $ZodCheckDef {
+export interface $SchemaCheckMimeTypeDef extends $SchemaCheckDef {
   check: "mime_type";
   mime: util.MimeTypes[];
 }
 
-export interface $ZodCheckMimeTypeInternals<T extends schemas.File = schemas.File> extends $ZodCheckInternals<T> {
-  def: $ZodCheckMimeTypeDef;
-  issc: errors.$ZodIssueInvalidValue;
+export interface $SchemaCheckMimeTypeInternals<T extends schemas.File = schemas.File> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckMimeTypeDef;
+  issc: errors.$SchemaIssueInvalidValue;
 }
 
-export interface $ZodCheckMimeType<T extends schemas.File = schemas.File> extends $ZodCheck<T> {
-  _zod: $ZodCheckMimeTypeInternals<T>;
+export interface $SchemaCheckMimeType<T extends schemas.File = schemas.File> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckMimeTypeInternals<T>;
 }
 
-export const $ZodCheckMimeType: core.$constructor<$ZodCheckMimeType> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckMimeType",
+export const $SchemaCheckMimeType: core.$constructor<$SchemaCheckMimeType> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckMimeType",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
     const mimeSet = new Set(def.mime);
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       if (mimeSet.has(payload.value.type)) return;
       payload.issues.push({
         code: "invalid_value",
@@ -1141,23 +1141,23 @@ export const $ZodCheckMimeType: core.$constructor<$ZodCheckMimeType> = /*@__PURE
 );
 
 ///////////////////////////////////
-/////    $ZodCheckFileName    /////
+/////    $SchemaCheckFileName    /////
 ///////////////////////////////////
-// interface $ZodCheckFileNameDef extends $ZodCheckDef {
+// interface $SchemaCheckFileNameDef extends $SchemaCheckDef {
 //   check: "file_name";
 //   fileName: string;
-//   error?: errors.$ZodErrorMap<errors.$ZodIssueInvalidType> | undefined;
+//   error?: errors.$SchemaErrorMap<errors.$SchemaIssueInvalidType> | undefined;
 // }
-// export interface $ZodCheckFileName<T extends File = File>
-//   extends $ZodCheckInternals<T> {
-//   _def: $ZodCheckFileNameDef;
+// export interface $SchemaCheckFileName<T extends File = File>
+//   extends $SchemaCheckInternals<T> {
+//   _def: $SchemaCheckFileNameDef;
 // }
 
-// export const $ZodCheckFileName: core.$constructor<$ZodCheckFileName> =
-//   core.$constructor("$ZodCheckFileName", (inst, def) => {
-//     $ZodCheck.init(inst, def);
+// export const $SchemaCheckFileName: core.$constructor<$SchemaCheckFileName> =
+//   core.$constructor("$SchemaCheckFileName", (inst, def) => {
+//     $SchemaCheck.init(inst, def);
 
-//     inst._zod.check = (payload) => {
+//     inst._schema.check = (payload) => {
 //       if (def.fileName === payload.value.name) return;
 //       payload.issues.push({
 //         origin: "file",
@@ -1171,96 +1171,96 @@ export const $ZodCheckMimeType: core.$constructor<$ZodCheckMimeType> = /*@__PURE
 //   });
 
 ///////////////////////////////////
-/////    $ZodCheckOverwrite    /////
+/////    $SchemaCheckOverwrite    /////
 ///////////////////////////////////
-export interface $ZodCheckOverwriteDef<T = unknown> extends $ZodCheckDef {
+export interface $SchemaCheckOverwriteDef<T = unknown> extends $SchemaCheckDef {
   check: "overwrite";
   tx(value: T): T;
 }
 
-export interface $ZodCheckOverwriteInternals<T = unknown> extends $ZodCheckInternals<T> {
-  def: $ZodCheckOverwriteDef<T>;
+export interface $SchemaCheckOverwriteInternals<T = unknown> extends $SchemaCheckInternals<T> {
+  def: $SchemaCheckOverwriteDef<T>;
   issc: never;
 }
 
-export interface $ZodCheckOverwrite<T = unknown> extends $ZodCheck<T> {
-  _zod: $ZodCheckOverwriteInternals<T>;
+export interface $SchemaCheckOverwrite<T = unknown> extends $SchemaCheck<T> {
+  _schema: $SchemaCheckOverwriteInternals<T>;
 }
 
-export const $ZodCheckOverwrite: core.$constructor<$ZodCheckOverwrite> = /*@__PURE__*/ core.$constructor(
-  "$ZodCheckOverwrite",
+export const $SchemaCheckOverwrite: core.$constructor<$SchemaCheckOverwrite> = /*@__PURE__*/ core.$constructor(
+  "$SchemaCheckOverwrite",
   (inst, def) => {
-    $ZodCheck.init(inst, def);
+    $SchemaCheck.init(inst, def);
 
-    inst._zod.check = (payload) => {
+    inst._schema.check = (payload) => {
       payload.value = def.tx(payload.value);
     };
   }
 );
 
 // ///////////////////////////////
-// /////    $ZodCheckTrim    /////
+// /////    $SchemaCheckTrim    /////
 // ///////////////////////////////
-// export interface $ZodCheckTrimDef extends $ZodCheckDef {
+// export interface $SchemaCheckTrimDef extends $SchemaCheckDef {
 //   check: "trim";
-//   error?: errors.$ZodErrorMap<never> | undefined;
+//   error?: errors.$SchemaErrorMap<never> | undefined;
 // }
-// export interface $ZodCheckTrim extends $ZodCheckInternals<string> {
-//   _def: $ZodCheckTrimDef;
+// export interface $SchemaCheckTrim extends $SchemaCheckInternals<string> {
+//   _def: $SchemaCheckTrimDef;
 // }
 
-// export const $ZodCheckTrim: core.$constructor<$ZodCheckTrim> =
-//   core.$constructor("$ZodCheckTrim", (inst, def) => {
-//     $ZodCheck.init(inst, def);
+// export const $SchemaCheckTrim: core.$constructor<$SchemaCheckTrim> =
+//   core.$constructor("$SchemaCheckTrim", (inst, def) => {
+//     $SchemaCheck.init(inst, def);
 
-//     inst._zod.check = (payload) => {
+//     inst._schema.check = (payload) => {
 //       payload.value = payload.value.trim();
 //     };
 //   });
 
 // //////////////////////////////////////
-// /////    $ZodCheckNormalize    /////
+// /////    $SchemaCheckNormalize    /////
 // //////////////////////////////////////
-// interface $ZodCheckNormalizeDef extends $ZodCheckDef {
+// interface $SchemaCheckNormalizeDef extends $SchemaCheckDef {
 //   check: "normalize";
-//   error?: errors.$ZodErrorMap<never> | undefined;
+//   error?: errors.$SchemaErrorMap<never> | undefined;
 // }
 
-// export interface $ZodCheckNormalize extends $ZodCheckInternals<string> {
-//   _def: $ZodCheckNormalizeDef;
+// export interface $SchemaCheckNormalize extends $SchemaCheckInternals<string> {
+//   _def: $SchemaCheckNormalizeDef;
 // }
 
-// export const $ZodCheckNormalize: core.$constructor<$ZodCheckNormalize> =
-//   core.$constructor("$ZodCheckNormalize", (inst, def) => {
-//     $ZodCheck.init(inst, def);
+// export const $SchemaCheckNormalize: core.$constructor<$SchemaCheckNormalize> =
+//   core.$constructor("$SchemaCheckNormalize", (inst, def) => {
+//     $SchemaCheck.init(inst, def);
 
-//     inst._zod.check = (payload) => {
+//     inst._schema.check = (payload) => {
 //       payload.value = payload.value.normalize();
 //     };
 //   });
 
-export type $ZodChecks =
-  | $ZodCheckLessThan
-  | $ZodCheckGreaterThan
-  | $ZodCheckMultipleOf
-  | $ZodCheckNumberFormat
-  | $ZodCheckBigIntFormat
-  | $ZodCheckMaxSize
-  | $ZodCheckMinSize
-  | $ZodCheckSizeEquals
-  | $ZodCheckMaxLength
-  | $ZodCheckMinLength
-  | $ZodCheckLengthEquals
-  | $ZodCheckStringFormat
-  | $ZodCheckProperty
-  | $ZodCheckMimeType
-  | $ZodCheckOverwrite;
+export type $SchemaChecks =
+  | $SchemaCheckLessThan
+  | $SchemaCheckGreaterThan
+  | $SchemaCheckMultipleOf
+  | $SchemaCheckNumberFormat
+  | $SchemaCheckBigIntFormat
+  | $SchemaCheckMaxSize
+  | $SchemaCheckMinSize
+  | $SchemaCheckSizeEquals
+  | $SchemaCheckMaxLength
+  | $SchemaCheckMinLength
+  | $SchemaCheckLengthEquals
+  | $SchemaCheckStringFormat
+  | $SchemaCheckProperty
+  | $SchemaCheckMimeType
+  | $SchemaCheckOverwrite;
 
-export type $ZodStringFormatChecks =
-  | $ZodCheckRegex
-  | $ZodCheckLowerCase
-  | $ZodCheckUpperCase
-  | $ZodCheckIncludes
-  | $ZodCheckStartsWith
-  | $ZodCheckEndsWith
-  | schemas.$ZodStringFormatTypes; // union of string format schema types
+export type $SchemaStringFormatChecks =
+  | $SchemaCheckRegex
+  | $SchemaCheckLowerCase
+  | $SchemaCheckUpperCase
+  | $SchemaCheckIncludes
+  | $SchemaCheckStartsWith
+  | $SchemaCheckEndsWith
+  | schemas.$SchemaStringFormatTypes; // union of string format schema types

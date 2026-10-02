@@ -6,7 +6,7 @@ export const Platinum = () => {
     //   logoDark: "https://i.imgur.com/3ixYoUf.png",
     //   logoLight: "https://i.imgur.com/u1nWypQ.png",
     //   url: "mobb.ai",
-    //   href: "https://www.mobb.ai/?utm_source=zod",
+    //   href: "https://www.mobb.ai/?utm_source=schema",
     // },
     {
       name: "Trigger.dev",
@@ -15,7 +15,7 @@ export const Platinum = () => {
       logoDark: "https://trigger.dev/assets/triggerdev-lockup--light.svg",
       logoLight: "https://trigger.dev/assets/triggerdev-lockup--dark.svg",
       url: "trigger.dev",
-      href: "https://trigger.dev/?utm_source=zod",
+      href: "https://trigger.dev/?utm_source=schema",
     },
   ];
 

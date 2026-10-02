@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { regexes } from "zod/v4/core";
+import { regexes } from "schema/v4/core";
 
 // the lookahead form `regexes.email` had before this rewrite
 const legacy = /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$/;

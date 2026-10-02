@@ -18,7 +18,7 @@ export default function InkeepSearchBox(props: SharedProps) {
     baseSettings: {
       apiKey: process.env.NEXT_PUBLIC_INKEEP_KEY, // required
       primaryBrandColor: "#EE63C0", // your brand color, widget color scheme is derived from this
-      organizationDisplayName: "Zod",
+      organizationDisplayName: "Schema",
       // ...optional settings
       colorMode: {
         sync: {

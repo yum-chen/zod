@@ -1,18 +1,18 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const nested = z.object({
-  name: z.string(),
-  age: z.number(),
-  outer: z.object({
-    inner: z.string(),
+const nested = Schema.object({
+  name: Schema.string(),
+  age: Schema.number(),
+  outer: Schema.object({
+    inner: Schema.string(),
   }),
-  array: z.array(z.object({ asdf: z.string() })),
+  array: Schema.array(Schema.object({ asdf: Schema.string() })),
 });
 
 test("shallow inference", () => {
   const shallow = nested.partial();
-  type shallow = z.infer<typeof shallow>;
+  type shallow = Schema.infer<typeof shallow>;
 
   expectTypeOf<shallow>().toEqualTypeOf<{
     name?: string | undefined;
@@ -32,40 +32,40 @@ test("shallow partial parse", () => {
 });
 
 test("required", () => {
-  const object = z.object({
-    name: z.string(),
-    age: z.number().optional(),
-    field: z.string().optional().default("asdf"),
-    nullableField: z.number().nullable(),
-    nullishField: z.string().nullish(),
+  const object = Schema.object({
+    name: Schema.string(),
+    age: Schema.number().optional(),
+    field: Schema.string().optional().default("asdf"),
+    nullableField: Schema.number().nullable(),
+    nullishField: Schema.string().nullish(),
   });
 
   const requiredObject = object.required();
-  expect(requiredObject.shape.name).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.name.unwrap()).toBeInstanceOf(z.ZodString);
-  expect(requiredObject.shape.age).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.age.unwrap()).toBeInstanceOf(z.ZodOptional);
-  expect(requiredObject.shape.field).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.field.unwrap()).toBeInstanceOf(z.ZodDefault);
-  expect(requiredObject.shape.nullableField).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.nullableField.unwrap()).toBeInstanceOf(z.ZodNullable);
-  expect(requiredObject.shape.nullishField).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.nullishField.unwrap()).toBeInstanceOf(z.ZodOptional);
-  expect(requiredObject.shape.nullishField.unwrap().unwrap()).toBeInstanceOf(z.ZodNullable);
+  expect(requiredObject.shape.name).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.name.unwrap()).toBeInstanceOf(Schema.SchemaString);
+  expect(requiredObject.shape.age).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.age.unwrap()).toBeInstanceOf(Schema.SchemaOptional);
+  expect(requiredObject.shape.field).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.field.unwrap()).toBeInstanceOf(Schema.SchemaDefault);
+  expect(requiredObject.shape.nullableField).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.nullableField.unwrap()).toBeInstanceOf(Schema.SchemaNullable);
+  expect(requiredObject.shape.nullishField).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.nullishField.unwrap()).toBeInstanceOf(Schema.SchemaOptional);
+  expect(requiredObject.shape.nullishField.unwrap().unwrap()).toBeInstanceOf(Schema.SchemaNullable);
 });
 
 test("required inference", () => {
-  const object = z.object({
-    name: z.string(),
-    age: z.number().optional(),
-    field: z.string().optional().default("asdf"),
-    nullableField: z.number().nullable(),
-    nullishField: z.string().nullish(),
+  const object = Schema.object({
+    name: Schema.string(),
+    age: Schema.number().optional(),
+    field: Schema.string().optional().default("asdf"),
+    nullableField: Schema.number().nullable(),
+    nullishField: Schema.string().nullish(),
   });
 
   const requiredObject = object.required();
 
-  type required = z.infer<typeof requiredObject>;
+  type required = Schema.infer<typeof requiredObject>;
   type expected = {
     name: string;
     age: number;
@@ -77,83 +77,83 @@ test("required inference", () => {
 });
 
 test("required with mask", () => {
-  const object = z.object({
-    name: z.string(),
-    age: z.number().optional(),
-    field: z.string().optional().default("asdf"),
-    country: z.string().optional(),
+  const object = Schema.object({
+    name: Schema.string(),
+    age: Schema.number().optional(),
+    field: Schema.string().optional().default("asdf"),
+    country: Schema.string().optional(),
   });
 
   const requiredObject = object.required({ age: true });
-  expect(requiredObject.shape.name).toBeInstanceOf(z.ZodString);
-  expect(requiredObject.shape.age).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.field).toBeInstanceOf(z.ZodDefault);
-  expect(requiredObject.shape.country).toBeInstanceOf(z.ZodOptional);
+  expect(requiredObject.shape.name).toBeInstanceOf(Schema.SchemaString);
+  expect(requiredObject.shape.age).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.field).toBeInstanceOf(Schema.SchemaDefault);
+  expect(requiredObject.shape.country).toBeInstanceOf(Schema.SchemaOptional);
 });
 
 test("required with mask -- ignore falsy values", () => {
-  const object = z.object({
-    name: z.string(),
-    age: z.number().optional(),
-    field: z.string().optional().default("asdf"),
-    country: z.string().optional(),
+  const object = Schema.object({
+    name: Schema.string(),
+    age: Schema.number().optional(),
+    field: Schema.string().optional().default("asdf"),
+    country: Schema.string().optional(),
   });
 
   // @ts-expect-error
   const requiredObject = object.required({ age: true, country: false });
-  expect(requiredObject.shape.name).toBeInstanceOf(z.ZodString);
-  expect(requiredObject.shape.age).toBeInstanceOf(z.ZodNonOptional);
-  expect(requiredObject.shape.field).toBeInstanceOf(z.ZodDefault);
-  expect(requiredObject.shape.country).toBeInstanceOf(z.ZodOptional);
+  expect(requiredObject.shape.name).toBeInstanceOf(Schema.SchemaString);
+  expect(requiredObject.shape.age).toBeInstanceOf(Schema.SchemaNonOptional);
+  expect(requiredObject.shape.field).toBeInstanceOf(Schema.SchemaDefault);
+  expect(requiredObject.shape.country).toBeInstanceOf(Schema.SchemaOptional);
 });
 
 test("partial with mask", async () => {
-  const object = z.object({
-    name: z.string(),
-    age: z.number().optional(),
-    field: z.string().optional().default("asdf"),
-    country: z.string(),
+  const object = Schema.object({
+    name: Schema.string(),
+    age: Schema.number().optional(),
+    field: Schema.string().optional().default("asdf"),
+    country: Schema.string(),
   });
 
   const masked = object.partial({ age: true, field: true, name: true }).strict();
 
-  expect(masked.shape.name).toBeInstanceOf(z.ZodOptional);
-  expect(masked.shape.age).toBeInstanceOf(z.ZodOptional);
-  expect(masked.shape.field).toBeInstanceOf(z.ZodOptional);
-  expect(masked.shape.country).toBeInstanceOf(z.ZodString);
+  expect(masked.shape.name).toBeInstanceOf(Schema.SchemaOptional);
+  expect(masked.shape.age).toBeInstanceOf(Schema.SchemaOptional);
+  expect(masked.shape.field).toBeInstanceOf(Schema.SchemaOptional);
+  expect(masked.shape.country).toBeInstanceOf(Schema.SchemaString);
 
   masked.parse({ country: "US" });
   await masked.parseAsync({ country: "US" });
 });
 
 test("partial with mask -- ignore falsy values", async () => {
-  const object = z.object({
-    name: z.string(),
-    age: z.number().optional(),
-    field: z.string().optional().default("asdf"),
-    country: z.string(),
+  const object = Schema.object({
+    name: Schema.string(),
+    age: Schema.number().optional(),
+    field: Schema.string().optional().default("asdf"),
+    country: Schema.string(),
   });
 
   // @ts-expect-error
   const masked = object.partial({ name: true, country: false }).strict();
 
-  expect(masked.shape.name).toBeInstanceOf(z.ZodOptional);
-  expect(masked.shape.age).toBeInstanceOf(z.ZodOptional);
-  expect(masked.shape.field).toBeInstanceOf(z.ZodDefault);
-  expect(masked.shape.country).toBeInstanceOf(z.ZodString);
+  expect(masked.shape.name).toBeInstanceOf(Schema.SchemaOptional);
+  expect(masked.shape.age).toBeInstanceOf(Schema.SchemaOptional);
+  expect(masked.shape.field).toBeInstanceOf(Schema.SchemaDefault);
+  expect(masked.shape.country).toBeInstanceOf(Schema.SchemaString);
 
   masked.parse({ country: "US" });
   await masked.parseAsync({ country: "US" });
 });
 
 test("catch/prefault/default", () => {
-  const mySchema = z.object({
-    a: z.string().catch("catch value").optional(),
-    b: z.string().default("default value").optional(),
-    c: z.string().prefault("prefault value").optional(),
-    d: z.string().catch("catch value"),
-    e: z.string().default("default value"),
-    f: z.string().prefault("prefault value"),
+  const mySchema = Schema.object({
+    a: Schema.string().catch("catch value").optional(),
+    b: Schema.string().default("default value").optional(),
+    c: Schema.string().prefault("prefault value").optional(),
+    d: Schema.string().catch("catch value"),
+    e: Schema.string().default("default value"),
+    f: Schema.string().prefault("prefault value"),
   });
 
   // Catch (d) and default/prefault (b, c, e, f) handle absent keys gracefully. `a: catch().optional()` short-circuits to undefined when the original input was undefined, so the property is omitted from the output. All other catch/default/prefault keys produce their fallback values.
@@ -198,30 +198,30 @@ test("catch/prefault/default", () => {
 });
 
 test("handleOptionalObjectResult branches", () => {
-  const mySchema = z.object({
+  const mySchema = Schema.object({
     // Branch: input[key] === undefined, key not in input, caught error
-    caughtMissing: z.string().catch("caught").optional(),
+    caughtMissing: Schema.string().catch("caught").optional(),
     // Branch: input[key] === undefined, key in input, caught error
-    caughtUndefined: z.string().catch("caught").optional(),
+    caughtUndefined: Schema.string().catch("caught").optional(),
     // Branch: input[key] === undefined, key not in input, validation issues
-    issueMissing: z.string().min(5).optional(),
+    issueMissing: Schema.string().min(5).optional(),
     // Branch: input[key] === undefined, key in input, validation issues
-    issueUndefined: z.string().min(5).optional(),
+    issueUndefined: Schema.string().min(5).optional(),
     // Branch: input[key] === undefined, validation returns undefined
-    validUndefined: z.string().optional(),
+    validUndefined: Schema.string().optional(),
     // Branch: input[key] === undefined, non-undefined result (default/transform)
-    defaultValue: z.string().default("default").optional(),
+    defaultValue: Schema.string().default("default").optional(),
     // Branch: input[key] defined, caught error
-    caughtDefined: z.string().catch("caught").optional(),
+    caughtDefined: Schema.string().catch("caught").optional(),
     // Branch: input[key] defined, validation issues
-    issueDefined: z.string().min(5).optional(),
+    issueDefined: Schema.string().min(5).optional(),
     // Branch: input[key] defined, validation returns undefined
     validDefinedUndefined: z
       .string()
       .transform(() => undefined)
       .optional(),
     // Branch: input[key] defined, non-undefined value
-    validDefined: z.string().optional(),
+    validDefined: Schema.string().optional(),
   });
 
   // Test input[key] === undefined cases
@@ -273,19 +273,19 @@ test("handleOptionalObjectResult branches", () => {
 });
 
 test("fastpass vs non-fastpass consistency", () => {
-  const mySchema = z.object({
-    caughtMissing: z.string().catch("caught").optional(),
-    caughtUndefined: z.string().catch("caught").optional(),
-    issueMissing: z.string().min(5).optional(),
-    issueUndefined: z.string().min(5).optional(),
-    validUndefined: z.string().optional(),
-    defaultValue: z.string().default("default").optional(),
-    caughtDefined: z.string().catch("caught").optional(),
+  const mySchema = Schema.object({
+    caughtMissing: Schema.string().catch("caught").optional(),
+    caughtUndefined: Schema.string().catch("caught").optional(),
+    issueMissing: Schema.string().min(5).optional(),
+    issueUndefined: Schema.string().min(5).optional(),
+    validUndefined: Schema.string().optional(),
+    defaultValue: Schema.string().default("default").optional(),
+    caughtDefined: Schema.string().catch("caught").optional(),
     validDefinedUndefined: z
       .string()
       .transform(() => undefined)
       .optional(),
-    validDefined: z.string().optional(),
+    validDefined: Schema.string().optional(),
   });
 
   const input = {
@@ -328,7 +328,7 @@ test("optional with check", () => {
   // this correctly fails
   expect(baseSchema.safeParse(undefined)).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "message": "message",
@@ -339,13 +339,13 @@ test("optional with check", () => {
     }
   `);
 
-  const schemaObject = z.object({
+  const schemaObject = Schema.object({
     date: baseSchema,
   });
 
   expect(schemaObject.safeParse({ date: undefined })).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "message": "message",
@@ -360,10 +360,10 @@ test("optional with check", () => {
 });
 
 test("partial - throws error on schema with refinements", () => {
-  const baseSchema = z.object({
-    id: z.string(),
-    name: z.string(),
-    items: z.string().array(),
+  const baseSchema = Schema.object({
+    id: Schema.string(),
+    name: Schema.string(),
+    items: Schema.string().array(),
   });
 
   const refinedSchema = baseSchema.superRefine((val, ctx) => {
@@ -380,9 +380,9 @@ test("partial - throws error on schema with refinements", () => {
 });
 
 test("partial - throws error on schema with refine", () => {
-  const baseSchema = z.object({
-    password: z.string(),
-    confirmPassword: z.string(),
+  const baseSchema = Schema.object({
+    password: Schema.string(),
+    confirmPassword: Schema.string(),
   });
 
   const refinedSchema = baseSchema.refine((data) => data.password === data.confirmPassword, {
@@ -393,9 +393,9 @@ test("partial - throws error on schema with refine", () => {
 });
 
 test("required - preserves refinements", () => {
-  const baseSchema = z.object({
-    name: z.string().optional(),
-    age: z.number().optional(),
+  const baseSchema = Schema.object({
+    name: Schema.string().optional(),
+    age: Schema.number().optional(),
   });
 
   const refinedSchema = baseSchema.superRefine((val, ctx) => {
@@ -423,9 +423,9 @@ test("required - preserves refinements", () => {
 });
 
 test("required - refinement is executed on required schema", () => {
-  const baseSchema = z.object({
-    password: z.string().optional(),
-    confirmPassword: z.string().optional(),
+  const baseSchema = Schema.object({
+    password: Schema.string().optional(),
+    confirmPassword: Schema.string().optional(),
   });
 
   const refinedSchema = baseSchema.refine((data) => data.password === data.confirmPassword, {
@@ -448,7 +448,7 @@ test("required - refinement is executed on required schema", () => {
 
 test("exactPartial - shallow inference", () => {
   const shallow = nested.exactPartial();
-  type shallow = z.infer<typeof shallow>;
+  type shallow = Schema.infer<typeof shallow>;
   expectTypeOf<shallow>().toEqualTypeOf<{
     name?: string;
     age?: number;
@@ -457,32 +457,32 @@ test("exactPartial - shallow inference", () => {
   }>();
 
   // The point of exactPartial: unlike partial(), this matches TypeScript's Partial<> under exactOptionalPropertyTypes.
-  expectTypeOf<shallow>().toEqualTypeOf<Partial<z.infer<typeof nested>>>();
+  expectTypeOf<shallow>().toEqualTypeOf<Partial<Schema.infer<typeof nested>>>();
 });
 
-test("exactPartial - wraps fields in ZodExactOptional", () => {
-  const object = z.object({ name: z.string(), age: z.number() });
+test("exactPartial - wraps fields in SchemaExactOptional", () => {
+  const object = Schema.object({ name: Schema.string(), age: Schema.number() });
   const exact = object.exactPartial();
-  expect(exact.shape.name).toBeInstanceOf(z.ZodExactOptional);
-  expect(exact.shape.age).toBeInstanceOf(z.ZodExactOptional);
-  expect(exact.shape.name.unwrap()).toBeInstanceOf(z.ZodString);
+  expect(exact.shape.name).toBeInstanceOf(Schema.SchemaExactOptional);
+  expect(exact.shape.age).toBeInstanceOf(Schema.SchemaExactOptional);
+  expect(exact.shape.name.unwrap()).toBeInstanceOf(Schema.SchemaString);
 });
 
 test("exactPartial - absent keys pass, explicit undefined rejected", () => {
-  const exact = z.object({ name: z.string(), age: z.number() }).exactPartial();
+  const exact = Schema.object({ name: Schema.string(), age: Schema.number() }).exactPartial();
   expect(exact.parse({})).toEqual({});
   expect(exact.parse({ name: "asdf" })).toEqual({ name: "asdf" });
   expect(exact.safeParse({ name: undefined }).success).toBe(false);
 });
 
 test("exactPartial with mask", () => {
-  const object = z.object({ name: z.string(), age: z.number(), country: z.string() });
+  const object = Schema.object({ name: Schema.string(), age: Schema.number(), country: Schema.string() });
   const masked = object.exactPartial({ name: true, age: true });
-  expect(masked.shape.name).toBeInstanceOf(z.ZodExactOptional);
-  expect(masked.shape.age).toBeInstanceOf(z.ZodExactOptional);
-  expect(masked.shape.country).toBeInstanceOf(z.ZodString);
+  expect(masked.shape.name).toBeInstanceOf(Schema.SchemaExactOptional);
+  expect(masked.shape.age).toBeInstanceOf(Schema.SchemaExactOptional);
+  expect(masked.shape.country).toBeInstanceOf(Schema.SchemaString);
 
-  type masked = z.infer<typeof masked>;
+  type masked = Schema.infer<typeof masked>;
   expectTypeOf<masked>().toEqualTypeOf<{ name?: string; age?: number; country: string }>();
 
   expect(masked.parse({ country: "US" })).toEqual({ country: "US" });
@@ -490,7 +490,7 @@ test("exactPartial with mask", () => {
 });
 
 test("exactPartial - throws on schema with refinements", () => {
-  const refined = z.object({ name: z.string() }).refine(() => true);
+  const refined = Schema.object({ name: Schema.string() }).refine(() => true);
   expect(() => refined.exactPartial()).toThrow(
     ".exactPartial() cannot be used on object schemas containing refinements"
   );

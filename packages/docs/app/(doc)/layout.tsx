@@ -32,7 +32,7 @@ const tree: typeof source.pageTree = {
 export const layoutProps: DocsLayoutProps = {
   ...baseOptions,
   tree,
-  githubUrl: "https://github.com/colinhacks/zod",
+  githubUrl: "https://github.com/colinhacks/schema",
 
   sidebar: {
     hideSearch: false,
@@ -44,19 +44,19 @@ export const layoutProps: DocsLayoutProps = {
     },
     tabs: [
       {
-        title: "Zod 4",
-        description: "The latest version of Zod",
+        title: "Schema 4",
+        description: "The latest version of Schema",
         url: "/",
-        icon: <SidebarLogo src="/logo/logo.png" alt="Zod 4" width={24} height={20} className="h-5" />,
+        icon: <SidebarLogo src="/logo/logo.png" alt="Schema 4" width={24} height={20} className="h-5" />,
       },
       {
-        title: "Zod 3",
+        title: "Schema 3",
         description: "In maintenance mode",
-        url: "https://v3.zod.dev",
+        url: "https://v3.Schema.dev",
         icon: (
           <SidebarLogo
-            src="https://raw.githubusercontent.com/colinhacks/zod/3782fe29920c311984004c350b9fefaf0ae4c54a/logo.svg"
-            alt="Zod 3"
+            src="https://raw.githubusercontent.com/colinhacks/schema/3782fe29920c311984004c350b9fefaf0ae4c54a/logo.svg"
+            alt="Schema 3"
             width={24}
             height={24}
             className="h-6"

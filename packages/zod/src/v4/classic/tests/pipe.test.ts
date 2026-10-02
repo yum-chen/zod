@@ -1,25 +1,25 @@
 import { expect, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("string to number pipe", () => {
-  const schema = z.string().transform(Number).pipe(z.number());
-  expect(schema.parse("1234")).toEqual(1234);
+  const schema = Schema.string().transform(Number).pipe(Schema.number());
+  expect(Schema.parse("1234")).toEqual(1234);
 });
 
 test("string to number pipe async", async () => {
   const schema = z
     .string()
     .transform(async (val) => Number(val))
-    .pipe(z.number());
-  expect(await schema.parseAsync("1234")).toEqual(1234);
+    .pipe(Schema.number());
+  expect(await Schema.parseAsync("1234")).toEqual(1234);
 });
 
 test("string with default fallback", () => {
   const stringWithDefault = z
     .pipe(
-      z.transform((v) => (v === "none" ? undefined : v)),
-      z.string()
+      Schema.transform((v) => (v === "none" ? undefined : v)),
+      Schema.string()
     )
     .catch("default");
 
@@ -36,11 +36,11 @@ test("continue on non-fatal errors", () => {
     .transform((val) => Number(val))
     .refine((c) => c === 1234, "B");
 
-  schema.parse("1234");
+  Schema.parse("1234");
 
-  expect(schema.safeParse("4321")).toMatchInlineSnapshot(`
+  expect(Schema.safeParse("4321")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -59,11 +59,11 @@ test("break on fatal errors", () => {
     .transform((val) => Number(val))
     .refine((c) => c === 1234, "B");
 
-  schema.parse("1234");
+  Schema.parse("1234");
 
-  expect(schema.safeParse("4321")).toMatchInlineSnapshot(`
+  expect(Schema.safeParse("4321")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "path": [],
@@ -76,16 +76,16 @@ test("break on fatal errors", () => {
 });
 
 test("reverse parsing with pipe", () => {
-  const schema = z.string().pipe(z.string());
+  const schema = Schema.string().pipe(Schema.string());
 
   // Reverse direction: default should NOT be applied
-  expect(z.safeDecode(schema, "asdf")).toMatchInlineSnapshot(`
+  expect(Schema.safeDecode(schema, "asdf")).toMatchInlineSnapshot(`
     {
       "data": "asdf",
       "success": true,
     }
   `);
-  expect(z.safeEncode(schema, "asdf")).toMatchInlineSnapshot(`
+  expect(Schema.safeEncode(schema, "asdf")).toMatchInlineSnapshot(`
     {
       "data": "asdf",
       "success": true,
@@ -94,8 +94,8 @@ test("reverse parsing with pipe", () => {
 });
 
 test("reverse parsing with pipe", () => {
-  const schema = z.string().transform((val) => val.length);
+  const schema = Schema.string().transform((val) => val.length);
 
   // should throw
-  expect(() => z.encode(schema, 1234)).toThrow();
+  expect(() => Schema.encode(schema, 1234)).toThrow();
 });

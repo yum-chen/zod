@@ -2,20 +2,20 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
-import type { StandardSchemaV1 } from "../standard-schema.js";
+import type { StandardSchemaV1 } from "../standard-Schema.js";
 
 test("assignability", () => {
-  const _s1: StandardSchemaV1 = z.string();
-  const _s2: StandardSchemaV1<string> = z.string();
-  const _s3: StandardSchemaV1<string, string> = z.string();
-  const _s4: StandardSchemaV1<unknown, string> = z.string();
+  const _s1: StandardSchemaV1 = Schema.string();
+  const _s2: StandardSchemaV1<string> = Schema.string();
+  const _s3: StandardSchemaV1<string, string> = Schema.string();
+  const _s4: StandardSchemaV1<unknown, string> = Schema.string();
   [_s1, _s2, _s3, _s4];
 });
 
 test("type inference", () => {
-  const stringToNumber = z.string().transform((x) => x.length);
+  const stringToNumber = Schema.string().transform((x) => x.length);
   type input = StandardSchemaV1.InferInput<typeof stringToNumber>;
   util.assertEqual<input, string>(true);
   type output = StandardSchemaV1.InferOutput<typeof stringToNumber>;
@@ -23,7 +23,7 @@ test("type inference", () => {
 });
 
 test("valid parse", () => {
-  const schema = z.string();
+  const schema = Schema.string();
   const result = schema["~standard"].validate("hello");
   if (result instanceof Promise) {
     throw new Error("Expected sync result");
@@ -37,7 +37,7 @@ test("valid parse", () => {
 });
 
 test("invalid parse", () => {
-  const schema = z.string();
+  const schema = Schema.string();
   const result = schema["~standard"].validate(1234);
   if (result instanceof Promise) {
     throw new Error("Expected sync result");
@@ -51,7 +51,7 @@ test("invalid parse", () => {
 });
 
 test("valid parse async", async () => {
-  const schema = z.string().refine(async () => true);
+  const schema = Schema.string().refine(async () => true);
   const _result = schema["~standard"].validate("hello");
   if (_result instanceof Promise) {
     const result = await _result;
@@ -67,7 +67,7 @@ test("valid parse async", async () => {
 });
 
 test("invalid parse async", async () => {
-  const schema = z.string().refine(async () => false);
+  const schema = Schema.string().refine(async () => false);
   const _result = schema["~standard"].validate("hello");
   if (_result instanceof Promise) {
     const result = await _result;

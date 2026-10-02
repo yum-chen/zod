@@ -1,21 +1,21 @@
-import * as z from "zod/v4";
-import * as zcore from "zod/v4/core";
-import { isValidBase64URL, isValidJWT, parseURLObject, urlHostnameOk, urlProtocolOk } from "zod/v4/core";
+import * as Schema from "schema/v4";
+import * as zcore from "schema/v4/core";
+import { isValidBase64URL, isValidJWT, parseURLObject, urlHostnameOk, urlProtocolOk } from "schema/v4/core";
 import { metabench } from "./metabench.js";
 
 const DATA = Array.from({ length: 1000 }, () => "SGVsbG8gV29ybGQ");
 const JWT_DATA = Array.from({ length: 1000 }, () => "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature");
 const URL_DATA = Array.from({ length: 1000 }, () => "  https://example.com/path?x=1  ");
 
-const base64url = z.string().base64url();
+const base64url = Schema.string().base64url();
 const compiledBase64url = zcore.compile(base64url);
 const fastBase64url = zcore.compileFn(base64url);
 
-const jwt = z.jwt();
+const jwt = Schema.jwt();
 const compiledJwt = zcore.compile(jwt);
 const fastJwt = zcore.compileFn(jwt);
 
-const url = z.url();
+const url = Schema.url();
 const compiledUrl = zcore.compile(url);
 const fastUrl = zcore.compileFn(url);
 
@@ -55,7 +55,7 @@ await metabench("compiled string-format helpers", {
   "base64url compiled.safeParse"() {
     for (const d of DATA) compiledBase64url.safeParse(d);
   },
-  "base64url zod.safeParse"() {
+  "base64url Schema.safeParse"() {
     for (const d of DATA) base64url.safeParse(d);
   },
   "jwt direct helper"() {
@@ -67,12 +67,12 @@ await metabench("compiled string-format helpers", {
   "jwt compiled.safeParse"() {
     for (const d of JWT_DATA) compiledJwt.safeParse(d);
   },
-  "jwt zod.safeParse"() {
+  "jwt Schema.safeParse"() {
     for (const d of JWT_DATA) jwt.safeParse(d);
   },
   "url direct helper"() {
     // the runtime's own sequence: trim, parse, then the hostname and protocol predicates
-    const def = url._zod.def;
+    const def = url._schema.def;
     for (const d of URL_DATA) {
       const u = parseURLObject(d.trim(), def);
       if (typeof u !== "object") continue;
@@ -86,7 +86,7 @@ await metabench("compiled string-format helpers", {
   "url compiled.safeParse"() {
     for (const d of URL_DATA) compiledUrl.safeParse(d);
   },
-  "url zod.safeParse"() {
+  "url Schema.safeParse"() {
     for (const d of URL_DATA) url.safeParse(d);
   },
 }).run();

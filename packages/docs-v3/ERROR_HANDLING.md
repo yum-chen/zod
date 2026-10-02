@@ -1,68 +1,68 @@
-# Error Handling in Zod
+# Error Handling in Schema
 
-This guide explains Zod's internal error handling system, and the various ways you can customize it for your purposes.
+This guide explains Schema's internal error handling system, and the various ways you can customize it for your purposes.
 
-## ZodError
+## SchemaError
 
-All validation errors thrown by Zod are instances of `ZodError`.
+All validation errors thrown by Schema are instances of `SchemaError`.
 
 ```ts
-class ZodError extends Error {
-  issues: ZodIssue[];
+class SchemaError extends Error {
+  issues: SchemaIssue[];
 }
 ```
 
-ZodError is a subclass of `Error`; you can create your own instance easily:
+SchemaError is a subclass of `Error`; you can create your own instance easily:
 
 ```ts
-import * as z from "zod";
+import * as Schema   from "schema";
 
-const myError = new z.ZodError([]);
+const myError = new Schema.SchemaError([]);
 ```
 
-Each ZodError has an `issues` property that is an array of `ZodIssues`. Each issue documents a problem that occurred during validation.
+Each SchemaError has an `issues` property that is an array of `SchemaIssues`. Each issue documents a problem that occurred during validation.
 
-## ZodIssue
+## SchemaIssue
 
-`ZodIssue` is _not_ a class. It is a [discriminated union](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions).
+`SchemaIssue` is _not_ a class. It is a [discriminated union](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions).
 
-The link above is the best way to learn about the concept. Discriminated unions are an ideal way to represent a data structures that may be one of many possible variants. You can see all the possible variants defined [here](https://github.com/colinhacks/zod/blob/main/src/ZodError.ts). They are also described in the table below if you prefer.
+The link above is the best way to learn about the concept. Discriminated unions are an ideal way to represent a data structures that may be one of many possible variants. You can see all the possible variants defined [here](https://github.com/colinhacks/schema/blob/main/src/SchemaError.ts). They are also described in the table below if you prefer.
 
-_Every_ ZodIssue has these fields:
+_Every_ SchemaIssue has these fields:
 
 | field     | type                   | details                                                                                           |
 | --------- | ---------------------- | ------------------------------------------------------------------------------------------------- |
-| `code`    | `z.ZodIssueCode`       | You can access this enum with `z.ZodIssueCode`. A full breakdown of the possible values is below. |
+| `code`    | `Schema.SchemaIssueCode`       | You can access this enum with `Schema.SchemaIssueCode`. A full breakdown of the possible values is below. |
 | `path`    | `(string \| number)[]` | e.g, `['addresses', 0, 'line1']`                                                                  |
 | `message` | `string`               | e.g. `Invalid type. Expected string, received number.`                                            |
 
 **However** depending on the error code, there may be additional properties as well. Here is a full breakdown of the additional fields by error code:
 
-## ZodIssueCode
+## SchemaIssueCode
 
 | code                             | additional fields                                                                                                                                                                                                                                                                                                                                                                                            |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ZodIssueCode.invalid_type        | `expected: ZodParsedType` <br> `received: ZodParsedType` <br><br>Jump to [this section](#zodparsedtype) for a breakdown of the possible values of ZodParsedType.                                                                                                                                                                                                                                             |
-| ZodIssueCode.unrecognized_keys   | `keys: string[]`<br>The list of unrecognized keys<br>                                                                                                                                                                                                                                                                                                                                                        |
-| ZodIssueCode.invalid_union       | `unionErrors: ZodError[]` <br> The errors thrown by each element of the union.                                                                                                                                                                                                                                                                                                                               |
-| ZodIssueCode.invalid_enum_value  | `options: string[]` <br> The set of acceptable string values for this enum.                                                                                                                                                                                                                                                                                                                                  |
-| ZodIssueCode.invalid_arguments   | `argumentsError: ZodError` <br> This is a special error code only thrown by a wrapped function returned by `ZodFunction.implement()`. The `argumentsError` property is another ZodError containing the validation error details.                                                                                                                                                                             |
-| ZodIssueCode.invalid_return_type | `returnTypeError: ZodError` <br> This is a special error code only thrown by a wrapped function returned by `ZodFunction.implement()`. The `returnTypeError` property is another ZodError containing the validation error details.                                                                                                                                                                           |
-| ZodIssueCode.invalid_date        | _no additional properties_                                                                                                                                                                                                                                                                                                                                                                                   |
-| ZodIssueCode.invalid_string      | `validation: "url" \| "email" \| "uuid"`<br> Which built-in string validator failed                                                                                                                                                                                                                                                                                                                          |
-| ZodIssueCode.too_small           | `type: "string" \| "number" \| "array" \| "set" \| "date"` <br>The type of the data failing validation<br><br> `minimum: number` <br>The expected length/value.<br><br>`inclusive: boolean`<br>Whether the minimum is included in the range of acceptable values.<br><br>`exact: boolean`<br>Whether the size/length is constrained to be an exact value (used to produce more readable error messages).<br> |
-| ZodIssueCode.too_big             | `type: "string" \| "number" \| "array" \| "set" \| "date"` <br>The type of the data failing validation<br><br> `maximum: number` <br>The expected length/value.<br><br>`inclusive: boolean`<br>Whether the maximum is included in the range of acceptable values.<br><br>`exact: boolean`<br>Whether the size/length is constrained to be an exact value (used to produce more readable error messages).<br> |
-| ZodIssueCode.not_multiple_of     | `multipleOf: number` <br>The value the number should be a multiple of.<br>                                                                                                                                                                                                                                                                                                                                   |
-| ZodIssueCode.custom              | `params: { [k: string]: any }` <br> This is the error code throw by refinements (unless you are using `superRefine` in which case it's possible to throw issues of any `ZodIssueCode`). You are able to pass in a `params` object here that is available in your custom error maps (see [ZodErrorMap](#Customizing-errors-with-ZodErrorMap) below for details on error maps)                                 |
+| SchemaIssueCode.invalid_type        | `expected: SchemaParsedType` <br> `received: SchemaParsedType` <br><br>Jump to [this section](#schemaparsedtype) for a breakdown of the possible values of SchemaParsedType.                                                                                                                                                                                                                                             |
+| SchemaIssueCode.unrecognized_keys   | `keys: string[]`<br>The list of unrecognized keys<br>                                                                                                                                                                                                                                                                                                                                                        |
+| SchemaIssueCode.invalid_union       | `unionErrors: SchemaError[]` <br> The errors thrown by each element of the union.                                                                                                                                                                                                                                                                                                                               |
+| SchemaIssueCode.invalid_enum_value  | `options: string[]` <br> The set of acceptable string values for this enum.                                                                                                                                                                                                                                                                                                                                  |
+| SchemaIssueCode.invalid_arguments   | `argumentsError: SchemaError` <br> This is a special error code only thrown by a wrapped function returned by `SchemaFunction.implement()`. The `argumentsError` property is another SchemaError containing the validation error details.                                                                                                                                                                             |
+| SchemaIssueCode.invalid_return_type | `returnTypeError: SchemaError` <br> This is a special error code only thrown by a wrapped function returned by `SchemaFunction.implement()`. The `returnTypeError` property is another SchemaError containing the validation error details.                                                                                                                                                                           |
+| SchemaIssueCode.invalid_date        | _no additional properties_                                                                                                                                                                                                                                                                                                                                                                                   |
+| SchemaIssueCode.invalid_string      | `validation: "url" \| "email" \| "uuid"`<br> Which built-in string validator failed                                                                                                                                                                                                                                                                                                                          |
+| SchemaIssueCode.too_small           | `type: "string" \| "number" \| "array" \| "set" \| "date"` <br>The type of the data failing validation<br><br> `minimum: number` <br>The expected length/value.<br><br>`inclusive: boolean`<br>Whether the minimum is included in the range of acceptable values.<br><br>`exact: boolean`<br>Whether the size/length is constrained to be an exact value (used to produce more readable error messages).<br> |
+| SchemaIssueCode.too_big             | `type: "string" \| "number" \| "array" \| "set" \| "date"` <br>The type of the data failing validation<br><br> `maximum: number` <br>The expected length/value.<br><br>`inclusive: boolean`<br>Whether the maximum is included in the range of acceptable values.<br><br>`exact: boolean`<br>Whether the size/length is constrained to be an exact value (used to produce more readable error messages).<br> |
+| SchemaIssueCode.not_multiple_of     | `multipleOf: number` <br>The value the number should be a multiple of.<br>                                                                                                                                                                                                                                                                                                                                   |
+| SchemaIssueCode.custom              | `params: { [k: string]: any }` <br> This is the error code throw by refinements (unless you are using `superRefine` in which case it's possible to throw issues of any `SchemaIssueCode`). You are able to pass in a `params` object here that is available in your custom error maps (see [SchemaErrorMap](#Customizing-errors-with-SchemaErrorMap) below for details on error maps)                                 |
 
 <!--
-| ZodIssueCode.nonempty_array_is_empty | _no additional properties_                                      |
-| ZodIssueCode.invalid_literal_value   | `expected: string \| number \| boolean` <br> The literal value. |
+| SchemaIssueCode.nonempty_array_is_empty | _no additional properties_                                      |
+| SchemaIssueCode.invalid_literal_value   | `expected: string \| number \| boolean` <br> The literal value. |
 -->
 
-## ZodParsedType
+## SchemaParsedType
 
-This is an enum used by Zod internally to represent the type of a parsed value. The possible values are:
+This is an enum used by Schema internally to represent the type of a parsed value. The possible values are:
 
 - `string`
 - `nan`
@@ -87,15 +87,15 @@ This is an enum used by Zod internally to represent the type of a parsed value. 
 
 ## A demonstrative example
 
-Here's a sample Person schema.
+Here's a sample Person Schema.
 
 ```ts
-const person = z.object({
-  names: z.array(z.string()).nonempty(), // at least 1 name
+const person = Schema.object({
+  names: Schema.array(Schema.string()).nonempty(), // at least 1 name
   address: z
     .object({
-      line1: z.string(),
-      zipCode: z.number().min(10000), // American 5-digit code
+      line1: Schema.string(),
+      zipCode: Schema.number().min(10000), // American 5-digit code
     })
     .strict(), // do not allow unrecognized keys
 });
@@ -114,7 +114,7 @@ try {
     },
   });
 } catch (err) {
-  if (err instanceof z.ZodError) {
+  if (err instanceof Schema.SchemaError) {
     console.log(err.issues);
   }
 }
@@ -148,35 +148,35 @@ Here are the errors that will be printed:
 ];
 ```
 
-As you can see three different issues were identified. Every ZodIssue has a `code` property and additional metadata about the validation failure. For instance the `unrecognized_keys` error provides a list of the unrecognized keys detected in the input.
+As you can see three different issues were identified. Every SchemaIssue has a `code` property and additional metadata about the validation failure. For instance the `unrecognized_keys` error provides a list of the unrecognized keys detected in the input.
 
-## Customizing errors with ZodErrorMap
+## Customizing errors with SchemaErrorMap
 
-You can customize **all** error messages produced by Zod by providing a custom "error map" to Zod, like so:
+You can customize **all** error messages produced by Schema by providing a custom "error map" to Schema, like so:
 
 ```ts
-import { z } from "zod";
+import { Schema } from "schema";
 
-const customErrorMap: z.ZodErrorMap = (issue, ctx) => {
-  if (issue.code === z.ZodIssueCode.invalid_type) {
+const customErrorMap: Schema.SchemaErrorMap = (issue, ctx) => {
+  if (issue.code === Schema.SchemaIssueCode.invalid_type) {
     if (issue.expected === "string") {
       return { message: "bad type!" };
     }
   }
-  if (issue.code === z.ZodIssueCode.custom) {
+  if (issue.code === Schema.SchemaIssueCode.custom) {
     return { message: `less-than-${(issue.params || {}).minimum}` };
   }
   return { message: ctx.defaultError };
 };
 
-z.setErrorMap(customErrorMap);
+Schema.setErrorMap(customErrorMap);
 ```
 
-`ZodErrorMap` is a special function. It accepts two arguments: `issue` and `ctx`. The return type is `{ message: string }`. Essentially the error map accepts some information about the validation that is failing and returns an appropriate error message.
+`SchemaErrorMap` is a special function. It accepts two arguments: `issue` and `ctx`. The return type is `{ message: string }`. Essentially the error map accepts some information about the validation that is failing and returns an appropriate error message.
 
-- `issue: Omit<ZodIssue, "message">`
+- `issue: Omit<SchemaIssue, "message">`
 
-  As mentioned above, ZodIssue is a discriminated union.
+  As mentioned above, SchemaIssue is a discriminated union.
 
 - `ctx: { defaultError: string; data: any }`
 
@@ -188,21 +188,21 @@ As in the example, you can modify certain error messages and simply fall back to
 
 ## Error map priority
 
-A custom error maps doesn't need to produce an error message for every kind of issue in Zod. Instead, your error map can override certain errors and return `ctx.defaultError` for everything else.
+A custom error maps doesn't need to produce an error message for every kind of issue in Schema. Instead, your error map can override certain errors and return `ctx.defaultError` for everything else.
 
 But how is the value of `ctx.defaultError` determined?
 
-Error messages in Zod are generated by passing metadata about a validation issue through a chain of error maps. Error maps with higher priority override messages generated by maps with lower priority.
+Error messages in Schema are generated by passing metadata about a validation issue through a chain of error maps. Error maps with higher priority override messages generated by maps with lower priority.
 
-The lowest priority map is the `defaultErrorMap`, which defined in [`src/errors.ts`](https://github.com/colinhacks/zod/blob/main/src/errors.ts). This produces the default error message for all issues in Zod.
+The lowest priority map is the `defaultErrorMap`, which defined in [`src/errors.ts`](https://github.com/colinhacks/schema/blob/main/src/errors.ts). This produces the default error message for all issues in Schema.
 
 ### Global error map
 
-This message is then passed as `ctx.defaultError` into `overrideErrorMap`. This is a global error map you can set with `z.setErrorMap`:
+This message is then passed as `ctx.defaultError` into `overrideErrorMap`. This is a global error map you can set with `Schema.setErrorMap`:
 
 ```ts
-const myErrorMap: z.ZodErrorMap = /* ... */;
-z.setErrorMap(myErrorMap);
+const myErrorMap: Schema.SchemaErrorMap = /* ... */;
+Schema.setErrorMap(myErrorMap);
 ```
 
 ### Schema-bound error map
@@ -210,10 +210,10 @@ z.setErrorMap(myErrorMap);
 The `overrideErrorMap` message is then passed as `ctx.defaultError` into any schema-bound error maps. Every schema can be associated with an error map.
 
 ```ts
-z.string({ errorMap: myErrorMap });
+Schema.string({ errorMap: myErrorMap });
 
 // this creates an error map under the hood
-z.string({
+Schema.string({
   invalid_type_error: "Invalid name",
   required_error: "Name is required",
 });
@@ -224,7 +224,7 @@ z.string({
 Finally, you can pass an error map as a parameter to any `parse` method. This error map, if provided, has highest priority.
 
 ```ts
-z.string().parse("adsf", { errorMap: myErrorMap });
+Schema.string().parse("adsf", { errorMap: myErrorMap });
 ```
 
 ## A working example
@@ -232,19 +232,19 @@ z.string().parse("adsf", { errorMap: myErrorMap });
 Let's look at a practical example of of customized error map:
 
 ```ts
-import * as z from "zod";
+import * as Schema   from "schema";
 
-const customErrorMap: z.ZodErrorMap = (error, ctx) => {
+const customErrorMap: Schema.SchemaErrorMap = (error, ctx) => {
   /*
   This is where you override the various error codes
   */
   switch (error.code) {
-    case z.ZodIssueCode.invalid_type:
+    case Schema.SchemaIssueCode.invalid_type:
       if (error.expected === "string") {
         return { message: `This ain't a string!` };
       }
       break;
-    case z.ZodIssueCode.custom:
+    case Schema.SchemaIssueCode.custom:
       // produce a custom message using error.params
       // error.params won't be set unless you passed
       // a `params` arguments into a custom validator
@@ -259,10 +259,10 @@ const customErrorMap: z.ZodErrorMap = (error, ctx) => {
   return { message: ctx.defaultError };
 };
 
-z.string().parse(12, { errorMap: customErrorMap });
+Schema.string().parse(12, { errorMap: customErrorMap });
 
 /* throws: 
-  ZodError {
+  SchemaError {
     errors: [{
       code: "invalid_type",
       path: [],
@@ -276,16 +276,16 @@ z.string().parse(12, { errorMap: customErrorMap });
 
 ## Error handling for forms
 
-If you're using Zod to validate the inputs from a web form, there is a convenient way to "flatten" a ZodError to a rich, structured format that can be easily rendered in your interface.
+If you're using Schema to validate the inputs from a web form, there is a convenient way to "flatten" a SchemaError to a rich, structured format that can be easily rendered in your interface.
 
 Consider this example of a simple signup form:
 
 ```ts
-const FormData = z.object({
-  name: z.string(),
-  contactInfo: z.object({
-    email: z.string().email(),
-    phone: z.string().optional(),
+const FormData = Schema.object({
+  name: Schema.string(),
+  contactInfo: Schema.object({
+    email: Schema.string().email(),
+    phone: Schema.string().optional(),
   }),
 });
 ```
@@ -302,7 +302,7 @@ const result = FormData.safeParse({
 });
 ```
 
-This will throw a ZodError with two issues:
+This will throw a SchemaError with two issues:
 
 ```ts
 if (!result.success) {
@@ -329,7 +329,7 @@ if (!result.success) {
 
 ### Formatting errors
 
-Using the `.format()` method on `ZodError`, we can make this error easier to work with.
+Using the `.format()` method on `SchemaError`, we can make this error easier to work with.
 
 ```ts
 if (!result.success) {
@@ -352,7 +352,7 @@ if (!result.success) {
 As you can see, the result is an object that denormalizes the issues array into a nested object. This makes it easier to display error messages in your form interface.
 
 ```tsx
-const FormData = z.object({ ... });
+const FormData = Schema.object({ ... });
 
 function Errors(props: {errors?: string[]}){
   if(!props.errors?.length) return null;
@@ -396,7 +396,7 @@ if (!result.success) {
 
 The `fieldErrors` key points to an object that groups all issues by key.
 
-The `formErrors` element is a list of issues that occurred on the "root" of the object schema. For instance: if you called `FormData.parse(null)`, `flatten()` would return:
+The `formErrors` element is a list of issues that occurred on the "root" of the object Schema. For instance: if you called `FormData.parse(null)`, `flatten()` would return:
 
 ```ts
 const result = FormData.safeParse(null);
@@ -413,12 +413,12 @@ if (!result.success) {
 
 ### Post-processing issues
 
-Both `.flatten()` and `.format()` accept an optional mapping function of `(issue: ZodIssue) => U` to `flatten()`, which can customize how each `ZodIssue` is transformed in the final output.
+Both `.flatten()` and `.format()` accept an optional mapping function of `(issue: SchemaIssue) => U` to `flatten()`, which can customize how each `SchemaIssue` is transformed in the final output.
 
-This can be particularly useful when integrating Zod with form validation, as it allows you to pass back whatever `ZodIssue` specific context you might need.
+This can be particularly useful when integrating Schema with form validation, as it allows you to pass back whatever `SchemaIssue` specific context you might need.
 
 ```ts
-result.error.flatten((issue: ZodIssue) => ({
+result.error.flatten((issue: SchemaIssue) => ({
   message: issue.message,
   errorCode: issue.code,
 }));
@@ -442,7 +442,7 @@ result.error.flatten((issue: ZodIssue) => ({
 You can infer the return type signature of `.format()` and `.flatten()` with the following utilities:
 
 ```ts
-type FormattedErrors = z.inferFormattedError<typeof FormData>;
+type FormattedErrors = Schema.inferFormattedError<typeof FormData>;
 /*
   {  
     name?: {_errors?: string[]},
@@ -458,7 +458,7 @@ type FormattedErrors = z.inferFormattedError<typeof FormData>;
   } 
 */
 
-type FlattenedErrors = z.inferFlattenedErrors<typeof FormData>;
+type FlattenedErrors = Schema.inferFlattenedErrors<typeof FormData>;
 /*
   {  
     formErrors: string[],
@@ -471,10 +471,10 @@ type FlattenedErrors = z.inferFlattenedErrors<typeof FormData>;
 */
 ```
 
-These utilities also accept a second generic argument that corresponds to the result of any `ZodIssue` mapper function.
+These utilities also accept a second generic argument that corresponds to the result of any `SchemaIssue` mapper function.
 
 ```ts
-type FormDataErrors = z.inferFlattenedErrors<
+type FormDataErrors = Schema.inferFlattenedErrors<
   typeof FormData,
   { message: string; errorCode: string }
 >;

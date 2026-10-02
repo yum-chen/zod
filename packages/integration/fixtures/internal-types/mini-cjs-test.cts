@@ -1,16 +1,16 @@
-// This fixture tests @zod/mini's .d.cts types in a CommonJS context
+// This fixture tests @schema/mini's .d.cts types in a CommonJS context
 
-import * as z from "@zod/mini";
+import * as Schema from "@schema/mini";
 
-const userSchema = z.object({
-  name: z.string(),
-  age: z.number().check(z.int(), z.positive()),
-  tags: z.array(z.string()),
+const userSchema = Schema.object({
+  name: Schema.string(),
+  age: Schema.number().check(Schema.int(), Schema.positive()),
+  tags: Schema.array(Schema.string()),
 });
 
-type User = z.infer<typeof userSchema>;
+type User = Schema.infer<typeof userSchema>;
 
-const result = z.safeParse(userSchema, { name: "Alice", age: 30, tags: [] });
+const result = Schema.safeParse(userSchema, { name: "Alice", age: 30, tags: [] });
 
 if (result.success) {
   const user: User = result.data;

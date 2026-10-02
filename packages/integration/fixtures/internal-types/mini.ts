@@ -1,20 +1,20 @@
-// This fixture tests that @zod/mini's built types resolve onto the peer's
+// This fixture tests that @schema/mini's built types resolve onto the peer's
 // declarations with no internal errors when compiled with skipLibCheck: false
 
-import * as z from "@zod/mini";
-import type * as zm from "zod/mini";
+import * as Schema from "@schema/mini";
+import type * as zm from "schema/mini";
 
-const userSchema = z.object({
-  name: z.string(),
-  age: z.number().check(z.int(), z.positive()),
-  tags: z.array(z.string()),
-  role: z.enum(["admin", "user", "guest"]),
-  metadata: z.record(z.string(), z.unknown()),
+const userSchema = Schema.object({
+  name: Schema.string(),
+  age: Schema.number().check(Schema.int(), Schema.positive()),
+  tags: Schema.array(Schema.string()),
+  role: Schema.enum(["admin", "user", "guest"]),
+  metadata: Schema.record(Schema.string(), Schema.unknown()),
 });
 
-type User = z.infer<typeof userSchema>;
+type User = Schema.infer<typeof userSchema>;
 
-const result = z.safeParse(userSchema, {
+const result = Schema.safeParse(userSchema, {
   name: "Alice",
   age: 30,
   tags: ["developer"],
@@ -28,6 +28,6 @@ if (result.success) {
 }
 
 // the scoped package and the subpath are one declaration tree
-const _sameTree: zm.ZodMiniObject = userSchema;
+const _sameTree: zm.SchemaMiniObject = userSchema;
 
 export { userSchema };

@@ -1,21 +1,21 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const gtFive = z.bigint().gt(BigInt(5));
-const gteFive = z.bigint().gte(BigInt(5));
-const ltFive = z.bigint().lt(BigInt(5));
-const lteFive = z.bigint().lte(BigInt(5));
-const positive = z.bigint().positive();
-const negative = z.bigint().negative();
-const nonnegative = z.bigint().nonnegative();
-const nonpositive = z.bigint().nonpositive();
-const multipleOfFive = z.bigint().multipleOf(BigInt(5));
+const gtFive = Schema.bigint().gt(BigInt(5));
+const gteFive = Schema.bigint().gte(BigInt(5));
+const ltFive = Schema.bigint().lt(BigInt(5));
+const lteFive = Schema.bigint().lte(BigInt(5));
+const positive = Schema.bigint().positive();
+const negative = Schema.bigint().negative();
+const nonnegative = Schema.bigint().nonnegative();
+const nonpositive = Schema.bigint().nonpositive();
+const multipleOfFive = Schema.bigint().multipleOf(BigInt(5));
 
 test("passing validations", () => {
-  z.bigint().parse(BigInt(1));
-  z.bigint().parse(BigInt(0));
-  z.bigint().parse(BigInt(-1));
+  Schema.bigint().parse(BigInt(1));
+  Schema.bigint().parse(BigInt(0));
+  Schema.bigint().parse(BigInt(-1));
   gtFive.parse(BigInt(6));
   gteFive.parse(BigInt(5));
   gteFive.parse(BigInt(6));
@@ -46,44 +46,44 @@ test("failing validations", () => {
 });
 
 test("min max getters", () => {
-  expect(z.bigint().min(BigInt(5)).minValue).toEqual(BigInt(5));
-  expect(z.bigint().min(BigInt(5)).min(BigInt(10)).minValue).toEqual(BigInt(10));
+  expect(Schema.bigint().min(BigInt(5)).minValue).toEqual(BigInt(5));
+  expect(Schema.bigint().min(BigInt(5)).min(BigInt(10)).minValue).toEqual(BigInt(10));
 
-  expect(z.bigint().max(BigInt(5)).maxValue).toEqual(BigInt(5));
-  expect(z.bigint().max(BigInt(5)).max(BigInt(1)).maxValue).toEqual(BigInt(1));
+  expect(Schema.bigint().max(BigInt(5)).maxValue).toEqual(BigInt(5));
+  expect(Schema.bigint().max(BigInt(5)).max(BigInt(1)).maxValue).toEqual(BigInt(1));
 });
 
 test("a format check applied after min/max does not widen minValue/maxValue back out", () => {
-  const schema = z.bigint().min(0n).max(23n).check(z.int64());
-  expect(schema.minValue).toEqual(0n);
-  expect(schema.maxValue).toEqual(23n);
+  const schema = Schema.bigint().min(0n).max(23n).check(Schema.int64());
+  expect(Schema.minValue).toEqual(0n);
+  expect(Schema.maxValue).toEqual(23n);
 });
 
 test("bigint formats are distinct at the type level", () => {
-  expectTypeOf(z.int64()._zod.def.format).toEqualTypeOf<"int64">();
-  expectTypeOf(z.uint64()._zod.def.format).toEqualTypeOf<"uint64">();
+  expectTypeOf(Schema.int64()._schema.def.format).toEqualTypeOf<"int64">();
+  expectTypeOf(Schema.uint64()._schema.def.format).toEqualTypeOf<"uint64">();
 
-  z.int64() satisfies z.ZodBigIntFormat;
-  z.int64() satisfies z.ZodBigInt;
+  Schema.int64() satisfies Schema.SchemaBigIntFormat;
+  Schema.int64() satisfies Schema.SchemaBigInt;
 
-  // @ts-expect-error a uint64 schema is not a ZodInt64
-  z.uint64() satisfies z.ZodInt64;
+  // @ts-expect-error a uint64 schema is not a SchemaInt64
+  Schema.uint64() satisfies Schema.SchemaInt64;
 });
 
 test("multipleOf(0n) does not throw from safeParse", () => {
   // `value % 0n` throws RangeError, so the compiled path declines and the runtime reports the failure
-  const schema = z.bigint().multipleOf(BigInt(0));
-  const result = schema.safeParse(BigInt(10));
+  const schema = Schema.bigint().multipleOf(BigInt(0));
+  const result = Schema.safeParse(BigInt(10));
   expect(result.success).toBe(false);
   expect(result.error!.issues[0].code).toEqual("not_multiple_of");
-  expect(schema.safeParse(BigInt(0)).success).toBe(false);
+  expect(Schema.safeParse(BigInt(0)).success).toBe(false);
 
   // matches the number equivalent
-  expect(z.number().multipleOf(0).safeParse(10).success).toBe(false);
-  expect(z.number().multipleOf(0).safeParse(0).success).toBe(false);
+  expect(Schema.number().multipleOf(0).safeParse(10).success).toBe(false);
+  expect(Schema.number().multipleOf(0).safeParse(0).success).toBe(false);
 
   // a zero divisor nested in an object must not break the surrounding parse
-  const obj = z.object({ a: z.bigint().multipleOf(BigInt(0)), b: z.bigint() });
+  const obj = Schema.object({ a: Schema.bigint().multipleOf(BigInt(0)), b: Schema.bigint() });
   expect(obj.safeParse({ a: BigInt(1), b: BigInt(2) }).success).toBe(false);
   expect(obj.safeParse({ a: BigInt(1), b: 2 }).success).toBe(false);
 });

@@ -1,13 +1,13 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
 test("test", () => {
   expect(true).toBe(true);
 });
 
 test("test2", () => {
-  expect(() => z.string().parse(234)).toThrowErrorMatchingInlineSnapshot(`
-    [ZodError: [
+  expect(() => Schema.string().parse(234)).toThrowErrorMatchingInlineSnapshot(`
+    [SchemaError: [
       {
         "code": "invalid_type",
         "expected": "string",
@@ -21,7 +21,7 @@ test("test2", () => {
 
 test("async validation", async () => {
   const testTuple = z
-    .tuple([z.string().refine(async () => true), z.number().refine(async () => true)])
+    .tuple([Schema.string().refine(async () => true), Schema.number().refine(async () => true)])
     .refine(async () => true);
   expectTypeOf<typeof testTuple._output>().toEqualTypeOf<[string, number]>();
 
@@ -31,7 +31,7 @@ test("async validation", async () => {
   const r1 = await testTuple.safeParseAsync(["asdf", "asdf"]);
   expect(r1.success).toEqual(false);
   expect(r1.error!).toMatchInlineSnapshot(`
-    [ZodError: [
+    [SchemaError: [
       {
         "code": "invalid_type",
         "expected": "number",

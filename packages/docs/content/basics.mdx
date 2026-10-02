@@ -8,30 +8,30 @@ import { Callout } from "fumadocs-ui/components/callout";
 
 {/* This page is a carefully curated introduction: the one workflow every new user walks through (define a schema, parse, infer, handle errors), shown once, in its simplest form. Edge cases, carve-outs, exceptions, and behavior notes for specific input shapes do NOT belong here, however true or recently fixed — they go on the relevant API reference page. If an addition explains when something *doesn't* work, it doesn't go on this page. */}
 
-This page will walk you through the basics of creating schemas, parsing data, and using inferred types. For complete documentation on Zod's schema API, refer to [Defining schemas](/api).
+This page will walk you through the basics of creating schemas, parsing data, and using inferred types. For complete documentation on Schema's schema API, refer to [Defining schemas](/api).
 
 ## Defining a schema
 
-Before you can do anything else, you need to define a schema. For the purposes of this guide, we'll use a simple object schema.
+Before you can do anything else, you need to define a Schema. For the purposes of this guide, we'll use a simple object Schema.
 
-<Tabs groupId="lib" items={["Zod", "Zod Mini"]}>
-<Tab value="Zod">
+<Tabs groupId="lib" items={["Schema", "Schema Mini"]}>
+<Tab value="Schema">
 ```ts
-import * as z from "zod"; 
+import * as Schema   from "schema"; 
 
-const Player = z.object({ 
-  username: z.string(),
-  xp: z.number()
+const Player = Schema.object({ 
+  username: Schema.string(),
+  xp: Schema.number()
 });
 ```
 </Tab>
-<Tab value="Zod Mini">
+<Tab value="Schema Mini">
 ```ts
-import * as z from "zod/mini"
+import * as Schema from "schema/mini"
 
-const Player = z.object({ 
-  username: z.string(),
-  xp: z.number()
+const Player = Schema.object({ 
+  username: Schema.string(),
+  xp: Schema.number()
 });
 ```
 </Tab>
@@ -39,7 +39,7 @@ const Player = z.object({
 
 ## Parsing data
 
-Given any Zod schema, use `.parse` to validate an input. If it's valid, Zod returns a strongly-typed *deep clone* of the input. 
+Given any Schema schema, use `.parse` to validate an input. If it's valid, Schema returns a strongly-typed *deep clone* of the input. 
 
 ```ts
 Player.parse({ username: "billie", xp: 100 }); 
@@ -56,15 +56,15 @@ await Player.parseAsync({ username: "billie", xp: 100 });
 
 ## Handling errors
 
-When validation fails, the `.parse()` method will throw a `ZodError` instance with granular information about the validation issues.
+When validation fails, the `.parse()` method will throw a `SchemaError` instance with granular information about the validation issues.
 
-<Tabs groupId="lib" items={["Zod", "Zod Mini"]}>
-<Tab value="Zod">
+<Tabs groupId="lib" items={["Schema", "Schema Mini"]}>
+<Tab value="Schema">
 ```ts
 try {
   Player.parse({ username: 42, xp: "100" });
 } catch(error){
-  if(error instanceof z.ZodError){
+  if(error instanceof Schema.SchemaError){
     error.issues; 
     /* [
       {
@@ -84,12 +84,12 @@ try {
 }
 ```
 </Tab>
-<Tab value="Zod Mini">
+<Tab value="Schema Mini">
 ```ts
 try {
   Player.parse({ username: 42, xp: "100" });
 } catch(error){
-  if(error instanceof z.core.$ZodError){
+  if(error instanceof Schema.core.$SchemaError){
     error.issues; 
     /* [
       {
@@ -111,12 +111,12 @@ try {
 </Tab>
 </Tabs>
 
-To avoid a `try/catch` block, you can use the `.safeParse()` method to get back a plain result object containing either the successfully parsed data or a `ZodError`. The result type is a [discriminated union](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions), so you can handle both cases conveniently.
+To avoid a `try/catch` block, you can use the `.safeParse()` method to get back a plain result object containing either the successfully parsed data or a `SchemaError`. The result type is a [discriminated union](https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions), so you can handle both cases conveniently.
 
 ```ts
 const result = Player.safeParse({ username: 42, xp: "100" });
 if (!result.success) {
-  result.error;   // ZodError instance
+  result.error;   // SchemaError instance
 } else {
   result.data;    // { username: string; xp: number }
 }
@@ -126,11 +126,11 @@ if (!result.success) {
 **Note** — If your schema uses certain asynchronous APIs like `async` [refinements](/api#refinements) or [transforms](/api#transforms), you'll need to use the `.safeParseAsync()` method instead.
 
 ```ts
-await schema.safeParseAsync("hello");
+await Schema.safeParseAsync("hello");
 ```
 </Callout>
 
-When you only need to know whether an input is acceptable, use `.validate()` — or the top-level `z.validate(schema, data)`, which is the form `zod/mini` uses. It returns a boolean, never builds an error, and acts as a type guard on the schema's input type. On invalid input it is up to 16x faster than `.safeParse().success`.
+When you only need to know whether an input is acceptable, use `.validate()` — or the top-level `Schema.validate(schema, data)`, which is the form `schema/mini` uses. It returns a boolean, never builds an error, and acts as a type guard on the schema's input type. On invalid input it is up to 16x faster than `.safeParse().success`.
 
 ```ts
 Player.validate({ username: "billie", xp: 100 }); // true
@@ -141,16 +141,16 @@ Use `.validateAsync()` for schemas with async refinements or transforms. On a [c
 
 ## Inferring types
 
-Zod infers a static type from your schema definitions. You can extract this type with the `z.infer<>` utility and use it however you like.
+Schema infers a static type from your schema definitions. You can extract this type with the `Schema.infer<>` utility and use it however you like.
 
 ```ts
-const Player = z.object({ 
-  username: z.string(),
-  xp: z.number()
+const Player = Schema.object({ 
+  username: Schema.string(),
+  xp: Schema.number()
 });
 
 // extract the inferred type
-type Player = z.infer<typeof Player>;
+type Player = Schema.infer<typeof Player>;
 
 // use it in your code
 const player: Player = { username: "billie", xp: 100 };
@@ -159,12 +159,12 @@ const player: Player = { username: "billie", xp: 100 };
 In some cases, the input & output types of a schema can diverge. For instance, the `.transform()` API can convert the input from one type to another. In these cases, you can extract the input and output types independently:
 
 ```ts
-const mySchema = z.string().transform((val) => val.length);
+const mySchema = Schema.string().transform((val) => val.length);
 
-type MySchemaIn = z.input<typeof mySchema>;
+type MySchemaIn = Schema.input<typeof mySchema>;
 // => string
 
-type MySchemaOut = z.output<typeof mySchema>; // equivalent to z.infer<typeof mySchema>
+type MySchemaOut = Schema.output<typeof mySchema>; // equivalent to Schema.infer<typeof mySchema>
 // number
 ```
 

@@ -1,3 +1,3 @@
-import * as z from "../v4/mini/external.js";
+import * as Schema from "../v4/mini/external.js";
 export * from "../v4/mini/external.js";
-export { z };
+export { Schema };

@@ -1,19 +1,19 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
 test("object augmentation", () => {
   const Animal = z
     .object({
-      species: z.string(),
+      species: Schema.string(),
     })
     .augment({
-      population: z.number(),
+      population: Schema.number(),
     });
   // overwrites `species`
   const ModifiedAnimal = Animal.augment({
-    species: z.array(z.string()),
+    species: Schema.array(Schema.string()),
   });
   ModifiedAnimal.parse({
     species: ["asd"],

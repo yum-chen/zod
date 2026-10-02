@@ -2,15 +2,15 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 
 export const ZOD = {
-  imports: [`import * as z from "zod/v4";`],
-  schemaType: "z.object" as const,
-  valueTypes: [`z.string()`],
+  imports: [`import * as Schema from "schema/v4";`],
+  schemaType: "Schema.object" as const,
+  valueTypes: [`Schema.string()`],
 };
 
 export const ZOD3 = {
-  imports: [`import * as z from "zod3";`],
-  schemaType: "z.object" as const,
-  valueTypes: [`z.string()`],
+  imports: [`import * as Schema from "schema3";`],
+  schemaType: "Schema.object" as const,
+  valueTypes: [`Schema.string()`],
 };
 
 export const VALIBOT = {
@@ -34,7 +34,7 @@ generateExtendChain({
 interface GenerateObjectsParams {
   // path?: string;
   imports: string[];
-  schemaType: "z.object" | "arktype" | "valibot";
+  schemaType: "Schema.object" | "arktype" | "valibot";
   valueTypes: string[];
   methods?: string[];
   numSchemas: number;
@@ -105,10 +105,10 @@ export function generate(params: GenerateObjectsParams) {
 
     // extracting types
     // file.push(
-    //   `export type ${variableName}_input = z.input<typeof ${variableName}>;`
+    //   `export type ${variableName}_input = Schema.input<typeof ${variableName}>;`
     // );
     // file.push(
-    //   `export type ${variableName}_output = z.output<typeof ${variableName}>;`
+    //   `export type ${variableName}_output = Schema.output<typeof ${variableName}>;`
     // );
 
     file.push(``);
@@ -153,7 +153,7 @@ export function generate(params: GenerateObjectsParams) {
       //   .fill(0)
       //   .map(() => randomStr(7));
 
-      if (schemaType === "z.object") {
+      if (schemaType === "Schema.object") {
         file.push(`export const ${varname} = ${variableName}.extend({`);
         for (const field of fields) {
           file.push(`  "${field.key}": ${field.schema},`);
@@ -184,7 +184,7 @@ export function generate(params: GenerateObjectsParams) {
 interface GenerateExtendChainParams {
   // path?: string;
   imports: string[];
-  schemaType: "z.object" | "arktype" | "valibot";
+  schemaType: "Schema.object" | "arktype" | "valibot";
   valueTypes: string[];
   methods?: string[];
   numSchemas: number;
@@ -291,7 +291,7 @@ export function generateExtendChain(params: GenerateExtendChainParams) {
         file.push(`export const ${newName} = ${prevName}.extend({`);
 
         // even slower somehow
-        // file.push(`export const ${newName} = z.extend(${prevName}, {`);
+        // file.push(`export const ${newName} = Schema.extend(${prevName}, {`);
 
         // much faster...spread
         // file.push(`export const ${newName} = ${schemaType}({`);
@@ -300,7 +300,7 @@ export function generateExtendChain(params: GenerateExtendChainParams) {
           file.push(`  "${field.key}": ${field.schema},`);
         }
         file.push(`});`);
-        file.push(`export type ${newName} = z.infer<typeof ${newName}>;`);
+        file.push(`export type ${newName} = Schema.infer<typeof ${newName}>;`);
       }
       fields = fields.concat(newFields);
       mode = "omit";
@@ -323,7 +323,7 @@ function randomStr(length: number) {
   return result;
 }
 
-// Step 3: Generate a random Zod schema
+// Step 3: Generate a random Schema schema
 function generateFields(
   params: Pick<GenerateObjectsParams, "numKeys" | "valueTypes" | "methods">
 ): { key: string; schema: string }[] {
@@ -340,7 +340,7 @@ function generateFields(
     const randomType = params.valueTypes[randomTypeIndex]!;
     // const randomChance = Math.random();
     // if (randomChance > 0.98) {
-    //   const { schema: nestedSchema } = generateRandomZodSchema();
+    //   const { schema: nestedSchema } = generateRandomSchemaSchema();
     //   schema += ` ${key}: ${nestedSchema},`;
     //   continue;
     // }

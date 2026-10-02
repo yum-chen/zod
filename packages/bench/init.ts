@@ -1,6 +1,6 @@
-import * as z4 from "zod";
-import * as z3 from "zod3";
-import { zod4 as z4lib } from "./benchUtil.js";
+import * as z4 from "schema";
+import * as z3 from "schema3";
+import { schema4 as z4lib } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
 const DATA = Array.from({ length: 1000 }, () =>
@@ -20,8 +20,8 @@ const DATA = Array.from({ length: 1000 }, () =>
   })
 );
 
-const bench = metabench("z.object() schema initialization (1000 schemas)", {
-  zod3() {
+const bench = metabench("Schema.object() schema initialization (1000 schemas)", {
+  schema3() {
     const schemas = [];
     for (let i = 0; i < 1000; i++) {
       const z3Schema = z3.strictObject({
@@ -42,7 +42,7 @@ const bench = metabench("z.object() schema initialization (1000 schemas)", {
     // Use the last schema to avoid dead code elimination
     schemas[999].parse(DATA[0]);
   },
-  zod4lib() {
+  schema4lib() {
     const schemas = [];
     for (let i = 0; i < 1000; i++) {
       const z4LibSchema = z4lib.strictObject({
@@ -63,7 +63,7 @@ const bench = metabench("z.object() schema initialization (1000 schemas)", {
     // Use the last schema to avoid dead code elimination
     schemas[999].parse(DATA[0]);
   },
-  zod4() {
+  schema4() {
     const schemas = [];
     for (let i = 0; i < 1000; i++) {
       const z4Schema = z4.strictObject({

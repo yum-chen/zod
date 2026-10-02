@@ -1,10 +1,10 @@
-import * as z from "zod/v4"
+import * as Schema from "schema/v4"
  
-// z.string().check(
-//   z.minLength(5), 
-//   z.maxLength(10),
-//   z.refine(val => val.includes("@")),
-//   z.trim()
+// Schema.string().check(
+//   Schema.minLength(5), 
+//   Schema.maxLength(10),
+//   Schema.refine(val => val.includes("@")),
+//   Schema.trim()
 // );
 
-z.string().min(5).max(10).refine(val => val.includes("@")).trim().parse("asd@adsf");;
+Schema.string().min(5).max(10).refine(val => val.includes("@")).trim().parse("asd@adsf");;

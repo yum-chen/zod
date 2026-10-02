@@ -1,6 +1,6 @@
 import { metabench } from "./metabench.js";
 
-class ZodFail {
+class SchemaFail {
   status = "fail";
   constructor(public value: string) {}
 }
@@ -11,7 +11,7 @@ const bench = metabench("object creation")
     obj.value;
   })
   .add("constructor", () => {
-    const obj = new ZodFail("this is a test");
+    const obj = new SchemaFail("this is a test");
     obj.value;
   });
 

@@ -1,10 +1,10 @@
 import type { Primitive } from "./helpers/typeAliases.js";
-import { util, type ZodParsedType } from "./helpers/util.js";
-import type { TypeOf, ZodType } from "./index.js";
+import { util, type SchemaParsedType } from "./helpers/util.js";
+import type { TypeOf, SchemaType } from "./index.js";
 
 type allKeys<T> = T extends any ? keyof T : never;
 
-export type inferFlattenedErrors<T extends ZodType<any, any, any>, U = string> = typeToFlattenedError<TypeOf<T>, U>;
+export type inferFlattenedErrors<T extends SchemaType<any, any, any>, U = string> = typeToFlattenedError<TypeOf<T>, U>;
 export type typeToFlattenedError<T, U = string> = {
   formErrors: U[];
   fieldErrors: {
@@ -12,7 +12,7 @@ export type typeToFlattenedError<T, U = string> = {
   };
 };
 
-export const ZodIssueCode = util.arrayToEnum([
+export const SchemaIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
   "custom",
@@ -31,58 +31,58 @@ export const ZodIssueCode = util.arrayToEnum([
   "not_finite",
 ]);
 
-export type ZodIssueCode = keyof typeof ZodIssueCode;
+export type SchemaIssueCode = keyof typeof SchemaIssueCode;
 
-export type ZodIssueBase = {
+export type SchemaIssueBase = {
   path: (string | number)[];
   message?: string | undefined;
 };
 
-export interface ZodInvalidTypeIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_type;
-  expected: ZodParsedType;
-  received: ZodParsedType;
+export interface SchemaInvalidTypeIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_type;
+  expected: SchemaParsedType;
+  received: SchemaParsedType;
 }
 
-export interface ZodInvalidLiteralIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_literal;
+export interface SchemaInvalidLiteralIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_literal;
   expected: unknown;
   received: unknown;
 }
 
-export interface ZodUnrecognizedKeysIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.unrecognized_keys;
+export interface SchemaUnrecognizedKeysIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.unrecognized_keys;
   keys: string[];
 }
 
-export interface ZodInvalidUnionIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_union;
-  unionErrors: ZodError[];
+export interface SchemaInvalidUnionIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_union;
+  unionErrors: SchemaError[];
 }
 
-export interface ZodInvalidUnionDiscriminatorIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_union_discriminator;
+export interface SchemaInvalidUnionDiscriminatorIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_union_discriminator;
   options: Primitive[];
 }
 
-export interface ZodInvalidEnumValueIssue extends ZodIssueBase {
+export interface SchemaInvalidEnumValueIssue extends SchemaIssueBase {
   received: string | number;
-  code: typeof ZodIssueCode.invalid_enum_value;
+  code: typeof SchemaIssueCode.invalid_enum_value;
   options: (string | number)[];
 }
 
-export interface ZodInvalidArgumentsIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_arguments;
-  argumentsError: ZodError;
+export interface SchemaInvalidArgumentsIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_arguments;
+  argumentsError: SchemaError;
 }
 
-export interface ZodInvalidReturnTypeIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_return_type;
-  returnTypeError: ZodError;
+export interface SchemaInvalidReturnTypeIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_return_type;
+  returnTypeError: SchemaError;
 }
 
-export interface ZodInvalidDateIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_date;
+export interface SchemaInvalidDateIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_date;
 }
 
 export type StringValidation =
@@ -108,66 +108,66 @@ export type StringValidation =
   | { startsWith: string }
   | { endsWith: string };
 
-export interface ZodInvalidStringIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_string;
+export interface SchemaInvalidStringIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_string;
   validation: StringValidation;
 }
 
-export interface ZodTooSmallIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.too_small;
+export interface SchemaTooSmallIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.too_small;
   minimum: number | bigint;
   inclusive: boolean;
   exact?: boolean;
   type: "array" | "string" | "number" | "set" | "date" | "bigint";
 }
 
-export interface ZodTooBigIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.too_big;
+export interface SchemaTooBigIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.too_big;
   maximum: number | bigint;
   inclusive: boolean;
   exact?: boolean;
   type: "array" | "string" | "number" | "set" | "date" | "bigint";
 }
 
-export interface ZodInvalidIntersectionTypesIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.invalid_intersection_types;
+export interface SchemaInvalidIntersectionTypesIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.invalid_intersection_types;
 }
 
-export interface ZodNotMultipleOfIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.not_multiple_of;
+export interface SchemaNotMultipleOfIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.not_multiple_of;
   multipleOf: number | bigint;
 }
 
-export interface ZodNotFiniteIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.not_finite;
+export interface SchemaNotFiniteIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.not_finite;
 }
 
-export interface ZodCustomIssue extends ZodIssueBase {
-  code: typeof ZodIssueCode.custom;
+export interface SchemaCustomIssue extends SchemaIssueBase {
+  code: typeof SchemaIssueCode.custom;
   params?: { [k: string]: any };
 }
 
 export type DenormalizedError = { [k: string]: DenormalizedError | string[] };
 
-export type ZodIssueOptionalMessage =
-  | ZodInvalidTypeIssue
-  | ZodInvalidLiteralIssue
-  | ZodUnrecognizedKeysIssue
-  | ZodInvalidUnionIssue
-  | ZodInvalidUnionDiscriminatorIssue
-  | ZodInvalidEnumValueIssue
-  | ZodInvalidArgumentsIssue
-  | ZodInvalidReturnTypeIssue
-  | ZodInvalidDateIssue
-  | ZodInvalidStringIssue
-  | ZodTooSmallIssue
-  | ZodTooBigIssue
-  | ZodInvalidIntersectionTypesIssue
-  | ZodNotMultipleOfIssue
-  | ZodNotFiniteIssue
-  | ZodCustomIssue;
+export type SchemaIssueOptionalMessage =
+  | SchemaInvalidTypeIssue
+  | SchemaInvalidLiteralIssue
+  | SchemaUnrecognizedKeysIssue
+  | SchemaInvalidUnionIssue
+  | SchemaInvalidUnionDiscriminatorIssue
+  | SchemaInvalidEnumValueIssue
+  | SchemaInvalidArgumentsIssue
+  | SchemaInvalidReturnTypeIssue
+  | SchemaInvalidDateIssue
+  | SchemaInvalidStringIssue
+  | SchemaTooSmallIssue
+  | SchemaTooBigIssue
+  | SchemaInvalidIntersectionTypesIssue
+  | SchemaNotMultipleOfIssue
+  | SchemaNotFiniteIssue
+  | SchemaCustomIssue;
 
-export type ZodIssue = ZodIssueOptionalMessage & {
+export type SchemaIssue = SchemaIssueOptionalMessage & {
   fatal?: boolean | undefined;
   message: string;
 };
@@ -177,28 +177,28 @@ export const quotelessJson = (obj: any) => {
   return json.replace(/"([^"]+)":/g, "$1:");
 };
 
-type recursiveZodFormattedError<T> = T extends [any, ...any[]]
-  ? { [K in keyof T]?: ZodFormattedError<T[K]> }
+type recursiveSchemaFormattedError<T> = T extends [any, ...any[]]
+  ? { [K in keyof T]?: SchemaFormattedError<T[K]> }
   : T extends any[]
-    ? { [k: number]: ZodFormattedError<T[number]> }
+    ? { [k: number]: SchemaFormattedError<T[number]> }
     : T extends object
-      ? { [K in keyof T]?: ZodFormattedError<T[K]> }
+      ? { [K in keyof T]?: SchemaFormattedError<T[K]> }
       : unknown;
 
-export type ZodFormattedError<T, U = string> = {
+export type SchemaFormattedError<T, U = string> = {
   _errors: U[];
-} & recursiveZodFormattedError<NonNullable<T>>;
+} & recursiveSchemaFormattedError<NonNullable<T>>;
 
-export type inferFormattedError<T extends ZodType<any, any, any>, U = string> = ZodFormattedError<TypeOf<T>, U>;
+export type inferFormattedError<T extends SchemaType<any, any, any>, U = string> = SchemaFormattedError<TypeOf<T>, U>;
 
-export class ZodError<T = any> extends Error {
-  issues: ZodIssue[] = [];
+export class SchemaError<T = any> extends Error {
+  issues: SchemaIssue[] = [];
 
   get errors() {
     return this.issues;
   }
 
-  constructor(issues: ZodIssue[]) {
+  constructor(issues: SchemaIssue[]) {
     super();
 
     const actualProto = new.target.prototype;
@@ -208,20 +208,20 @@ export class ZodError<T = any> extends Error {
     } else {
       (this as any).__proto__ = actualProto;
     }
-    this.name = "ZodError";
+    this.name = "SchemaError";
     this.issues = issues;
   }
 
-  format(): ZodFormattedError<T>;
-  format<U>(mapper: (issue: ZodIssue) => U): ZodFormattedError<T, U>;
+  format(): SchemaFormattedError<T>;
+  format<U>(mapper: (issue: SchemaIssue) => U): SchemaFormattedError<T, U>;
   format(_mapper?: any) {
-    const mapper: (issue: ZodIssue) => any =
+    const mapper: (issue: SchemaIssue) => any =
       _mapper ||
-      function (issue: ZodIssue) {
+      function (issue: SchemaIssue) {
         return issue.message;
       };
-    const fieldErrors: ZodFormattedError<T> = { _errors: [] } as any;
-    const processError = (error: ZodError) => {
+    const fieldErrors: SchemaFormattedError<T> = { _errors: [] } as any;
+    const processError = (error: SchemaError) => {
       for (const issue of error.issues) {
         if (issue.code === "invalid_union") {
           issue.unionErrors.map(processError);
@@ -273,14 +273,14 @@ export class ZodError<T = any> extends Error {
     return fieldErrors;
   }
 
-  static create = (issues: ZodIssue[]) => {
-    const error = new ZodError(issues);
+  static create = (issues: SchemaIssue[]) => {
+    const error = new SchemaError(issues);
     return error;
   };
 
-  static assert(value: unknown): asserts value is ZodError {
-    if (!(value instanceof ZodError)) {
-      throw new Error(`Not a ZodError: ${value}`);
+  static assert(value: unknown): asserts value is SchemaError {
+    if (!(value instanceof SchemaError)) {
+      throw new Error(`Not a SchemaError: ${value}`);
     }
   }
 
@@ -295,17 +295,17 @@ export class ZodError<T = any> extends Error {
     return this.issues.length === 0;
   }
 
-  addIssue = (sub: ZodIssue) => {
+  addIssue = (sub: SchemaIssue) => {
     this.issues = [...this.issues, sub];
   };
 
-  addIssues = (subs: ZodIssue[] = []) => {
+  addIssues = (subs: SchemaIssue[] = []) => {
     this.issues = [...this.issues, ...subs];
   };
 
   flatten(): typeToFlattenedError<T>;
-  flatten<U>(mapper?: (issue: ZodIssue) => U): typeToFlattenedError<T, U>;
-  flatten<U = string>(mapper: (issue: ZodIssue) => U = (issue: ZodIssue) => issue.message as any): any {
+  flatten<U>(mapper?: (issue: SchemaIssue) => U): typeToFlattenedError<T, U>;
+  flatten<U = string>(mapper: (issue: SchemaIssue) => U = (issue: SchemaIssue) => issue.message as any): any {
     const fieldErrors: any = Object.create(null);
     const formErrors: U[] = [];
     for (const sub of this.issues) {
@@ -327,7 +327,7 @@ export class ZodError<T = any> extends Error {
 
 type stripPath<T extends object> = T extends any ? util.OmitKeys<T, "path"> : never;
 
-export type IssueData = stripPath<ZodIssueOptionalMessage> & {
+export type IssueData = stripPath<SchemaIssueOptionalMessage> & {
   path?: (string | number)[];
   fatal?: boolean | undefined;
 };
@@ -337,4 +337,4 @@ export type ErrorMapCtx = {
   data: any;
 };
 
-export type ZodErrorMap = (issue: ZodIssueOptionalMessage, _ctx: ErrorMapCtx) => { message: string };
+export type SchemaErrorMap = (issue: SchemaIssueOptionalMessage, _ctx: ErrorMapCtx) => { message: string };

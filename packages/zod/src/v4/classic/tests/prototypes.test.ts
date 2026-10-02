@@ -1,23 +1,23 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-declare module "zod/v4" {
-  interface ZodType {
+declare module "schema/v4" {
+  interface SchemaType {
     /** @deprecated */
     _classic(): string;
   }
 }
 
 test("prototype extension", () => {
-  z.ZodType.prototype._classic = function () {
+  Schema.SchemaType.prototype._classic = function () {
     return "_classic";
   };
 
   // should pass
-  const result = z.string()._classic();
+  const result = Schema.string()._classic();
   expect(result).toBe("_classic");
   // expectTypeOf<typeof result>().toEqualTypeOf<string>();
 
   // clean up
-  z.ZodType.prototype._classic = undefined;
+  Schema.SchemaType.prototype._classic = undefined;
 });

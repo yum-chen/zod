@@ -1,19 +1,19 @@
 import Benchmark from "benchmark";
 
-import { z } from "zod/v3";
+import { Schema } from "schema/v3";
 
-const emptySuite = new Benchmark.Suite("z.object: empty");
-const shortSuite = new Benchmark.Suite("z.object: short");
-const longSuite = new Benchmark.Suite("z.object: long");
+const emptySuite = new Benchmark.Suite("Schema.object: empty");
+const shortSuite = new Benchmark.Suite("Schema.object: short");
+const longSuite = new Benchmark.Suite("Schema.object: long");
 
-const empty = z.object({});
-const short = z.object({
-  string: z.string(),
+const empty = Schema.object({});
+const short = Schema.object({
+  string: Schema.string(),
 });
-const long = z.object({
-  string: z.string(),
-  number: z.number(),
-  boolean: z.boolean(),
+const long = Schema.object({
+  string: Schema.string(),
+  number: Schema.number(),
+  boolean: Schema.boolean(),
 });
 
 emptySuite

@@ -20,10 +20,10 @@
       // "outFiles": ["${workspaceFolder}/**/*.js"]
     },
     {
-      "name": "Nub (Zod source)",
+      "name": "Nub (Schema source)",
       "type": "node",
       "request": "launch",
-      "runtimeArgs": ["--conditions=@zod/source"],
+      "runtimeArgs": ["--conditions=@schema/source"],
 
       // Debug current file in VSCode
       "program": "${file}",

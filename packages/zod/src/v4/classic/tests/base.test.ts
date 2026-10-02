@@ -1,7 +1,7 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("test this binding", () => {
-  const parse = z.string().parse;
+  const parse = Schema.string().parse;
   expect(parse("asdf")).toBe("asdf");
 });

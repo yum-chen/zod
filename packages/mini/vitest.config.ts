@@ -5,7 +5,7 @@ export default mergeConfig(
   rootConfig,
   defineProject({
     resolve: {
-      conditions: ["@zod/source", "default"],
+      conditions: ["@schema/source", "default"],
     },
     test: {
       typecheck: {

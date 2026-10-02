@@ -1,22 +1,22 @@
 import * as core from "../core/index.js";
-import { $ZodError } from "../core/index.js";
+import { $SchemaError } from "../core/index.js";
 import * as util from "../core/util.js";
 
-/** @deprecated Use `z.core.$ZodIssue` from `@zod/core` instead, especially if you are building a library on top of Zod. */
-export type ZodIssue = core.$ZodIssue;
+/** @deprecated Use `Schema.core.$SchemaIssue` from `@schema/core` instead, especially if you are building a library on top of Schema. */
+export type SchemaIssue = core.$SchemaIssue;
 
-/** An Error-like class used to store Zod validation issues.  */
-export interface ZodError<T = unknown> extends $ZodError<T> {
-  /** @deprecated Use the `z.treeifyError(err)` function instead. */
-  format(): core.$ZodFormattedError<T>;
-  format<U>(mapper: (issue: core.$ZodIssue) => U): core.$ZodFormattedError<T, U>;
-  /** @deprecated Use the `z.treeifyError(err)` function instead. */
-  flatten(): core.$ZodFlattenedError<T>;
-  flatten<U>(mapper: (issue: core.$ZodIssue) => U): core.$ZodFlattenedError<T, U>;
+/** An Error-like class used to store Schema validation issues.  */
+export interface SchemaError<T = unknown> extends $SchemaError<T> {
+  /** @deprecated Use the `Schema.treeifyError(err)` function instead. */
+  format(): core.$SchemaFormattedError<T>;
+  format<U>(mapper: (issue: core.$SchemaIssue) => U): core.$SchemaFormattedError<T, U>;
+  /** @deprecated Use the `Schema.treeifyError(err)` function instead. */
+  flatten(): core.$SchemaFlattenedError<T>;
+  flatten<U>(mapper: (issue: core.$SchemaIssue) => U): core.$SchemaFlattenedError<T, U>;
   /** @deprecated Push directly to `.issues` instead. */
-  addIssue(issue: core.$ZodIssue): void;
+  addIssue(issue: core.$SchemaIssue): void;
   /** @deprecated Push directly to `.issues` instead. */
-  addIssues(issues: core.$ZodIssue[]): void;
+  addIssues(issues: core.$SchemaIssue[]): void;
 
   /** @deprecated Check `err.issues.length === 0` instead. */
   isEmpty: boolean;
@@ -32,24 +32,24 @@ const _installedErrorProtos = /* @__PURE__ */ new WeakSet<object>([Object.protot
  * access the getter allocates the per-instance closure and caches it
  * as a non-enumerable own property, so detached usage still works and
  * the allocation only happens for methods actually touched. */
-function _lazyMethod(proto: object, key: string, make: (self: ZodError) => unknown): void {
+function _lazyMethod(proto: object, key: string, make: (self: SchemaError) => unknown): void {
   Object.defineProperty(proto, key, {
     configurable: true,
     enumerable: false,
-    get(this: ZodError) {
+    get(this: SchemaError) {
       const value = make(this);
       Object.defineProperty(this, key, { value, configurable: true, writable: true });
       return value;
     },
-    set(this: ZodError, value: unknown) {
+    set(this: SchemaError, value: unknown) {
       Object.defineProperty(this, key, { value, configurable: true, writable: true });
     },
   });
 }
 
-const initializer = (inst: ZodError, issues: core.$ZodIssue[]) => {
-  $ZodError.init(inst, issues);
-  inst.name = "ZodError";
+const initializer = (inst: SchemaError, issues: core.$SchemaIssue[]) => {
+  $SchemaError.init(inst, issues);
+  inst.name = "SchemaError";
 
   const proto = Object.getPrototypeOf(inst);
   if (_installedErrorProtos.has(proto)) return;
@@ -68,14 +68,14 @@ const initializer = (inst: ZodError, issues: core.$ZodIssue[]) => {
   Object.defineProperty(proto, "isEmpty", {
     configurable: true,
     enumerable: false,
-    get(this: ZodError) {
+    get(this: SchemaError) {
       return this.issues.length === 0;
     },
   });
 };
-export const ZodError: core.$constructor<ZodError> = /*@__PURE__*/ core.$constructor("ZodError", initializer);
-export const ZodRealError: core.$constructor<ZodError> = /*@__PURE__*/ core.$constructor(
-  "ZodError",
+export const SchemaError: core.$constructor<SchemaError> = /*@__PURE__*/ core.$constructor("SchemaError", initializer);
+export const SchemaRealError: core.$constructor<SchemaError> = /*@__PURE__*/ core.$constructor(
+  "SchemaError",
   initializer,
   undefined,
   {
@@ -83,15 +83,15 @@ export const ZodRealError: core.$constructor<ZodError> = /*@__PURE__*/ core.$con
   }
 );
 
-/** @deprecated Use `z.core.$ZodFlattenedError` instead. */
-export type ZodFlattenedError<T, U = string> = core.$ZodFlattenedError<T, U>;
-/** @deprecated Use `z.core.$ZodFormattedError` instead. */
-export type ZodFormattedError<T, U = string> = core.$ZodFormattedError<T, U>;
-/** @deprecated Use `z.core.$ZodErrorMap` instead. */
-export type ZodErrorMap<T extends core.$ZodIssueBase = core.$ZodIssue> = core.$ZodErrorMap<T>;
+/** @deprecated Use `Schema.core.$SchemaFlattenedError` instead. */
+export type SchemaFlattenedError<T, U = string> = core.$SchemaFlattenedError<T, U>;
+/** @deprecated Use `Schema.core.$SchemaFormattedError` instead. */
+export type SchemaFormattedError<T, U = string> = core.$SchemaFormattedError<T, U>;
+/** @deprecated Use `Schema.core.$SchemaErrorMap` instead. */
+export type SchemaErrorMap<T extends core.$SchemaIssueBase = core.$SchemaIssue> = core.$SchemaErrorMap<T>;
 
-/** @deprecated Use `z.core.$ZodRawIssue` instead. */
-export type IssueData = core.$ZodRawIssue;
+/** @deprecated Use `Schema.core.$SchemaRawIssue` instead. */
+export type IssueData = core.$SchemaRawIssue;
 
-// /** @deprecated Use `z.core.$ZodErrorMapCtx` instead. */
-// export type ErrorMapCtx = core.$ZodErrorMapCtx;
+// /** @deprecated Use `Schema.core.$SchemaErrorMapCtx` instead. */
+// export type ErrorMapCtx = core.$SchemaErrorMapCtx;

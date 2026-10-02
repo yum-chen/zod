@@ -1,8 +1,8 @@
-import type { $ZodStringFormats } from "../core/checks.js";
+import type { $SchemaStringFormats } from "../core/checks.js";
 import type * as errors from "../core/errors.js";
 import * as util from "../core/util.js";
 
-const error: () => errors.$ZodErrorMap = () => {
+const error: () => errors.$SchemaErrorMap = () => {
   // singular units after numerals in Tajik
   const Sizable: Record<string, { unit: string; verb: string }> = {
     string: { unit: "аломат", verb: "дошта бошад" },
@@ -17,7 +17,7 @@ const error: () => errors.$ZodErrorMap = () => {
   }
 
   const FormatDictionary: {
-    [k in $ZodStringFormats | (string & {})]?: string;
+    [k in $SchemaStringFormats | (string & {})]?: string;
   } = {
     regex: "вуруд",
     email: "суроғаи email",
@@ -54,7 +54,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 
   const TypeDictionary: {
-    [k in errors.$ZodInvalidTypeExpected | (string & {})]?: string;
+    [k in errors.$SchemaInvalidTypeExpected | (string & {})]?: string;
   } = {
     nan: "NaN",
     number: "рақам",
@@ -95,7 +95,7 @@ const error: () => errors.$ZodErrorMap = () => {
       }
 
       case "invalid_format": {
-        const _issue = issue as errors.$ZodStringFormatIssues;
+        const _issue = issue as errors.$SchemaStringFormatIssues;
         if (_issue.format === "starts_with") return `Сатри нодуруст: бояд бо "${_issue.prefix}" оғоз шавад`;
         if (_issue.format === "ends_with") return `Сатри нодуруст: бояд бо "${_issue.suffix}" анҷом ёбад`;
         if (_issue.format === "includes") return `Сатри нодуруст: бояд "${_issue.includes}"-ро дар бар гирад`;
@@ -128,7 +128,7 @@ const error: () => errors.$ZodErrorMap = () => {
   };
 };
 
-export default function (): { localeError: errors.$ZodErrorMap } {
+export default function (): { localeError: errors.$SchemaErrorMap } {
   return {
     localeError: error(),
   };

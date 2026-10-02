@@ -1,14 +1,14 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
 const beforeBenchmarkDate = new Date(2022, 10, 4);
 const benchmarkDate = new Date(2022, 10, 5);
 const afterBenchmarkDate = new Date(2022, 10, 6);
 
-const minCheck = z.date().min(benchmarkDate);
-const maxCheck = z.date().max(benchmarkDate);
+const minCheck = Schema.date().min(benchmarkDate);
+const maxCheck = Schema.date().max(benchmarkDate);
 
 test("passing validations", () => {
   minCheck.parse(benchmarkDate);

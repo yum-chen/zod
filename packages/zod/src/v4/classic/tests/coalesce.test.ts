@@ -5,16 +5,16 @@ test("coalesce", () => {
 });
 
 // test("nonoptional with default", () => {
-//   const schema = z.string().optional().coalesce("hi");
-//   expectTypeOf<typeof schema._input>().toEqualTypeOf<string | undefined>();
-//   expectTypeOf<typeof schema._output>().toEqualTypeOf<string>();
-//   expect(schema.parse(undefined)).toBe("hi");
+//   const schema = Schema.string().optional().coalesce("hi");
+//   expectTypeOf<typeof Schema._input>().toEqualTypeOf<string | undefined>();
+//   expectTypeOf<typeof Schema._output>().toEqualTypeOf<string>();
+//   expect(Schema.parse(undefined)).toBe("hi");
 // });
 
 // test("nonoptional in object", () => {
-//   const schema = z.object({ hi: z.string().optional().nonoptional("hi") });
+//   const schema = Schema.object({ hi: Schema.string().optional().nonoptional("hi") });
 
-//   expectTypeOf<typeof schema._input>().toEqualTypeOf<{ hi: string | undefined }>();
-//   expectTypeOf<typeof schema._output>().toEqualTypeOf<{ hi: string }>();
-//   expect(schema.parse(undefined)).toBe("hi");
+//   expectTypeOf<typeof Schema._input>().toEqualTypeOf<{ hi: string | undefined }>();
+//   expectTypeOf<typeof Schema._output>().toEqualTypeOf<{ hi: string }>();
+//   expect(Schema.parse(undefined)).toBe("hi");
 // });

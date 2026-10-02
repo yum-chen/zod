@@ -2,16 +2,16 @@ import { Buffer } from "node:buffer";
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-const minFive = z.string().min(5, "min5");
-const maxFive = z.string().max(5, "max5");
-const justFive = z.string().length(5);
-const nonempty = z.string().nonempty("nonempty");
-const includes = z.string().includes("includes");
-const includesFromIndex2 = z.string().includes("includes", { position: 2 });
-const startsWith = z.string().startsWith("startsWith");
-const endsWith = z.string().endsWith("endsWith");
+const minFive = Schema.string().min(5, "min5");
+const maxFive = Schema.string().max(5, "max5");
+const justFive = Schema.string().length(5);
+const nonempty = Schema.string().nonempty("nonempty");
+const includes = Schema.string().includes("includes");
+const includesFromIndex2 = Schema.string().includes("includes", { position: 2 });
+const startsWith = Schema.string().startsWith("startsWith");
+const endsWith = Schema.string().endsWith("endsWith");
 
 test("passing validations", () => {
   minFive.parse("12345");
@@ -151,7 +151,7 @@ test("email validations", () => {
     `test@.com`,
     `aaaaaaaaaaaaaaalongemailthatcausesregexDoSvulnerability@test.c`,
   ];
-  const emailSchema = z.string().email();
+  const emailSchema = Schema.string().email();
 
   expect(
     validEmails.every((email) => {
@@ -181,7 +181,7 @@ const validBase64Strings = [
 
 for (const str of validBase64Strings) {
   test(`base64 should accept ${str}`, () => {
-    expect(z.string().base64().safeParse(str).success).toBe(true);
+    expect(Schema.string().base64().safeParse(str).success).toBe(true);
   });
 }
 
@@ -199,7 +199,7 @@ const invalidBase64Strings = [
 
 for (const str of invalidBase64Strings) {
   test(`base64 should reject ${str}`, () => {
-    expect(z.string().base64().safeParse(str).success).toBe(false);
+    expect(Schema.string().base64().safeParse(str).success).toBe(false);
   });
 }
 
@@ -228,7 +228,7 @@ const validBase64URLStrings = [
 
 for (const str of validBase64URLStrings) {
   test(`base64url should accept ${str}`, () => {
-    expect(z.string().base64url().safeParse(str).success).toBe(true);
+    expect(Schema.string().base64url().safeParse(str).success).toBe(true);
   });
 }
 
@@ -243,7 +243,7 @@ const invalidBase64URLStrings = [
 
 for (const str of invalidBase64URLStrings) {
   test(`base64url should reject ${str}`, () => {
-    expect(z.string().base64url().safeParse(str).success).toBe(false);
+    expect(Schema.string().base64url().safeParse(str).success).toBe(false);
   });
 }
 
@@ -255,8 +255,8 @@ function makeJwt(header: object, payload: object) {
 }
 
 test("jwt validations", () => {
-  const jwt = z.string().jwt();
-  const jwtWithAlg = z.string().jwt({ alg: "HS256" });
+  const jwt = Schema.string().jwt();
+  const jwtWithAlg = Schema.string().jwt({ alg: "HS256" });
 
   expect(() => jwt.parse("invalid")).toThrow();
   expect(() => jwt.parse("invalid.invalid")).toThrow();
@@ -285,16 +285,16 @@ test("jwt validations", () => {
 
   // Custom error message
   const customMsg = "Invalid JWT token";
-  const jwtWithMsg = z.string().jwt({ message: customMsg });
+  const jwtWithMsg = Schema.string().jwt({ message: customMsg });
   try {
     jwtWithMsg.parse("invalid");
   } catch (error) {
-    expect((error as z.ZodError).issues[0].message).toBe(customMsg);
+    expect((error as Schema  .SchemaError).issues[0].message).toBe(customMsg);
   }
 });
 
 test("url validations", () => {
-  const url = z.string().url();
+  const url = Schema.string().url();
   url.parse("http://google.com");
   url.parse("https://google.com/asdf?asdf=ljk3lk4&asdf=234#asdf");
   expect(() => url.parse("asdf")).toThrow();
@@ -304,24 +304,24 @@ test("url validations", () => {
 
 test("url error overrides", () => {
   try {
-    z.string().url().parse("https");
+    Schema.string().url().parse("https");
   } catch (err) {
-    expect((err as z.ZodError).issues[0].message).toEqual("Invalid url");
+    expect((err as Schema  .SchemaError).issues[0].message).toEqual("Invalid url");
   }
   try {
-    z.string().url("badurl").parse("https");
+    Schema.string().url("badurl").parse("https");
   } catch (err) {
-    expect((err as z.ZodError).issues[0].message).toEqual("badurl");
+    expect((err as Schema  .SchemaError).issues[0].message).toEqual("badurl");
   }
   try {
-    z.string().url({ message: "badurl" }).parse("https");
+    Schema.string().url({ message: "badurl" }).parse("https");
   } catch (err) {
-    expect((err as z.ZodError).issues[0].message).toEqual("badurl");
+    expect((err as Schema  .SchemaError).issues[0].message).toEqual("badurl");
   }
 });
 
 test("emoji validations", () => {
-  const emoji = z.string().emoji();
+  const emoji = Schema.string().emoji();
 
   emoji.parse("🦰🦱🦲🦳"); // both Extended_Pictographic and Emoji_Component
   emoji.parse("👋👋👋👋");
@@ -344,7 +344,7 @@ test("emoji validations", () => {
 });
 
 test("uuid", () => {
-  const uuid = z.string().uuid("custom error");
+  const uuid = Schema.string().uuid("custom error");
   uuid.parse("9491d710-3185-4e06-bea0-6a2f275345e0");
   uuid.parse("d89e7b01-7598-ed11-9d7a-0022489382fd"); // new sequential id
   uuid.parse("00000000-0000-0000-0000-000000000000");
@@ -358,7 +358,7 @@ test("uuid", () => {
 });
 
 test("bad uuid", () => {
-  const uuid = z.string().uuid("custom error");
+  const uuid = Schema.string().uuid("custom error");
   uuid.parse("9491d710-3185-4e06-bea0-6a2f275345e0");
   const result = uuid.safeParse("invalid uuid");
   expect(result.success).toEqual(false);
@@ -368,7 +368,7 @@ test("bad uuid", () => {
 });
 
 test("nanoid", () => {
-  const nanoid = z.string().nanoid("custom error");
+  const nanoid = Schema.string().nanoid("custom error");
   nanoid.parse("lfNZluvAxMkf7Q8C5H-QS");
   nanoid.parse("mIU_4PJWikaU8fMbmkouz");
   nanoid.parse("Hb9ZUtUa2JDm_dD-47EGv");
@@ -381,7 +381,7 @@ test("nanoid", () => {
 });
 
 test("bad nanoid", () => {
-  const nanoid = z.string().nanoid("custom error");
+  const nanoid = Schema.string().nanoid("custom error");
   nanoid.parse("ySh_984wpDUu7IQRrLXAp");
   const result = nanoid.safeParse("invalid nanoid");
   expect(result.success).toEqual(false);
@@ -391,7 +391,7 @@ test("bad nanoid", () => {
 });
 
 test("cuid", () => {
-  const cuid = z.string().cuid();
+  const cuid = Schema.string().cuid();
   cuid.parse("ckopqwooh000001la8mbi2im9");
   const result = cuid.safeParse("cifjhdsfhsd-invalid-cuid");
   expect(result.success).toEqual(false);
@@ -401,7 +401,7 @@ test("cuid", () => {
 });
 
 test("cuid2", () => {
-  const cuid2 = z.string().cuid2();
+  const cuid2 = Schema.string().cuid2();
   const validStrings = [
     "a", // short string
     "tz4a98xxat96iws9zmbrgj3a", // normal string
@@ -424,7 +424,7 @@ test("cuid2", () => {
 });
 
 test("ulid", () => {
-  const ulid = z.string().ulid();
+  const ulid = Schema.string().ulid();
   ulid.parse("01ARZ3NDEKTSV4RRFFQ69G5FAV");
   const result = ulid.safeParse("invalidulid");
   expect(result.success).toEqual(false);
@@ -438,10 +438,10 @@ test("ulid", () => {
 });
 
 test("regex", () => {
-  z.string()
+  Schema.string()
     .regex(/^moo+$/)
     .parse("mooooo");
-  expect(() => z.string().uuid().parse("purr")).toThrow();
+  expect(() => Schema.string().uuid().parse("purr")).toThrow();
 });
 
 test("regexp error message", () => {
@@ -455,152 +455,152 @@ test("regexp error message", () => {
     throw new Error("validation should have failed");
   }
 
-  expect(() => z.string().uuid().parse("purr")).toThrow();
+  expect(() => Schema.string().uuid().parse("purr")).toThrow();
 });
 
 test("regex lastIndex reset", () => {
-  const schema = z.string().regex(/^\d+$/g);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
-  expect(schema.safeParse("123").success).toEqual(true);
+  const schema = Schema.string().regex(/^\d+$/g);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
+  expect(Schema.safeParse("123").success).toEqual(true);
 });
 
 test("checks getters", () => {
-  expect(z.string().email().isEmail).toEqual(true);
-  expect(z.string().email().isURL).toEqual(false);
-  expect(z.string().email().isCUID).toEqual(false);
-  expect(z.string().email().isCUID2).toEqual(false);
-  expect(z.string().email().isUUID).toEqual(false);
-  expect(z.string().email().isNANOID).toEqual(false);
-  expect(z.string().email().isIP).toEqual(false);
-  expect(z.string().email().isCIDR).toEqual(false);
-  expect(z.string().email().isULID).toEqual(false);
+  expect(Schema.string().email().isEmail).toEqual(true);
+  expect(Schema.string().email().isURL).toEqual(false);
+  expect(Schema.string().email().isCUID).toEqual(false);
+  expect(Schema.string().email().isCUID2).toEqual(false);
+  expect(Schema.string().email().isUUID).toEqual(false);
+  expect(Schema.string().email().isNANOID).toEqual(false);
+  expect(Schema.string().email().isIP).toEqual(false);
+  expect(Schema.string().email().isCIDR).toEqual(false);
+  expect(Schema.string().email().isULID).toEqual(false);
 
-  expect(z.string().url().isEmail).toEqual(false);
-  expect(z.string().url().isURL).toEqual(true);
-  expect(z.string().url().isCUID).toEqual(false);
-  expect(z.string().url().isCUID2).toEqual(false);
-  expect(z.string().url().isUUID).toEqual(false);
-  expect(z.string().url().isNANOID).toEqual(false);
-  expect(z.string().url().isIP).toEqual(false);
-  expect(z.string().url().isCIDR).toEqual(false);
-  expect(z.string().url().isULID).toEqual(false);
+  expect(Schema.string().url().isEmail).toEqual(false);
+  expect(Schema.string().url().isURL).toEqual(true);
+  expect(Schema.string().url().isCUID).toEqual(false);
+  expect(Schema.string().url().isCUID2).toEqual(false);
+  expect(Schema.string().url().isUUID).toEqual(false);
+  expect(Schema.string().url().isNANOID).toEqual(false);
+  expect(Schema.string().url().isIP).toEqual(false);
+  expect(Schema.string().url().isCIDR).toEqual(false);
+  expect(Schema.string().url().isULID).toEqual(false);
 
-  expect(z.string().cuid().isEmail).toEqual(false);
-  expect(z.string().cuid().isURL).toEqual(false);
-  expect(z.string().cuid().isCUID).toEqual(true);
-  expect(z.string().cuid().isCUID2).toEqual(false);
-  expect(z.string().cuid().isUUID).toEqual(false);
-  expect(z.string().cuid().isNANOID).toEqual(false);
-  expect(z.string().cuid().isIP).toEqual(false);
-  expect(z.string().cuid().isCIDR).toEqual(false);
-  expect(z.string().cuid().isULID).toEqual(false);
+  expect(Schema.string().cuid().isEmail).toEqual(false);
+  expect(Schema.string().cuid().isURL).toEqual(false);
+  expect(Schema.string().cuid().isCUID).toEqual(true);
+  expect(Schema.string().cuid().isCUID2).toEqual(false);
+  expect(Schema.string().cuid().isUUID).toEqual(false);
+  expect(Schema.string().cuid().isNANOID).toEqual(false);
+  expect(Schema.string().cuid().isIP).toEqual(false);
+  expect(Schema.string().cuid().isCIDR).toEqual(false);
+  expect(Schema.string().cuid().isULID).toEqual(false);
 
-  expect(z.string().cuid2().isEmail).toEqual(false);
-  expect(z.string().cuid2().isURL).toEqual(false);
-  expect(z.string().cuid2().isCUID).toEqual(false);
-  expect(z.string().cuid2().isCUID2).toEqual(true);
-  expect(z.string().cuid2().isUUID).toEqual(false);
-  expect(z.string().cuid2().isNANOID).toEqual(false);
-  expect(z.string().cuid2().isIP).toEqual(false);
-  expect(z.string().cuid2().isCIDR).toEqual(false);
-  expect(z.string().cuid2().isULID).toEqual(false);
+  expect(Schema.string().cuid2().isEmail).toEqual(false);
+  expect(Schema.string().cuid2().isURL).toEqual(false);
+  expect(Schema.string().cuid2().isCUID).toEqual(false);
+  expect(Schema.string().cuid2().isCUID2).toEqual(true);
+  expect(Schema.string().cuid2().isUUID).toEqual(false);
+  expect(Schema.string().cuid2().isNANOID).toEqual(false);
+  expect(Schema.string().cuid2().isIP).toEqual(false);
+  expect(Schema.string().cuid2().isCIDR).toEqual(false);
+  expect(Schema.string().cuid2().isULID).toEqual(false);
 
-  expect(z.string().uuid().isEmail).toEqual(false);
-  expect(z.string().uuid().isURL).toEqual(false);
-  expect(z.string().uuid().isCUID).toEqual(false);
-  expect(z.string().uuid().isCUID2).toEqual(false);
-  expect(z.string().uuid().isUUID).toEqual(true);
-  expect(z.string().uuid().isNANOID).toEqual(false);
-  expect(z.string().uuid().isIP).toEqual(false);
-  expect(z.string().uuid().isCIDR).toEqual(false);
-  expect(z.string().uuid().isULID).toEqual(false);
+  expect(Schema.string().uuid().isEmail).toEqual(false);
+  expect(Schema.string().uuid().isURL).toEqual(false);
+  expect(Schema.string().uuid().isCUID).toEqual(false);
+  expect(Schema.string().uuid().isCUID2).toEqual(false);
+  expect(Schema.string().uuid().isUUID).toEqual(true);
+  expect(Schema.string().uuid().isNANOID).toEqual(false);
+  expect(Schema.string().uuid().isIP).toEqual(false);
+  expect(Schema.string().uuid().isCIDR).toEqual(false);
+  expect(Schema.string().uuid().isULID).toEqual(false);
 
-  expect(z.string().nanoid().isEmail).toEqual(false);
-  expect(z.string().nanoid().isURL).toEqual(false);
-  expect(z.string().nanoid().isCUID).toEqual(false);
-  expect(z.string().nanoid().isCUID2).toEqual(false);
-  expect(z.string().nanoid().isUUID).toEqual(false);
-  expect(z.string().nanoid().isNANOID).toEqual(true);
-  expect(z.string().nanoid().isIP).toEqual(false);
-  expect(z.string().nanoid().isCIDR).toEqual(false);
-  expect(z.string().nanoid().isULID).toEqual(false);
+  expect(Schema.string().nanoid().isEmail).toEqual(false);
+  expect(Schema.string().nanoid().isURL).toEqual(false);
+  expect(Schema.string().nanoid().isCUID).toEqual(false);
+  expect(Schema.string().nanoid().isCUID2).toEqual(false);
+  expect(Schema.string().nanoid().isUUID).toEqual(false);
+  expect(Schema.string().nanoid().isNANOID).toEqual(true);
+  expect(Schema.string().nanoid().isIP).toEqual(false);
+  expect(Schema.string().nanoid().isCIDR).toEqual(false);
+  expect(Schema.string().nanoid().isULID).toEqual(false);
 
-  expect(z.string().ip().isEmail).toEqual(false);
-  expect(z.string().ip().isURL).toEqual(false);
-  expect(z.string().ip().isCUID).toEqual(false);
-  expect(z.string().ip().isCUID2).toEqual(false);
-  expect(z.string().ip().isUUID).toEqual(false);
-  expect(z.string().ip().isNANOID).toEqual(false);
-  expect(z.string().ip().isIP).toEqual(true);
-  expect(z.string().ip().isCIDR).toEqual(false);
-  expect(z.string().ip().isULID).toEqual(false);
+  expect(Schema.string().ip().isEmail).toEqual(false);
+  expect(Schema.string().ip().isURL).toEqual(false);
+  expect(Schema.string().ip().isCUID).toEqual(false);
+  expect(Schema.string().ip().isCUID2).toEqual(false);
+  expect(Schema.string().ip().isUUID).toEqual(false);
+  expect(Schema.string().ip().isNANOID).toEqual(false);
+  expect(Schema.string().ip().isIP).toEqual(true);
+  expect(Schema.string().ip().isCIDR).toEqual(false);
+  expect(Schema.string().ip().isULID).toEqual(false);
 
-  expect(z.string().cidr().isEmail).toEqual(false);
-  expect(z.string().cidr().isURL).toEqual(false);
-  expect(z.string().cidr().isCUID).toEqual(false);
-  expect(z.string().cidr().isCUID2).toEqual(false);
-  expect(z.string().cidr().isUUID).toEqual(false);
-  expect(z.string().cidr().isNANOID).toEqual(false);
-  expect(z.string().cidr().isIP).toEqual(false);
-  expect(z.string().cidr().isCIDR).toEqual(true);
-  expect(z.string().cidr().isULID).toEqual(false);
+  expect(Schema.string().cidr().isEmail).toEqual(false);
+  expect(Schema.string().cidr().isURL).toEqual(false);
+  expect(Schema.string().cidr().isCUID).toEqual(false);
+  expect(Schema.string().cidr().isCUID2).toEqual(false);
+  expect(Schema.string().cidr().isUUID).toEqual(false);
+  expect(Schema.string().cidr().isNANOID).toEqual(false);
+  expect(Schema.string().cidr().isIP).toEqual(false);
+  expect(Schema.string().cidr().isCIDR).toEqual(true);
+  expect(Schema.string().cidr().isULID).toEqual(false);
 
-  expect(z.string().ulid().isEmail).toEqual(false);
-  expect(z.string().ulid().isURL).toEqual(false);
-  expect(z.string().ulid().isCUID).toEqual(false);
-  expect(z.string().ulid().isCUID2).toEqual(false);
-  expect(z.string().ulid().isUUID).toEqual(false);
-  expect(z.string().ulid().isNANOID).toEqual(false);
-  expect(z.string().ulid().isIP).toEqual(false);
-  expect(z.string().ulid().isCIDR).toEqual(false);
-  expect(z.string().ulid().isULID).toEqual(true);
+  expect(Schema.string().ulid().isEmail).toEqual(false);
+  expect(Schema.string().ulid().isURL).toEqual(false);
+  expect(Schema.string().ulid().isCUID).toEqual(false);
+  expect(Schema.string().ulid().isCUID2).toEqual(false);
+  expect(Schema.string().ulid().isUUID).toEqual(false);
+  expect(Schema.string().ulid().isNANOID).toEqual(false);
+  expect(Schema.string().ulid().isIP).toEqual(false);
+  expect(Schema.string().ulid().isCIDR).toEqual(false);
+  expect(Schema.string().ulid().isULID).toEqual(true);
 });
 
 test("min max getters", () => {
-  expect(z.string().min(5).minLength).toEqual(5);
-  expect(z.string().min(5).min(10).minLength).toEqual(10);
-  expect(z.string().minLength).toEqual(null);
+  expect(Schema.string().min(5).minLength).toEqual(5);
+  expect(Schema.string().min(5).min(10).minLength).toEqual(10);
+  expect(Schema.string().minLength).toEqual(null);
 
-  expect(z.string().max(5).maxLength).toEqual(5);
-  expect(z.string().max(5).max(1).maxLength).toEqual(1);
-  expect(z.string().maxLength).toEqual(null);
+  expect(Schema.string().max(5).maxLength).toEqual(5);
+  expect(Schema.string().max(5).max(1).maxLength).toEqual(1);
+  expect(Schema.string().maxLength).toEqual(null);
 });
 
 test("trim", () => {
-  expect(z.string().trim().min(2).parse(" 12 ")).toEqual("12");
+  expect(Schema.string().trim().min(2).parse(" 12 ")).toEqual("12");
 
   // ordering of methods is respected
-  expect(z.string().min(2).trim().parse(" 1 ")).toEqual("1");
-  expect(() => z.string().trim().min(2).parse(" 1 ")).toThrow();
+  expect(Schema.string().min(2).trim().parse(" 1 ")).toEqual("1");
+  expect(() => Schema.string().trim().min(2).parse(" 1 ")).toThrow();
 });
 
 test("lowerCase", () => {
-  expect(z.string().toLowerCase().parse("ASDF")).toEqual("asdf");
-  expect(z.string().toUpperCase().parse("asdf")).toEqual("ASDF");
+  expect(Schema.string().toLowerCase().parse("ASDF")).toEqual("asdf");
+  expect(Schema.string().toUpperCase().parse("asdf")).toEqual("ASDF");
 });
 
 test("datetime", () => {
-  const a = z.string().datetime({});
+  const a = Schema.string().datetime({});
   expect(a.isDatetime).toEqual(true);
 
-  const b = z.string().datetime({ offset: true });
+  const b = Schema.string().datetime({ offset: true });
   expect(b.isDatetime).toEqual(true);
 
-  const c = z.string().datetime({ precision: 3 });
+  const c = Schema.string().datetime({ precision: 3 });
   expect(c.isDatetime).toEqual(true);
 
-  const d = z.string().datetime({ offset: true, precision: 0 });
+  const d = Schema.string().datetime({ offset: true, precision: 0 });
   expect(d.isDatetime).toEqual(true);
 
-  const { isDatetime } = z.string().datetime();
+  const { isDatetime } = Schema.string().datetime();
   expect(isDatetime).toEqual(true);
 });
 
 test("datetime parsing", () => {
-  const datetime = z.string().datetime();
+  const datetime = Schema.string().datetime();
   datetime.parse("1970-01-01T00:00:00.000Z");
   datetime.parse("2022-10-13T09:52:31.816Z");
   datetime.parse("2022-10-13T09:52:31.8162314Z");
@@ -614,7 +614,7 @@ test("datetime parsing", () => {
   expect(() => datetime.parse("2020-10-14T17:42:29+00:00")).toThrow();
   expect(() => datetime.parse("2020-10-14T17:42.123+00:00")).toThrow();
 
-  const datetimeNoMs = z.string().datetime({ precision: 0 });
+  const datetimeNoMs = Schema.string().datetime({ precision: 0 });
   datetimeNoMs.parse("1970-01-01T00:00:00Z");
   datetimeNoMs.parse("2022-10-13T09:52:31Z");
   datetimeNoMs.parse("2022-10-13T09:52Z");
@@ -623,7 +623,7 @@ test("datetime parsing", () => {
   expect(() => datetimeNoMs.parse("1970-01-01T00:00:00.Z")).toThrow();
   expect(() => datetimeNoMs.parse("2022-10-13T09:52:31.816Z")).toThrow();
 
-  const datetime3Ms = z.string().datetime({ precision: 3 });
+  const datetime3Ms = Schema.string().datetime({ precision: 3 });
   datetime3Ms.parse("1970-01-01T00:00:00.000Z");
   datetime3Ms.parse("2022-10-13T09:52:31.123Z");
   expect(() => datetime3Ms.parse("tuna")).toThrow();
@@ -632,7 +632,7 @@ test("datetime parsing", () => {
   expect(() => datetime3Ms.parse("2022-10-13T09:52:31Z")).toThrow();
   expect(() => datetime3Ms.parse("2022-10-13T09:52Z")).toThrow();
 
-  const datetimeOffset = z.string().datetime({ offset: true });
+  const datetimeOffset = Schema.string().datetime({ offset: true });
   datetimeOffset.parse("1970-01-01T00:00:00.000Z");
   datetimeOffset.parse("2022-10-13T09:52:31.816234134Z");
   datetimeOffset.parse("1970-01-01T00:00:00Z");
@@ -645,7 +645,7 @@ test("datetime parsing", () => {
   expect(() => datetimeOffset.parse("tuna")).toThrow();
   expect(() => datetimeOffset.parse("2022-10-13T09:52:31.Z")).toThrow();
 
-  const datetimeOffsetNoMs = z.string().datetime({ offset: true, precision: 0 });
+  const datetimeOffsetNoMs = Schema.string().datetime({ offset: true, precision: 0 });
   datetimeOffsetNoMs.parse("1970-01-01T00:00:00Z");
   datetimeOffsetNoMs.parse("2022-10-13T09:52:31Z");
   datetimeOffsetNoMs.parse("2020-10-14T17:42:29+00:00");
@@ -658,7 +658,7 @@ test("datetime parsing", () => {
   expect(() => datetimeOffsetNoMs.parse("2022-10-13T09:52:31.816Z")).toThrow();
   expect(() => datetimeOffsetNoMs.parse("2020-10-14T17:42:29.124+00:00")).toThrow();
 
-  const datetimeOffset4Ms = z.string().datetime({ offset: true, precision: 4 });
+  const datetimeOffset4Ms = Schema.string().datetime({ offset: true, precision: 4 });
   datetimeOffset4Ms.parse("1970-01-01T00:00:00.1234Z");
   datetimeOffset4Ms.parse("2020-10-14T17:42:29.1234+00:00");
   datetimeOffset4Ms.parse("2020-10-14T17:42:29.1234+0000");
@@ -670,12 +670,12 @@ test("datetime parsing", () => {
 });
 
 test("date", () => {
-  const a = z.string().date();
+  const a = Schema.string().date();
   expect(a.isDate).toEqual(true);
 });
 
 test("date parsing", () => {
-  const date = z.string().date();
+  const date = Schema.string().date();
   date.parse("1970-01-01");
   date.parse("2022-01-31");
   date.parse("2022-03-31");
@@ -729,12 +729,12 @@ test("date parsing", () => {
 });
 
 test("time", () => {
-  const a = z.string().time();
+  const a = Schema.string().time();
   expect(a.isTime).toEqual(true);
 });
 
 test("time parsing", () => {
-  const time = z.string().time();
+  const time = Schema.string().time();
   time.parse("00:00:00");
   time.parse("23:00:00");
   time.parse("00:59:00");
@@ -757,7 +757,7 @@ test("time parsing", () => {
   expect(() => time.parse("24:60:60")).toThrow();
   expect(() => time.parse("24:60")).toThrow();
 
-  const time2 = z.string().time({ precision: 2 });
+  const time2 = Schema.string().time({ precision: 2 });
   time2.parse("00:00:00.00");
   time2.parse("09:52:31.12");
   time2.parse("23:59:59.99");
@@ -770,7 +770,7 @@ test("time parsing", () => {
   expect(() => time2.parse("00:00:00.00+00:00")).toThrow();
   expect(() => time2.parse("23:59")).toThrow();
 
-  // const time3 = z.string().time({ offset: true });
+  // const time3 = Schema.string().time({ offset: true });
   // time3.parse("00:00:00Z");
   // time3.parse("09:52:31Z");
   // time3.parse("00:00:00+00:00");
@@ -783,7 +783,7 @@ test("time parsing", () => {
   // expect(() => time3.parse("00:00:00")).toThrow();
   // expect(() => time3.parse("00:00:00.000")).toThrow();
 
-  // const time4 = z.string().time({ offset: true, precision: 0 });
+  // const time4 = Schema.string().time({ offset: true, precision: 0 });
   // time4.parse("00:00:00Z");
   // time4.parse("09:52:31Z");
   // time4.parse("00:00:00+00:00");
@@ -796,7 +796,7 @@ test("time parsing", () => {
 });
 
 test("duration", () => {
-  const duration = z.string().duration();
+  const duration = Schema.string().duration();
   expect(duration.isDuration).toEqual(true);
 
   const validDurations = [
@@ -841,13 +841,13 @@ test("duration", () => {
 });
 
 test("IP validation", () => {
-  const ip = z.string().ip();
+  const ip = Schema.string().ip();
   expect(ip.safeParse("122.122.122.122").success).toBe(true);
 
-  const ipv4 = z.string().ip({ version: "v4" });
+  const ipv4 = Schema.string().ip({ version: "v4" });
   expect(() => ipv4.parse("6097:adfa:6f0b:220d:db08:5021:6191:7990")).toThrow();
 
-  const ipv6 = z.string().ip({ version: "v6" });
+  const ipv6 = Schema.string().ip({ version: "v6" });
   expect(() => ipv6.parse("254.164.77.1")).toThrow();
 
   const validIPs = [
@@ -876,16 +876,16 @@ test("IP validation", () => {
     "1.1.1",
   ];
   // no parameters check IPv4 or IPv6
-  const ipSchema = z.string().ip();
+  const ipSchema = Schema.string().ip();
   expect(validIPs.every((ip) => ipSchema.safeParse(ip).success)).toBe(true);
   expect(invalidIPs.every((ip) => ipSchema.safeParse(ip).success === false)).toBe(true);
 });
 
 test("CIDR validation", () => {
-  const ipv4Cidr = z.string().cidr({ version: "v4" });
+  const ipv4Cidr = Schema.string().cidr({ version: "v4" });
   expect(() => ipv4Cidr.parse("2001:0db8:85a3::8a2e:0370:7334/64")).toThrow();
 
-  const ipv6Cidr = z.string().cidr({ version: "v6" });
+  const ipv6Cidr = Schema.string().cidr({ version: "v6" });
   expect(() => ipv6Cidr.parse("192.168.0.1/24")).toThrow();
 
   const validCidrs = [
@@ -916,7 +916,7 @@ test("CIDR validation", () => {
   ];
 
   // no parameters check IPv4 or IPv6
-  const cidrSchema = z.string().cidr();
+  const cidrSchema = Schema.string().cidr();
   expect(validCidrs.every((ip) => cidrSchema.safeParse(ip).success)).toBe(true);
   expect(invalidCidrs.every((ip) => cidrSchema.safeParse(ip).success === false)).toBe(true);
 });

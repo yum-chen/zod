@@ -1,4 +1,4 @@
-import z from "zod";
+import z from "schema";
 
-const schema = z.object({ title: z.string().min(5) });
-console.log(schema.safeParse({ title: "hi" }).error?.issues[0].message);
+const schema = Schema.object({ title: Schema.string().min(5) });
+console.log(Schema.safeParse({ title: "hi" }).error?.issues[0].message);

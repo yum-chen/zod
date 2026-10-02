@@ -1,13 +1,13 @@
-import type { $ZodCheck, $ZodStringFormats } from "./checks.js";
+import type { $SchemaCheck, $SchemaStringFormats } from "./checks.js";
 import { $constructor } from "./core.js";
-import type { $ZodType } from "./schemas.js";
-import type { StandardSchemaV1 } from "./standard-schema.js";
+import type { $SchemaType } from "./schemas.js";
+import type { StandardSchemaV1 } from "./standard-Schema.js";
 import * as util from "./util.js";
 
 ///////////////////////////
 ////     base type     ////
 ///////////////////////////
-export interface $ZodIssueBase {
+export interface $SchemaIssueBase {
   readonly code?: string;
   readonly input?: unknown;
   readonly path: PropertyKey[];
@@ -17,7 +17,7 @@ export interface $ZodIssueBase {
 ////////////////////////////////
 ////     issue subtypes     ////
 ////////////////////////////////
-export type $ZodInvalidTypeExpected =
+export type $SchemaInvalidTypeExpected =
   | "string"
   | "number"
   | "int"
@@ -41,13 +41,13 @@ export type $ZodInvalidTypeExpected =
   | "function"
   | (string & {}); // class names for instanceof
 
-export interface $ZodIssueInvalidType<Input = unknown> extends $ZodIssueBase {
+export interface $SchemaIssueInvalidType<Input = unknown> extends $SchemaIssueBase {
   readonly code: "invalid_type";
-  readonly expected: $ZodInvalidTypeExpected;
+  readonly expected: $SchemaInvalidTypeExpected;
   readonly input?: Input;
 }
 
-export interface $ZodIssueTooBig<Input = unknown> extends $ZodIssueBase {
+export interface $SchemaIssueTooBig<Input = unknown> extends $SchemaIssueBase {
   readonly code: "too_big";
   readonly origin: "number" | "int" | "bigint" | "date" | "string" | "array" | "set" | "file" | (string & {});
   readonly maximum: number | bigint;
@@ -56,46 +56,46 @@ export interface $ZodIssueTooBig<Input = unknown> extends $ZodIssueBase {
   readonly input?: Input;
 }
 
-export interface $ZodIssueTooSmall<Input = unknown> extends $ZodIssueBase {
+export interface $SchemaIssueTooSmall<Input = unknown> extends $SchemaIssueBase {
   readonly code: "too_small";
   readonly origin: "number" | "int" | "bigint" | "date" | "string" | "array" | "set" | "file" | (string & {});
   readonly minimum: number | bigint;
   /** True if the allowable range includes the minimum */
   readonly inclusive?: boolean;
-  /** True if the allowed value is fixed (e.g.` z.length(5)`), not a range (`z.minLength(5)`) */
+  /** True if the allowed value is fixed (e.g.` Schema.length(5)`), not a range (`Schema.minLength(5)`) */
   readonly exact?: boolean;
   readonly input?: Input;
 }
 
-export interface $ZodIssueInvalidStringFormat extends $ZodIssueBase {
+export interface $SchemaIssueInvalidStringFormat extends $SchemaIssueBase {
   readonly code: "invalid_format";
-  readonly format: $ZodStringFormats | (string & {});
+  readonly format: $SchemaStringFormats | (string & {});
   readonly pattern?: string;
   readonly input?: string;
 }
 
-export interface $ZodIssueNotMultipleOf<Input extends number | bigint = number | bigint> extends $ZodIssueBase {
+export interface $SchemaIssueNotMultipleOf<Input extends number | bigint = number | bigint> extends $SchemaIssueBase {
   readonly code: "not_multiple_of";
   readonly divisor: number;
   readonly input?: Input;
 }
 
-export interface $ZodIssueUnrecognizedKeys extends $ZodIssueBase {
+export interface $SchemaIssueUnrecognizedKeys extends $SchemaIssueBase {
   readonly code: "unrecognized_keys";
   readonly keys: string[];
   readonly input?: Record<string, unknown>;
 }
 
-interface $ZodIssueInvalidUnionNoMatch extends $ZodIssueBase {
+interface $SchemaIssueInvalidUnionNoMatch extends $SchemaIssueBase {
   readonly code: "invalid_union";
-  readonly errors: $ZodIssue[][];
+  readonly errors: $SchemaIssue[][];
   readonly input?: unknown;
   readonly discriminator?: string | undefined;
   readonly options?: util.Primitive[];
   readonly inclusive?: true;
 }
 
-interface $ZodIssueInvalidUnionMultipleMatch extends $ZodIssueBase {
+interface $SchemaIssueInvalidUnionMultipleMatch extends $SchemaIssueBase {
   readonly code: "invalid_union";
   readonly errors: [];
   readonly input?: unknown;
@@ -105,30 +105,30 @@ interface $ZodIssueInvalidUnionMultipleMatch extends $ZodIssueBase {
   readonly matches: number[];
 }
 
-export type $ZodIssueInvalidUnion = $ZodIssueInvalidUnionNoMatch | $ZodIssueInvalidUnionMultipleMatch;
+export type $SchemaIssueInvalidUnion = $SchemaIssueInvalidUnionNoMatch | $SchemaIssueInvalidUnionMultipleMatch;
 
-export interface $ZodIssueInvalidKey<Input = unknown> extends $ZodIssueBase {
+export interface $SchemaIssueInvalidKey<Input = unknown> extends $SchemaIssueBase {
   readonly code: "invalid_key";
   readonly origin: "map" | "record";
-  readonly issues: $ZodIssue[];
+  readonly issues: $SchemaIssue[];
   readonly input?: Input;
 }
 
-export interface $ZodIssueInvalidElement<Input = unknown> extends $ZodIssueBase {
+export interface $SchemaIssueInvalidElement<Input = unknown> extends $SchemaIssueBase {
   readonly code: "invalid_element";
   readonly origin: "map" | "set";
   readonly key: unknown;
-  readonly issues: $ZodIssue[];
+  readonly issues: $SchemaIssue[];
   readonly input?: Input;
 }
 
-export interface $ZodIssueInvalidValue<Input = unknown> extends $ZodIssueBase {
+export interface $SchemaIssueInvalidValue<Input = unknown> extends $SchemaIssueBase {
   readonly code: "invalid_value";
   readonly values: util.Primitive[];
   readonly input?: Input;
 }
 
-export interface $ZodIssueCustom extends $ZodIssueBase {
+export interface $SchemaIssueCustom extends $SchemaIssueBase {
   readonly code: "custom";
   readonly params?: Record<string, any> | undefined;
   readonly input?: unknown;
@@ -138,94 +138,94 @@ export interface $ZodIssueCustom extends $ZodIssueBase {
 ////     first-party string formats     ////
 ////////////////////////////////////////////
 
-export interface $ZodIssueStringCommonFormats extends $ZodIssueInvalidStringFormat {
-  format: Exclude<$ZodStringFormats, "regex" | "jwt" | "starts_with" | "ends_with" | "includes">;
+export interface $SchemaIssueStringCommonFormats extends $SchemaIssueInvalidStringFormat {
+  format: Exclude<$SchemaStringFormats, "regex" | "jwt" | "starts_with" | "ends_with" | "includes">;
 }
 
-export interface $ZodIssueStringInvalidRegex extends $ZodIssueInvalidStringFormat {
+export interface $SchemaIssueStringInvalidRegex extends $SchemaIssueInvalidStringFormat {
   format: "regex";
   pattern: string;
 }
 
-export interface $ZodIssueStringInvalidJWT extends $ZodIssueInvalidStringFormat {
+export interface $SchemaIssueStringInvalidJWT extends $SchemaIssueInvalidStringFormat {
   format: "jwt";
   algorithm?: string;
 }
 
-export interface $ZodIssueStringStartsWith extends $ZodIssueInvalidStringFormat {
+export interface $SchemaIssueStringStartsWith extends $SchemaIssueInvalidStringFormat {
   format: "starts_with";
   prefix: string;
 }
 
-export interface $ZodIssueStringEndsWith extends $ZodIssueInvalidStringFormat {
+export interface $SchemaIssueStringEndsWith extends $SchemaIssueInvalidStringFormat {
   format: "ends_with";
   suffix: string;
 }
 
-export interface $ZodIssueStringIncludes extends $ZodIssueInvalidStringFormat {
+export interface $SchemaIssueStringIncludes extends $SchemaIssueInvalidStringFormat {
   format: "includes";
   includes: string;
 }
 
-export type $ZodStringFormatIssues =
-  | $ZodIssueStringCommonFormats
-  | $ZodIssueStringInvalidRegex
-  | $ZodIssueStringInvalidJWT
-  | $ZodIssueStringStartsWith
-  | $ZodIssueStringEndsWith
-  | $ZodIssueStringIncludes;
+export type $SchemaStringFormatIssues =
+  | $SchemaIssueStringCommonFormats
+  | $SchemaIssueStringInvalidRegex
+  | $SchemaIssueStringInvalidJWT
+  | $SchemaIssueStringStartsWith
+  | $SchemaIssueStringEndsWith
+  | $SchemaIssueStringIncludes;
 
 ////////////////////////
 ////     utils     /////
 ////////////////////////
 
-export type $ZodIssue =
-  | $ZodIssueInvalidType
-  | $ZodIssueTooBig
-  | $ZodIssueTooSmall
-  | $ZodIssueInvalidStringFormat
-  | $ZodIssueNotMultipleOf
-  | $ZodIssueUnrecognizedKeys
-  | $ZodIssueInvalidUnion
-  | $ZodIssueInvalidKey
-  | $ZodIssueInvalidElement
-  | $ZodIssueInvalidValue
-  | $ZodIssueCustom;
+export type $SchemaIssue =
+  | $SchemaIssueInvalidType
+  | $SchemaIssueTooBig
+  | $SchemaIssueTooSmall
+  | $SchemaIssueInvalidStringFormat
+  | $SchemaIssueNotMultipleOf
+  | $SchemaIssueUnrecognizedKeys
+  | $SchemaIssueInvalidUnion
+  | $SchemaIssueInvalidKey
+  | $SchemaIssueInvalidElement
+  | $SchemaIssueInvalidValue
+  | $SchemaIssueCustom;
 
-export type $ZodIssueCode = $ZodIssue["code"];
+export type $SchemaIssueCode = $SchemaIssue["code"];
 
-export type $ZodInternalIssue<T extends $ZodIssueBase = $ZodIssue> = T extends any ? RawIssue<T> : never;
-type RawIssue<T extends $ZodIssueBase> = T extends any
+export type $SchemaInternalIssue<T extends $SchemaIssueBase = $SchemaIssue> = T extends any ? RawIssue<T> : never;
+type RawIssue<T extends $SchemaIssueBase> = T extends any
   ? util.Flatten<
       util.MakePartial<T, "message" | "path"> & {
         /** The input data */
         readonly input: unknown;
         /** The schema or check that originated this issue. */
-        readonly inst?: $ZodType | $ZodCheck;
+        readonly inst?: $SchemaType | $SchemaCheck;
         /** The schema that owns the issue. Equal to `inst` when a schema originated the issue, and the schema the check was attached to when a check did. */
-        readonly schema?: $ZodType | undefined;
-        /** If `true`, Zod will continue executing checks/refinements after this issue. */
+        readonly schema?: $SchemaType | undefined;
+        /** If `true`, Schema will continue executing checks/refinements after this issue. */
         readonly continue?: boolean | undefined;
       } & Record<string, unknown>
     >
   : never;
 
-export type $ZodRawIssue<T extends $ZodIssueBase = $ZodIssue> = $ZodInternalIssue<T>;
+export type $SchemaRawIssue<T extends $SchemaIssueBase = $SchemaIssue> = $SchemaInternalIssue<T>;
 
-export interface $ZodErrorMap<T extends $ZodIssueBase = $ZodIssue> {
+export interface $SchemaErrorMap<T extends $SchemaIssueBase = $SchemaIssue> {
   // biome-ignore lint/style/useShorthandFunctionType: interface form is public API
-  (issue: $ZodRawIssue<T>): { message: string } | string | undefined | null;
+  (issue: $SchemaRawIssue<T>): { message: string } | string | undefined | null;
 }
 
 ////////////////////////    ERROR CLASS   ////////////////////////
 
-// const ZOD_ERROR: symbol = Symbol.for("{{zod.error}}");
-export interface $ZodError<T = unknown> extends Error {
+// const ZOD_ERROR: symbol = Symbol.for("{{Schema.error}}");
+export interface $SchemaError<T = unknown> extends Error {
   type: T;
-  issues: $ZodIssue[];
-  _zod: {
+  issues: $SchemaIssue[];
+  _schema: {
     output: T;
-    def: $ZodIssue[];
+    def: $SchemaIssue[];
   };
   stack?: string;
   name: string;
@@ -237,13 +237,13 @@ export interface $ZodError<T = unknown> extends Error {
  * cheap; the computed message is cached on the internals object. The
  * setter preserves plain assignment semantics for consumers that
  * overwrite `message`. */
-function _getMessage(this: $ZodError): string {
-  const internals = this._zod as { def: $ZodIssue[]; message?: string };
+function _getMessage(this: $SchemaError): string {
+  const internals = this._schema as { def: $SchemaIssue[]; message?: string };
   internals.message ??= JSON.stringify(internals.def, util.jsonStringifyReplacer, 2);
   return internals.message;
 }
-function _setMessage(this: $ZodError, value: string): void {
-  (this._zod as { message?: string }).message = value;
+function _setMessage(this: $SchemaError, value: string): void {
+  (this._schema as { message?: string }).message = value;
 }
 const _messageDesc: PropertyDescriptor = {
   get: _getMessage,
@@ -258,9 +258,9 @@ const _issuesDesc: PropertyDescriptor = { value: undefined, enumerable: false };
  * can never install an accessor onto a prototype we do not own. */
 const _installedToString = /* @__PURE__ */ new WeakSet<object>([Object.prototype, Error.prototype]);
 
-const initializer = (inst: $ZodError, def: $ZodIssue[]): void => {
-  inst.name = "$ZodError";
-  // `_zod` is already non-enumerable: $constructor's init defined it with this same descriptor
+const initializer = (inst: $SchemaError, def: $SchemaIssue[]): void => {
+  inst.name = "$SchemaError";
+  // `_schema` is already non-enumerable: $constructor's init defined it with this same descriptor
   _issuesDesc.value = def;
   Object.defineProperty(inst, "issues", _issuesDesc);
   // Clear the shared slot; a retained `value` pins the last error's issues.
@@ -276,28 +276,28 @@ const initializer = (inst: $ZodError, def: $ZodIssue[]): void => {
     Object.defineProperty(proto, "toString", {
       configurable: true,
       enumerable: false,
-      get(this: $ZodError) {
+      get(this: $SchemaError) {
         const value = () => this.message;
         Object.defineProperty(this, "toString", { value, configurable: true, writable: true });
         return value;
       },
-      set(this: $ZodError, value: unknown) {
+      set(this: $SchemaError, value: unknown) {
         Object.defineProperty(this, "toString", { value, configurable: true, writable: true });
       },
     });
   }
 };
 
-export const $ZodError: $constructor<$ZodError> = $constructor("$ZodError", initializer);
-interface $ZodRealError<T = any> extends $ZodError<T> {}
-export const $ZodRealError: $constructor<$ZodRealError> = $constructor("$ZodError", initializer, undefined, {
+export const $SchemaError: $constructor<$SchemaError> = $constructor("$SchemaError", initializer);
+interface $SchemaRealError<T = any> extends $SchemaError<T> {}
+export const $SchemaRealError: $constructor<$SchemaRealError> = $constructor("$SchemaError", initializer, undefined, {
   Parent: Error,
 });
 
 ///////////////////    ERROR UTILITIES   ////////////////////////
 
 // flatten
-export type $ZodFlattenedError<T, U = string> = _FlattenedError<T, U>;
+export type $SchemaFlattenedError<T, U = string> = _FlattenedError<T, U>;
 type _FlattenedError<T, U = string> = {
   formErrors: U[];
   fieldErrors: {
@@ -319,9 +319,9 @@ function node<T>(obj: any, key: PropertyKey, make: () => T): T {
   return obj[key];
 }
 
-export function flattenError<T>(error: $ZodError<T>): _FlattenedError<T>;
-export function flattenError<T, U>(error: $ZodError<T>, mapper?: (issue: $ZodIssue) => U): _FlattenedError<T, U>;
-export function flattenError<T, U>(error: $ZodError<T>, mapper = (issue: $ZodIssue) => issue.message as U) {
+export function flattenError<T>(error: $SchemaError<T>): _FlattenedError<T>;
+export function flattenError<T, U>(error: $SchemaError<T>, mapper?: (issue: $SchemaIssue) => U): _FlattenedError<T, U>;
+export function flattenError<T, U>(error: $SchemaError<T>, mapper = (issue: $SchemaIssue) => issue.message as U) {
   const fieldErrors: Record<PropertyKey, any> = {};
   const formErrors: U[] = [];
   for (const sub of error.issues) {
@@ -334,23 +334,23 @@ export function flattenError<T, U>(error: $ZodError<T>, mapper = (issue: $ZodIss
   return { formErrors, fieldErrors };
 }
 
-type _ZodFormattedError<T, U = string> = T extends [any, ...any[]]
-  ? { [K in keyof T]?: $ZodFormattedError<T[K], U> }
+type _SchemaFormattedError<T, U = string> = T extends [any, ...any[]]
+  ? { [K in keyof T]?: $SchemaFormattedError<T[K], U> }
   : T extends any[]
-    ? { [k: number]: $ZodFormattedError<T[number], U> }
+    ? { [k: number]: $SchemaFormattedError<T[number], U> }
     : T extends object
-      ? util.Flatten<{ [K in keyof T]?: $ZodFormattedError<T[K], U> }>
+      ? util.Flatten<{ [K in keyof T]?: $SchemaFormattedError<T[K], U> }>
       : any;
 
-export type $ZodFormattedError<T, U = string> = {
+export type $SchemaFormattedError<T, U = string> = {
   _errors: U[];
-} & util.Flatten<_ZodFormattedError<T, U>>;
+} & util.Flatten<_SchemaFormattedError<T, U>>;
 
-export function formatError<T>(error: $ZodError<T>): $ZodFormattedError<T>;
-export function formatError<T, U>(error: $ZodError<T>, mapper?: (issue: $ZodIssue) => U): $ZodFormattedError<T, U>;
-export function formatError<T, U>(error: $ZodError<T>, mapper = (issue: $ZodIssue) => issue.message as U) {
-  const fieldErrors: $ZodFormattedError<T> = { _errors: [] } as any;
-  const processError = (error: { issues: $ZodIssue[] }, path: PropertyKey[] = []) => {
+export function formatError<T>(error: $SchemaError<T>): $SchemaFormattedError<T>;
+export function formatError<T, U>(error: $SchemaError<T>, mapper?: (issue: $SchemaIssue) => U): $SchemaFormattedError<T, U>;
+export function formatError<T, U>(error: $SchemaError<T>, mapper = (issue: $SchemaIssue) => issue.message as U) {
+  const fieldErrors: $SchemaFormattedError<T> = { _errors: [] } as any;
+  const processError = (error: { issues: $SchemaIssue[] }, path: PropertyKey[] = []) => {
     for (const issue of error.issues) {
       if (issue.code === "invalid_union" && issue.errors.length) {
         issue.errors.map((issues) => processError({ issues }, [...path, ...issue.path]));
@@ -405,24 +405,24 @@ export function formatError<T, U>(error: $ZodError<T>, mapper = (issue: $ZodIssu
   return fieldErrors;
 }
 
-export type $ZodErrorTree<T, U = string> = T extends util.Primitive
+export type $SchemaErrorTree<T, U = string> = T extends util.Primitive
   ? { errors: U[] }
   : T extends [any, ...any[]]
-    ? { errors: U[]; items?: { [K in keyof T]?: $ZodErrorTree<T[K], U> } }
+    ? { errors: U[]; items?: { [K in keyof T]?: $SchemaErrorTree<T[K], U> } }
     : T extends any[]
-      ? { errors: U[]; items?: Array<$ZodErrorTree<T[number], U>> }
+      ? { errors: U[]; items?: Array<$SchemaErrorTree<T[number], U>> }
       : T extends object
         ? {
             errors: U[];
-            properties?: { [K in keyof T]?: $ZodErrorTree<T[K], U> };
+            properties?: { [K in keyof T]?: $SchemaErrorTree<T[K], U> };
           }
         : { errors: U[] };
 
-export function treeifyError<T>(error: $ZodError<T>): $ZodErrorTree<T>;
-export function treeifyError<T, U>(error: $ZodError<T>, mapper?: (issue: $ZodIssue) => U): $ZodErrorTree<T, U>;
-export function treeifyError<T, U>(error: $ZodError<T>, mapper = (issue: $ZodIssue) => issue.message as U) {
-  const result: $ZodErrorTree<T, U> = { errors: [] } as any;
-  const processError = (error: { issues: $ZodIssue[] }, path: PropertyKey[] = []) => {
+export function treeifyError<T>(error: $SchemaError<T>): $SchemaErrorTree<T>;
+export function treeifyError<T, U>(error: $SchemaError<T>, mapper?: (issue: $SchemaIssue) => U): $SchemaErrorTree<T, U>;
+export function treeifyError<T, U>(error: $SchemaError<T>, mapper = (issue: $SchemaIssue) => issue.message as U) {
+  const result: $SchemaErrorTree<T, U> = { errors: [] } as any;
+  const processError = (error: { issues: $SchemaIssue[] }, path: PropertyKey[] = []) => {
     for (const issue of error.issues) {
       if (issue.code === "invalid_union" && issue.errors.length) {
         // regular union error
@@ -479,12 +479,12 @@ export function treeifyError<T, U>(error: $ZodError<T>, mapper = (issue: $ZodIss
   return result;
 }
 
-/** Format a ZodError as a human-readable string in the following form.
+/** Format a SchemaError as a human-readable string in the following form.
  *
  * From
  *
  * ```ts
- * ZodError {
+ * SchemaError {
  *   issues: [
  *     {
  *       expected: 'string',

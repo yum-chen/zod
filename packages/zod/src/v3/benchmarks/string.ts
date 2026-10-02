@@ -1,8 +1,8 @@
 import Benchmark from "benchmark";
 
-import { z } from "zod/v3";
+import { Schema } from "schema/v3";
 
-const SUITE_NAME = "z.string";
+const SUITE_NAME = "Schema.string";
 const suite = new Benchmark.Suite(SUITE_NAME);
 
 const empty = "";
@@ -15,9 +15,9 @@ const manual = (str: unknown) => {
 
   return str;
 };
-const stringSchema = z.string();
-const optionalStringSchema = z.string().optional();
-const optionalNullableStringSchema = z.string().optional().nullable();
+const stringSchema = Schema.string();
+const optionalStringSchema = Schema.string().optional();
+const optionalNullableStringSchema = Schema.string().optional().nullable();
 
 suite
   .add("empty string", () => {

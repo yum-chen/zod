@@ -1,24 +1,24 @@
-// failing safeParse, zod 4.4.3 vs the current source: one process, interleaved, fixed N, gc between samples, min of rounds (nub --expose-gc)
+// failing safeParse, schema 4.4.3 vs the current source: one process, interleaved, fixed N, gc between samples, min of rounds (nub --expose-gc)
 import { createRequire } from "node:module";
 import path from "node:path";
-import * as z45 from "zod";
+import * as z45 from "schema";
 
-// the built 4.4.3 package by absolute path: a bare "zod443" import would follow the @zod/source condition into its src, whose bare "zod/…" imports resolve to the workspace source and bench 4.5 against itself
+// the built 4.4.3 package by absolute path: a bare "schema443" import would follow the @schema/source condition into its src, whose bare "schema/…" imports resolve to the workspace source and bench 4.5 against itself
 const require = createRequire(import.meta.url);
-const z44 = require(path.join(path.dirname(require.resolve("zod443/package.json")), "index.cjs"));
+const z44 = require(path.join(path.dirname(require.resolve("schema443/package.json")), "index.cjs"));
 
 declare const gc: () => void;
 
 // gc only exists under --expose-gc; nub run bench does not expose gc, so name the working invocation instead of dying on a bare ReferenceError
 if (typeof (globalThis as any).gc !== "function") {
   throw new Error(
-    "gc is not exposed — run: nub --expose-gc --conditions @zod/source packages/bench/failing-safeparse.ts"
+    "gc is not exposed — run: nub --expose-gc --conditions @schema/source packages/bench/failing-safeparse.ts"
   );
 }
 
-const shape = (z: any) => z.object({ username: z.string(), bio: z.string(), xp: z.number() });
+const shape = (z: any) => Schema.object({ username: Schema.string(), bio: Schema.string(), xp: Schema.number() });
 const P44 = shape(z44);
-if (require("zod443/package.json").version !== "4.4.3") throw new Error("zod443 must resolve to 4.4.3");
+if (require("schema443/package.json").version !== "4.4.3") throw new Error("schema443 must resolve to 4.4.3");
 const P45 = shape(z45);
 const bad = { username: 42, bio: "hello", xp: 12 };
 if (P44.safeParse(bad).success !== false || P45.safeParse(bad).success !== false)
@@ -29,7 +29,7 @@ let sink = 0;
 const time = (schema: any) => {
   gc();
   const t = process.hrtime.bigint();
-  for (let i = 0; i < N; i++) sink += schema.safeParse(bad).success ? 1 : 0;
+  for (let i = 0; i < N; i++) sink += Schema.safeParse(bad).success ? 1 : 0;
   return Number(process.hrtime.bigint() - t) / N;
 };
 

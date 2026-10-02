@@ -1,20 +1,20 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "../../index.js";
+import * as Schema from "../../index.js";
 import {
   INVALID,
-  ZodCompileAsyncError,
-  ZodCompileUnsupportedError,
+  SchemaCompileAsyncError,
+  SchemaCompileUnsupportedError,
   compile,
   compileFn,
   withParser,
 } from "../compile.js";
-import { $ZodAsyncError } from "../core.js";
+import { $SchemaAsyncError } from "../core.js";
 
 // Differential helper: assert compiled schema matches the original on a value.
-function expectMatch(schema: z.ZodType, value: unknown) {
+function expectMatch(schema: Schema.SchemaType, value: unknown) {
   const compiled = compile(schema);
-  const original = schema.safeParse(value);
+  const original = Schema.safeParse(value);
   const fast = compiled.safeParse(value);
 
   expect(fast.success).toBe(original.success);
@@ -26,8 +26,8 @@ function expectMatch(schema: z.ZodType, value: unknown) {
 }
 
 // Parse and assert success; return the parsed data for further assertions.
-function valid<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
-  const result = schema.safeParse(value);
+function valid<T extends Schema.SchemaType>(schema: T, value: unknown): Schema.output<T> {
+  const result = Schema.safeParse(value);
   if (!result.success) {
     throw new Error(`expected success, got issues: ${JSON.stringify(result.error.issues)}`);
   }
@@ -35,15 +35,15 @@ function valid<T extends z.ZodType>(schema: T, value: unknown): z.output<T> {
 }
 
 // Parse and assert failure.
-function invalid(schema: z.ZodType, value: unknown) {
-  const result = schema.safeParse(value);
+function invalid(schema: Schema.SchemaType, value: unknown) {
+  const result = Schema.safeParse(value);
   expect(result.success).toBe(false);
 }
 
 // === Primitives ===
 
 test("string", () => {
-  const aot = compile(z.string());
+  const aot = compile(Schema.string());
   expect(valid(aot, "hello")).toBe("hello");
   expect(valid(aot, "")).toBe("");
   invalid(aot, 123);
@@ -52,19 +52,19 @@ test("string", () => {
 });
 
 test("number", () => {
-  const aot = compile(z.number());
+  const aot = compile(Schema.number());
   expect(valid(aot, 123)).toBe(123);
   expect(valid(aot, 0)).toBe(0);
   expect(valid(aot, -5.5)).toBe(-5.5);
-  invalid(aot, Number.NaN); // z.number() rejects NaN
-  invalid(aot, Number.POSITIVE_INFINITY); // z.number() rejects Infinity
+  invalid(aot, Number.NaN); // Schema.number() rejects NaN
+  invalid(aot, Number.POSITIVE_INFINITY); // Schema.number() rejects Infinity
   invalid(aot, Number.NEGATIVE_INFINITY);
   invalid(aot, "123");
   invalid(aot, null);
 });
 
 test("boolean", () => {
-  const aot = compile(z.boolean());
+  const aot = compile(Schema.boolean());
   expect(valid(aot, true)).toBe(true);
   expect(valid(aot, false)).toBe(false);
   invalid(aot, 1);
@@ -72,7 +72,7 @@ test("boolean", () => {
 });
 
 test("bigint", () => {
-  const aot = compile(z.bigint());
+  const aot = compile(Schema.bigint());
   expect(valid(aot, 123n)).toBe(123n);
   expect(valid(aot, 0n)).toBe(0n);
   invalid(aot, 123);
@@ -80,7 +80,7 @@ test("bigint", () => {
 });
 
 test("symbol", () => {
-  const aot = compile(z.symbol());
+  const aot = compile(Schema.symbol());
   const sym = Symbol();
   expect(valid(aot, sym)).toBe(sym);
   const namedSym = Symbol.for("test");
@@ -89,28 +89,28 @@ test("symbol", () => {
 });
 
 test("undefined", () => {
-  const aot = compile(z.undefined());
+  const aot = compile(Schema.undefined());
   expect(valid(aot, undefined)).toBe(undefined);
   invalid(aot, null);
   invalid(aot, 0);
 });
 
 test("null", () => {
-  const aot = compile(z.null());
+  const aot = compile(Schema.null());
   expect(valid(aot, null)).toBe(null);
   invalid(aot, undefined);
   invalid(aot, 0);
 });
 
 test("void", () => {
-  const aot = compile(z.void());
+  const aot = compile(Schema.void());
   expect(valid(aot, undefined)).toBe(undefined);
   invalid(aot, null);
   invalid(aot, 0);
 });
 
 test("nan", () => {
-  const aot = compile(z.nan());
+  const aot = compile(Schema.nan());
   expect(Number.isNaN(valid(aot, Number.NaN))).toBe(true);
   expect(Number.isNaN(valid(aot, Number.NaN))).toBe(true);
   invalid(aot, 0);
@@ -119,7 +119,7 @@ test("nan", () => {
 });
 
 test("date", () => {
-  const aot = compile(z.date());
+  const aot = compile(Schema.date());
   const d1 = new Date();
   expect(valid(aot, d1)).toBe(d1);
   const d2 = new Date(0);
@@ -132,7 +132,7 @@ test("date", () => {
 // === Special Types ===
 
 test("any", () => {
-  const aot = compile(z.any());
+  const aot = compile(Schema.any());
   expect(valid(aot, null)).toBe(null);
   expect(valid(aot, undefined)).toBe(undefined);
   expect(valid(aot, 123)).toBe(123);
@@ -140,14 +140,14 @@ test("any", () => {
 });
 
 test("unknown", () => {
-  const aot = compile(z.unknown());
+  const aot = compile(Schema.unknown());
   expect(valid(aot, null)).toBe(null);
   expect(valid(aot, undefined)).toBe(undefined);
   expect(valid(aot, 123)).toBe(123);
 });
 
 test("never", () => {
-  const aot = compile(z.never());
+  const aot = compile(Schema.never());
   invalid(aot, null);
   invalid(aot, undefined);
   invalid(aot, 123);
@@ -156,33 +156,33 @@ test("never", () => {
 // === Literal ===
 
 test("literal string", () => {
-  const aot = compile(z.literal("hello"));
+  const aot = compile(Schema.literal("hello"));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, "Hello");
   invalid(aot, "");
 });
 
 test("literal number", () => {
-  const aot = compile(z.literal(42));
+  const aot = compile(Schema.literal(42));
   expect(valid(aot, 42)).toBe(42);
   invalid(aot, 43);
   invalid(aot, "42");
 });
 
 test("literal boolean", () => {
-  const aot = compile(z.literal(true));
+  const aot = compile(Schema.literal(true));
   expect(valid(aot, true)).toBe(true);
   invalid(aot, false);
 });
 
 test("literal null", () => {
-  const aot = compile(z.literal(null));
+  const aot = compile(Schema.literal(null));
   expect(valid(aot, null)).toBe(null);
   invalid(aot, undefined);
 });
 
 test("literal bigint", () => {
-  const aot = compile(z.literal(100n));
+  const aot = compile(Schema.literal(100n));
   expect(valid(aot, 100n)).toBe(100n);
   invalid(aot, 100);
   invalid(aot, 101n);
@@ -191,7 +191,7 @@ test("literal bigint", () => {
 // === Enum ===
 
 test("enum", () => {
-  const aot = compile(z.enum(["a", "b", "c"]));
+  const aot = compile(Schema.enum(["a", "b", "c"]));
   expect(valid(aot, "a")).toBe("a");
   expect(valid(aot, "b")).toBe("b");
   expect(valid(aot, "c")).toBe("c");
@@ -203,27 +203,27 @@ test("enum", () => {
 // === Wrapper Types ===
 
 test("readonly", () => {
-  const aot = compile(z.readonly(z.string()));
+  const aot = compile(Schema.readonly(Schema.string()));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, 123);
 });
 
 test("default", () => {
-  const aot = compile(z.string().default("hello"));
+  const aot = compile(Schema.string().default("hello"));
   expect(valid(aot, "world")).toBe("world");
   expect(valid(aot, undefined)).toBe("hello"); // default applies
   invalid(aot, 123);
 });
 
 test("prefault", () => {
-  const aot = compile(z.string().trim().prefault("  hello  "));
+  const aot = compile(Schema.string().trim().prefault("  hello  "));
   expect(valid(aot, "world")).toBe("world");
   expect(valid(aot, undefined)).toBe("hello");
   invalid(aot, 123);
 });
 
 test("nonoptional", () => {
-  const aot = compile(z.string().optional().nonoptional());
+  const aot = compile(Schema.string().optional().nonoptional());
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, undefined); // nonoptional rejects undefined
   invalid(aot, 123);
@@ -248,7 +248,7 @@ test("nonoptional judges the inner's output, not its input", () => {
       .nonoptional(),
     "s"
   );
-  for (const input of [undefined, "y", 1]) expectMatch(z.string().default("x").nonoptional(), input);
+  for (const input of [undefined, "y", 1]) expectMatch(Schema.string().default("x").nonoptional(), input);
 });
 
 test("a nonoptional object key whose inner supplies a value still needs the key", () => {
@@ -258,7 +258,7 @@ test("a nonoptional object key whose inner supplies a value still needs the key"
     .default("other" as any)
     .optional()
     .nonoptional();
-  const schema = z.object({ k1: prop });
+  const schema = Schema.object({ k1: prop });
   expectMatch(schema, {});
   expectMatch(schema, { k1: undefined });
   expectMatch(schema, { k1: "lit" });
@@ -266,18 +266,18 @@ test("a nonoptional object key whose inner supplies a value still needs the key"
 });
 
 test("success", () => {
-  const aot = compile(z.success(z.string()));
+  const aot = compile(Schema.success(Schema.string()));
   expect(valid(aot, "hello")).toBe(true);
   invalid(aot, 123);
-  expectMatch(z.success(z.string()), "hello");
-  expectMatch(z.success(z.string()), 123);
-  expectMatch(z.object({ ok: z.success(z.number()) }), { ok: 5 });
+  expectMatch(Schema.success(Schema.string()), "hello");
+  expectMatch(Schema.success(Schema.string()), 123);
+  expectMatch(Schema.object({ ok: Schema.success(Schema.number()) }), { ok: 5 });
 });
 
 // === Optional & Nullable ===
 
 test("optional", () => {
-  const aot = compile(z.optional(z.string()));
+  const aot = compile(Schema.optional(Schema.string()));
   expect(valid(aot, "hello")).toBe("hello");
   expect(valid(aot, undefined)).toBe(undefined);
   invalid(aot, null);
@@ -285,7 +285,7 @@ test("optional", () => {
 });
 
 test("nullable", () => {
-  const aot = compile(z.nullable(z.string()));
+  const aot = compile(Schema.nullable(Schema.string()));
   expect(valid(aot, "hello")).toBe("hello");
   expect(valid(aot, null)).toBe(null);
   invalid(aot, undefined);
@@ -295,7 +295,7 @@ test("nullable", () => {
 // === Array ===
 
 test("array of strings", () => {
-  const aot = compile(z.array(z.string()));
+  const aot = compile(Schema.array(Schema.string()));
   expect(valid(aot, [])).toEqual([]);
   expect(valid(aot, ["a", "b"])).toEqual(["a", "b"]);
   invalid(aot, [1, 2]);
@@ -304,7 +304,7 @@ test("array of strings", () => {
 });
 
 test("array of objects", () => {
-  const aot = compile(z.array(z.object({ id: z.number() })));
+  const aot = compile(Schema.array(Schema.object({ id: Schema.number() })));
   expect(valid(aot, [{ id: 1 }, { id: 2 }])).toEqual([{ id: 1 }, { id: 2 }]);
   invalid(aot, [{ id: "1" }]);
   invalid(aot, [{}]);
@@ -313,7 +313,7 @@ test("array of objects", () => {
 // === Object ===
 
 test("simple object", () => {
-  const aot = compile(z.object({ name: z.string(), age: z.number() }));
+  const aot = compile(Schema.object({ name: Schema.string(), age: Schema.number() }));
   expect(valid(aot, { name: "Alice", age: 30 })).toEqual({ name: "Alice", age: 30 });
   expect(valid(aot, { name: "Bob", age: 25, extra: true })).toEqual({ name: "Bob", age: 25 }); // strip mode
   invalid(aot, { name: "Charlie" });
@@ -324,11 +324,11 @@ test("simple object", () => {
 
 test("nested object", () => {
   const aot = compile(
-    z.object({
-      user: z.object({
-        name: z.string(),
-        address: z.object({
-          city: z.string(),
+    Schema.object({
+      user: Schema.object({
+        name: Schema.string(),
+        address: Schema.object({
+          city: Schema.string(),
         }),
       }),
     })
@@ -340,7 +340,7 @@ test("nested object", () => {
 });
 
 test("object with optional property", () => {
-  const aot = compile(z.object({ name: z.string(), age: z.optional(z.number()) }));
+  const aot = compile(Schema.object({ name: Schema.string(), age: Schema.optional(Schema.number()) }));
   expect(valid(aot, { name: "Alice" })).toEqual({ name: "Alice" });
   expect(valid(aot, { name: "Alice", age: 30 })).toEqual({ name: "Alice", age: 30 });
   expect(valid(aot, { name: "Alice", age: undefined })).toEqual({ name: "Alice", age: undefined });
@@ -349,10 +349,10 @@ test("object with optional property", () => {
 
 test("object required undefined-accepting properties distinguish absence", () => {
   const cases = [
-    z.object({ value: z.undefined() }),
-    z.object({ value: z.union([z.string(), z.undefined()]) }),
-    z.object({ value: z.any() }),
-    z.object({ value: z.unknown() }),
+    Schema.object({ value: Schema.undefined() }),
+    Schema.object({ value: Schema.union([Schema.string(), Schema.undefined()]) }),
+    Schema.object({ value: Schema.any() }),
+    Schema.object({ value: Schema.unknown() }),
   ];
 
   for (const schema of cases) {
@@ -363,61 +363,61 @@ test("object required undefined-accepting properties distinguish absence", () =>
 });
 
 test("strictObject", () => {
-  const aot = compile(z.strictObject({ name: z.string() }));
+  const aot = compile(Schema.strictObject({ name: Schema.string() }));
   expect(valid(aot, { name: "Alice" })).toEqual({ name: "Alice" });
   invalid(aot, { name: "Alice", extra: true });
   invalid(aot, {});
 });
 
 test("strictObject with optional", () => {
-  const aot = compile(z.strictObject({ name: z.string(), age: z.optional(z.number()) }));
+  const aot = compile(Schema.strictObject({ name: Schema.string(), age: Schema.optional(Schema.number()) }));
   expect(valid(aot, { name: "Alice" })).toEqual({ name: "Alice" });
   expect(valid(aot, { name: "Alice", age: 30 })).toEqual({ name: "Alice", age: 30 });
   invalid(aot, { name: "Alice", extra: true });
 });
 
 test("looseObject", () => {
-  const aot = compile(z.looseObject({ name: z.string() }));
+  const aot = compile(Schema.looseObject({ name: Schema.string() }));
   expect(valid(aot, { name: "Alice" })).toEqual({ name: "Alice" });
   expect(valid(aot, { name: "Alice", extra: true })).toEqual({ name: "Alice", extra: true });
   invalid(aot, {});
 });
 
 test("object with catchall", () => {
-  const aot = compile(z.object({ name: z.string() }).catchall(z.number()));
+  const aot = compile(Schema.object({ name: Schema.string() }).catchall(Schema.number()));
   expect(valid(aot, { name: "Alice" })).toEqual({ name: "Alice" });
   expect(valid(aot, { name: "Alice", age: 30 })).toEqual({ name: "Alice", age: 30 });
   invalid(aot, { name: "Alice", age: "30" });
 });
 
-// === Matches Zod behavior ===
+// === Matches Schema behavior ===
 
-test("matches Zod: primitives", () => {
-  expectMatch(z.string(), "hello");
-  expectMatch(z.string(), 123);
-  expectMatch(z.number(), 123);
-  expectMatch(z.number(), Number.NaN);
-  expectMatch(z.boolean(), true);
-  expectMatch(z.boolean(), 1);
+test("matches Schema: primitives", () => {
+  expectMatch(Schema.string(), "hello");
+  expectMatch(Schema.string(), 123);
+  expectMatch(Schema.number(), 123);
+  expectMatch(Schema.number(), Number.NaN);
+  expectMatch(Schema.boolean(), true);
+  expectMatch(Schema.boolean(), 1);
 });
 
-test("matches Zod: void/nan/date", () => {
-  expectMatch(z.void(), undefined);
-  expectMatch(z.void(), null);
-  expectMatch(z.nan(), Number.NaN);
-  expectMatch(z.nan(), 0);
-  expectMatch(z.date(), new Date());
-  expectMatch(z.date(), new Date("invalid"));
-  expectMatch(z.date(), "2024-01-01");
+test("matches Schema: void/nan/date", () => {
+  expectMatch(Schema.void(), undefined);
+  expectMatch(Schema.void(), null);
+  expectMatch(Schema.nan(), Number.NaN);
+  expectMatch(Schema.nan(), 0);
+  expectMatch(Schema.date(), new Date());
+  expectMatch(Schema.date(), new Date("invalid"));
+  expectMatch(Schema.date(), "2024-01-01");
 });
 
-test("matches Zod: complex schema", () => {
-  const schema = z.strictObject({
-    id: z.number(),
-    name: z.string(),
-    tags: z.array(z.string()),
-    nested: z.object({
-      active: z.boolean(),
+test("matches Schema: complex schema", () => {
+  const schema = Schema.strictObject({
+    id: Schema.number(),
+    name: Schema.string(),
+    tags: Schema.array(Schema.string()),
+    nested: Schema.object({
+      active: Schema.boolean(),
     }),
   });
 
@@ -429,7 +429,7 @@ test("matches Zod: complex schema", () => {
 // === Checks ===
 
 test("number min/max", () => {
-  const aot = compile(z.number().min(0).max(100));
+  const aot = compile(Schema.number().min(0).max(100));
   expect(valid(aot, 50)).toBe(50);
   expect(valid(aot, 0)).toBe(0);
   expect(valid(aot, 100)).toBe(100);
@@ -438,7 +438,7 @@ test("number min/max", () => {
 });
 
 test("number exclusive min/max", () => {
-  const aot = compile(z.number().gt(0).lt(100));
+  const aot = compile(Schema.number().gt(0).lt(100));
   expect(valid(aot, 50)).toBe(50);
   expect(valid(aot, 1)).toBe(1);
   expect(valid(aot, 99)).toBe(99);
@@ -447,14 +447,14 @@ test("number exclusive min/max", () => {
 });
 
 test("number int", () => {
-  const aot = compile(z.number().int());
+  const aot = compile(Schema.number().int());
   expect(valid(aot, 5)).toBe(5);
   expect(valid(aot, -10)).toBe(-10);
   invalid(aot, 5.5);
 });
 
 test("number multipleOf", () => {
-  const aot = compile(z.number().multipleOf(5));
+  const aot = compile(Schema.number().multipleOf(5));
   expect(valid(aot, 0)).toBe(0);
   expect(valid(aot, 5)).toBe(5);
   expect(valid(aot, 10)).toBe(10);
@@ -462,7 +462,7 @@ test("number multipleOf", () => {
 });
 
 test("string length checks", () => {
-  const aot = compile(z.string().min(3).max(10));
+  const aot = compile(Schema.string().min(3).max(10));
   expect(valid(aot, "abc")).toBe("abc");
   expect(valid(aot, "0123456789")).toBe("0123456789");
   invalid(aot, "ab");
@@ -470,38 +470,38 @@ test("string length checks", () => {
 });
 
 test("string exact length", () => {
-  const aot = compile(z.string().length(5));
+  const aot = compile(Schema.string().length(5));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, "hi");
   invalid(aot, "toolong");
 });
 
 test("string regex", () => {
-  const aot = compile(z.string().regex(/^[a-z]+$/));
+  const aot = compile(Schema.string().regex(/^[a-z]+$/));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, "Hello");
   invalid(aot, "hello123");
 });
 
 test("string startsWith/endsWith/includes", () => {
-  const aot = compile(z.string().startsWith("hello").endsWith("world").includes("beautiful"));
+  const aot = compile(Schema.string().startsWith("hello").endsWith("world").includes("beautiful"));
   expect(valid(aot, "hello beautiful world")).toBe("hello beautiful world");
   invalid(aot, "hello world");
   invalid(aot, "beautiful world");
 });
 
 test("string lowercase/uppercase", () => {
-  const lower = compile(z.string().lowercase());
+  const lower = compile(Schema.string().lowercase());
   expect(valid(lower, "hello")).toBe("hello");
   invalid(lower, "Hello");
 
-  const upper = compile(z.string().uppercase());
+  const upper = compile(Schema.string().uppercase());
   expect(valid(upper, "HELLO")).toBe("HELLO");
   invalid(upper, "Hello");
 });
 
 test("array length checks", () => {
-  const aot = compile(z.array(z.number()).min(1).max(3));
+  const aot = compile(Schema.array(Schema.number()).min(1).max(3));
   expect(valid(aot, [1])).toEqual([1]);
   expect(valid(aot, [1, 2, 3])).toEqual([1, 2, 3]);
   invalid(aot, []);
@@ -509,14 +509,14 @@ test("array length checks", () => {
 });
 
 test("bigint min/max", () => {
-  const aot = compile(z.bigint().min(0n).max(100n));
+  const aot = compile(Schema.bigint().min(0n).max(100n));
   expect(valid(aot, 50n)).toBe(50n);
   expect(valid(aot, 0n)).toBe(0n);
   invalid(aot, -1n);
   invalid(aot, 101n);
 });
 
-test("matches Zod: checks", () => {
+test("matches Schema: checks", () => {
   const schema = z
     .string()
     .min(3)
@@ -529,7 +529,7 @@ test("matches Zod: checks", () => {
 });
 
 test("custom refine", () => {
-  const aot = compile(z.string().refine((x) => x.length > 3));
+  const aot = compile(Schema.string().refine((x) => x.length > 3));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, "abc");
   invalid(aot, "ab");
@@ -539,8 +539,8 @@ test("custom refine with object", () => {
   const aot = compile(
     z
       .object({
-        password: z.string(),
-        confirm: z.string(),
+        password: Schema.string(),
+        confirm: Schema.string(),
       })
       .refine((data) => data.password === data.confirm)
   );
@@ -551,7 +551,7 @@ test("custom refine with object", () => {
 // === String Formats ===
 
 test("email", () => {
-  const aot = compile(z.email());
+  const aot = compile(Schema.email());
   expect(valid(aot, "test@example.com")).toBe("test@example.com");
   expect(valid(aot, "user.name+tag@example.co.uk")).toBe("user.name+tag@example.co.uk");
   invalid(aot, "invalid");
@@ -560,7 +560,7 @@ test("email", () => {
 });
 
 test("uuid", () => {
-  const aot = compile(z.uuid());
+  const aot = compile(Schema.uuid());
   expect(valid(aot, "550e8400-e29b-41d4-a716-446655440000")).toBe("550e8400-e29b-41d4-a716-446655440000");
   expect(valid(aot, "00000000-0000-0000-0000-000000000000")).toBe("00000000-0000-0000-0000-000000000000");
   invalid(aot, "not-a-uuid");
@@ -568,7 +568,7 @@ test("uuid", () => {
 });
 
 test("url", () => {
-  const aot = compile(z.url());
+  const aot = compile(Schema.url());
   expect(valid(aot, "https://example.com")).toBe("https://example.com");
   expect(valid(aot, "  https://example.com  ")).toBe("https://example.com");
   expect(valid(aot, "http://localhost:3000/path")).toBe("http://localhost:3000/path");
@@ -577,7 +577,7 @@ test("url", () => {
 });
 
 test("ipv4", () => {
-  const aot = compile(z.ipv4());
+  const aot = compile(Schema.ipv4());
   expect(valid(aot, "192.168.1.1")).toBe("192.168.1.1");
   expect(valid(aot, "0.0.0.0")).toBe("0.0.0.0");
   expect(valid(aot, "255.255.255.255")).toBe("255.255.255.255");
@@ -585,18 +585,18 @@ test("ipv4", () => {
   invalid(aot, "256.0.0.0");
 });
 
-test("matches Zod: string formats", () => {
-  expectMatch(z.email(), "test@example.com");
-  expectMatch(z.email(), "invalid");
-  expectMatch(z.uuid(), "550e8400-e29b-41d4-a716-446655440000");
-  expectMatch(z.uuid(), "not-a-uuid");
-  // z.url() intentionally throws at compile time (see "url is unsupported").
+test("matches Schema: string formats", () => {
+  expectMatch(Schema.email(), "test@example.com");
+  expectMatch(Schema.email(), "invalid");
+  expectMatch(Schema.uuid(), "550e8400-e29b-41d4-a716-446655440000");
+  expectMatch(Schema.uuid(), "not-a-uuid");
+  // Schema.url() intentionally throws at compile time (see "url is unsupported").
 });
 
 // === Tuple ===
 
 test("tuple basic", () => {
-  const aot = compile(z.tuple([z.string(), z.number()]));
+  const aot = compile(Schema.tuple([Schema.string(), Schema.number()]));
   expect(valid(aot, ["hello", 42])).toEqual(["hello", 42]);
   invalid(aot, ["hello", "world"]);
   invalid(aot, ["hello"]);
@@ -605,7 +605,7 @@ test("tuple basic", () => {
 });
 
 test("tuple with rest", () => {
-  const aot = compile(z.tuple([z.string(), z.number()]).rest(z.boolean()));
+  const aot = compile(Schema.tuple([Schema.string(), Schema.number()]).rest(Schema.boolean()));
   expect(valid(aot, ["hello", 42])).toEqual(["hello", 42]);
   expect(valid(aot, ["hello", 42, true])).toEqual(["hello", 42, true]);
   expect(valid(aot, ["hello", 42, true, false])).toEqual(["hello", 42, true, false]);
@@ -614,13 +614,13 @@ test("tuple with rest", () => {
 });
 
 test("tuple empty", () => {
-  const aot = compile(z.tuple([]));
+  const aot = compile(Schema.tuple([]));
   expect(valid(aot, [])).toEqual([]);
   invalid(aot, ["extra"]);
 });
 
-test("matches Zod: tuple", () => {
-  const schema = z.tuple([z.string(), z.number()]).rest(z.boolean());
+test("matches Schema: tuple", () => {
+  const schema = Schema.tuple([Schema.string(), Schema.number()]).rest(Schema.boolean());
   expectMatch(schema, ["hello", 42]);
   expectMatch(schema, ["hello", 42, true, false]);
   expectMatch(schema, ["hello", 42, "not boolean"]);
@@ -630,7 +630,7 @@ test("matches Zod: tuple", () => {
 // === Union ===
 
 test("union of primitives", () => {
-  const aot = compile(z.union([z.string(), z.number()]));
+  const aot = compile(Schema.union([Schema.string(), Schema.number()]));
   expect(valid(aot, "hello")).toBe("hello");
   expect(valid(aot, 42)).toBe(42);
   invalid(aot, true);
@@ -638,7 +638,7 @@ test("union of primitives", () => {
 });
 
 test("union of literals (Set optimization)", () => {
-  const aot = compile(z.union([z.literal("a"), z.literal("b"), z.literal("c")]));
+  const aot = compile(Schema.union([Schema.literal("a"), Schema.literal("b"), Schema.literal("c")]));
   expect(valid(aot, "a")).toBe("a");
   expect(valid(aot, "b")).toBe("b");
   expect(valid(aot, "c")).toBe("c");
@@ -646,16 +646,16 @@ test("union of literals (Set optimization)", () => {
 });
 
 test("union single option", () => {
-  const aot = compile(z.union([z.string()]));
+  const aot = compile(Schema.union([Schema.string()]));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, 42);
 });
 
 test("union with objects", () => {
   const aot = compile(
-    z.union([
-      z.object({ type: z.literal("a"), value: z.string() }),
-      z.object({ type: z.literal("b"), value: z.number() }),
+    Schema.union([
+      Schema.object({ type: Schema.literal("a"), value: Schema.string() }),
+      Schema.object({ type: Schema.literal("b"), value: Schema.number() }),
     ])
   );
   expect(valid(aot, { type: "a", value: "hello" })).toEqual({ type: "a", value: "hello" });
@@ -664,8 +664,8 @@ test("union with objects", () => {
   invalid(aot, { type: "c", value: "hello" });
 });
 
-test("matches Zod: union", () => {
-  const schema = z.union([z.string(), z.number(), z.null()]);
+test("matches Schema: union", () => {
+  const schema = Schema.union([Schema.string(), Schema.number(), Schema.null()]);
   expectMatch(schema, "hello");
   expectMatch(schema, 42);
   expectMatch(schema, null);
@@ -676,7 +676,7 @@ test("matches Zod: union", () => {
 // === Intersection ===
 
 test("intersection of objects", () => {
-  const aot = compile(z.intersection(z.object({ name: z.string() }), z.object({ age: z.number() })));
+  const aot = compile(Schema.intersection(Schema.object({ name: Schema.string() }), Schema.object({ age: Schema.number() })));
   expect(valid(aot, { name: "Alice", age: 30 })).toEqual({ name: "Alice", age: 30 });
   invalid(aot, { name: "Alice" });
   invalid(aot, { age: 30 });
@@ -684,7 +684,7 @@ test("intersection of objects", () => {
 
 test("intersection deep merge", () => {
   const aot = compile(
-    z.intersection(z.object({ nested: z.object({ a: z.string() }) }), z.object({ nested: z.object({ b: z.number() }) }))
+    Schema.intersection(Schema.object({ nested: Schema.object({ a: Schema.string() }) }), Schema.object({ nested: Schema.object({ b: Schema.number() }) }))
   );
   expect(valid(aot, { nested: { a: "x", b: 1 } })).toEqual({ nested: { a: "x", b: 1 } });
 });
@@ -692,7 +692,7 @@ test("intersection deep merge", () => {
 // === Record ===
 
 test("record basic", () => {
-  const aot = compile(z.record(z.string(), z.number()));
+  const aot = compile(Schema.record(Schema.string(), Schema.number()));
   expect(valid(aot, {})).toEqual({});
   expect(valid(aot, { a: 1, b: 2 })).toEqual({ a: 1, b: 2 });
   invalid(aot, { a: "hello" });
@@ -702,14 +702,14 @@ test("record basic", () => {
 
 test("record with enum keys", () => {
   // Records with enum/literal keys have exhaustive semantics: every enum value must be present in the input. Compile currently forces fallback for this case (see compile.ts generateRecordCheck), so behavior matches the runtime by delegation.
-  const aot = compile(z.record(z.enum(["a", "b"]), z.number()));
+  const aot = compile(Schema.record(Schema.enum(["a", "b"]), Schema.number()));
   expect(valid(aot, { a: 1, b: 2 })).toEqual({ a: 1, b: 2 });
   invalid(aot, { a: 1 }); // missing required key b
   invalid(aot, { c: 3 }); // unknown key
 });
 
-test("matches Zod: record", () => {
-  const schema = z.record(z.string(), z.number());
+test("matches Schema: record", () => {
+  const schema = Schema.record(Schema.string(), Schema.number());
   expectMatch(schema, {});
   expectMatch(schema, { a: 1, b: 2 });
   expectMatch(schema, { a: "hello" });
@@ -718,7 +718,7 @@ test("matches Zod: record", () => {
 // === Map ===
 
 test("map basic", () => {
-  const aot = compile(z.map(z.string(), z.number()));
+  const aot = compile(Schema.map(Schema.string(), Schema.number()));
   expect(valid(aot, new Map())).toEqual(new Map());
   expect(
     valid(
@@ -739,8 +739,8 @@ test("map basic", () => {
   invalid(aot, {});
 });
 
-test("matches Zod: map", () => {
-  const schema = z.map(z.string(), z.number());
+test("matches Schema: map", () => {
+  const schema = Schema.map(Schema.string(), Schema.number());
   expectMatch(schema, new Map());
   expectMatch(schema, new Map([["a", 1]]));
   expectMatch(schema, new Map([["a", "hello"]]));
@@ -750,7 +750,7 @@ test("matches Zod: map", () => {
 // === Set ===
 
 test("set basic", () => {
-  const aot = compile(z.set(z.number()));
+  const aot = compile(Schema.set(Schema.number()));
   expect(valid(aot, new Set())).toEqual(new Set());
   expect(valid(aot, new Set([1, 2, 3]))).toEqual(new Set([1, 2, 3]));
   invalid(aot, new Set(["hello"]));
@@ -758,15 +758,15 @@ test("set basic", () => {
 });
 
 test("set size checks", () => {
-  const aot = compile(z.set(z.number()).min(1).max(3));
+  const aot = compile(Schema.set(Schema.number()).min(1).max(3));
   expect(valid(aot, new Set([1]))).toEqual(new Set([1]));
   expect(valid(aot, new Set([1, 2, 3]))).toEqual(new Set([1, 2, 3]));
   invalid(aot, new Set());
   invalid(aot, new Set([1, 2, 3, 4]));
 });
 
-test("matches Zod: set", () => {
-  const schema = z.set(z.string());
+test("matches Schema: set", () => {
+  const schema = Schema.set(Schema.string());
   expectMatch(schema, new Set());
   expectMatch(schema, new Set(["a", "b"]));
   expectMatch(schema, new Set([1, 2]));
@@ -776,7 +776,7 @@ test("matches Zod: set", () => {
 // === Template Literal ===
 
 test("template literal basic", () => {
-  const aot = compile(z.templateLiteral([z.literal("hello"), z.literal("-"), z.literal("world")]));
+  const aot = compile(Schema.templateLiteral([Schema.literal("hello"), Schema.literal("-"), Schema.literal("world")]));
   expect(valid(aot, "hello-world")).toBe("hello-world");
   invalid(aot, "hello-world!");
   invalid(aot, "helloworld");
@@ -784,15 +784,15 @@ test("template literal basic", () => {
 });
 
 test("template literal with types", () => {
-  const aot = compile(z.templateLiteral(["user-", z.number()]));
+  const aot = compile(Schema.templateLiteral(["user-", Schema.number()]));
   expect(valid(aot, "user-123")).toBe("user-123");
   expect(valid(aot, "user-0")).toBe("user-0");
   invalid(aot, "user-abc");
   invalid(aot, "admin-123");
 });
 
-test("matches Zod: template literal", () => {
-  const schema = z.templateLiteral(["id-", z.number()]);
+test("matches Schema: template literal", () => {
+  const schema = Schema.templateLiteral(["id-", Schema.number()]);
   expectMatch(schema, "id-123");
   expectMatch(schema, "id-abc");
   expectMatch(schema, "other-123");
@@ -801,7 +801,7 @@ test("matches Zod: template literal", () => {
 // === Lazy ===
 
 test("lazy basic", () => {
-  const aot = compile(z.lazy(() => z.string()));
+  const aot = compile(Schema.lazy(() => Schema.string()));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, 123);
 });
@@ -811,13 +811,13 @@ test("lazy recursive schemas are refused, and still parse through the runtime", 
     value: string;
     next?: Node | undefined;
   }
-  const nodeSchema: z.ZodType<Node> = z.object({
-    value: z.string(),
-    next: z.lazy(() => nodeSchema).optional(),
+  const nodeSchema: Schema.SchemaType<Node> = Schema.object({
+    value: Schema.string(),
+    next: Schema.lazy(() => nodeSchema).optional(),
   });
 
   // A recursive schema is re-entered by a single parse, which is how the runtime memoizer terminates input containing a reference cycle. That state is keyed on the parse context, and the fast path has none, so it declines the schema rather than following the cycle until the stack runs out.
-  expect(() => compile(nodeSchema, { strict: true })).toThrow(ZodCompileUnsupportedError);
+  expect(() => compile(nodeSchema, { strict: true })).toThrow(SchemaCompileUnsupportedError);
 
   expect(valid(nodeSchema, { value: "a" })).toEqual({ value: "a" });
   expect(valid(nodeSchema, { value: "a", next: { value: "b" } })).toEqual({ value: "a", next: { value: "b" } });
@@ -830,8 +830,8 @@ test("lazy recursive schemas are refused, and still parse through the runtime", 
   expect(() => nodeSchema.parse(cyclic)).not.toThrow();
 });
 
-test("matches Zod: lazy", () => {
-  const schema = z.lazy(() => z.string());
+test("matches Schema: lazy", () => {
+  const schema = Schema.lazy(() => Schema.string());
   expectMatch(schema, "hello");
   expectMatch(schema, 123);
 });
@@ -840,14 +840,14 @@ test("matches Zod: lazy", () => {
 
 test("pipe without transform", () => {
   // Pipe with both schemas validating the same type
-  const aot = compile(z.string().pipe(z.string().min(3)));
+  const aot = compile(Schema.string().pipe(Schema.string().min(3)));
   expect(valid(aot, "hello")).toBe("hello");
   invalid(aot, "ab");
   invalid(aot, 123);
 });
 
-test("matches Zod: pipe without transform", () => {
-  const schema = z.string().pipe(z.string().min(3));
+test("matches Schema: pipe without transform", () => {
+  const schema = Schema.string().pipe(Schema.string().min(3));
   expectMatch(schema, "hello");
   expectMatch(schema, "ab");
   expectMatch(schema, 123);
@@ -863,7 +863,7 @@ test("instanceof", () => {
     }
   }
 
-  const aot = compile(z.instanceof(MyClass));
+  const aot = compile(Schema.instanceof(MyClass));
   const instance = new MyClass(1);
   expect(valid(aot, instance)).toBe(instance);
   invalid(aot, { value: 1 });
@@ -871,16 +871,16 @@ test("instanceof", () => {
 });
 
 test("instanceof Date", () => {
-  const aot = compile(z.instanceof(Date));
+  const aot = compile(Schema.instanceof(Date));
   const d = new Date();
   expect(valid(aot, d)).toBe(d);
   invalid(aot, "2024-01-01");
   invalid(aot, {});
 });
 
-test("matches Zod: instanceof", () => {
+test("matches Schema: instanceof", () => {
   class Test {}
-  const schema = z.instanceof(Test);
+  const schema = Schema.instanceof(Test);
   expectMatch(schema, new Test());
   expectMatch(schema, {});
   expectMatch(schema, null);
@@ -889,7 +889,7 @@ test("matches Zod: instanceof", () => {
 // === Bigint Format Checks ===
 
 test("bigint int64 format", () => {
-  const aot = compile(z.int64());
+  const aot = compile(Schema.int64());
   expect(valid(aot, 0n)).toBe(0n);
   expect(valid(aot, 9223372036854775807n)).toBe(9223372036854775807n);
   expect(valid(aot, -9223372036854775808n)).toBe(-9223372036854775808n);
@@ -898,15 +898,15 @@ test("bigint int64 format", () => {
 });
 
 test("bigint uint64 format", () => {
-  const aot = compile(z.uint64());
+  const aot = compile(Schema.uint64());
   expect(valid(aot, 0n)).toBe(0n);
   expect(valid(aot, 18446744073709551615n)).toBe(18446744073709551615n);
   invalid(aot, -1n); // negative
   invalid(aot, 18446744073709551616n); // too big
 });
 
-test("matches Zod: bigint format", () => {
-  const schema = z.int64();
+test("matches Schema: bigint format", () => {
+  const schema = Schema.int64();
   expectMatch(schema, 0n);
   expectMatch(schema, 9223372036854775807n);
   expectMatch(schema, 9223372036854775808n);
@@ -915,15 +915,15 @@ test("matches Zod: bigint format", () => {
 // === Nullish (combines optional + nullable) ===
 
 test("nullish", () => {
-  const aot = compile(z.string().nullish());
+  const aot = compile(Schema.string().nullish());
   expect(valid(aot, "hello")).toBe("hello");
   expect(valid(aot, null)).toBe(null);
   expect(valid(aot, undefined)).toBe(undefined);
   invalid(aot, 123);
 });
 
-test("matches Zod: nullish", () => {
-  const schema = z.string().nullish();
+test("matches Schema: nullish", () => {
+  const schema = Schema.string().nullish();
   expectMatch(schema, "hello");
   expectMatch(schema, null);
   expectMatch(schema, undefined);
@@ -935,7 +935,7 @@ test("matches Zod: nullish", () => {
 
 test("codec validates and transforms", () => {
   // stringbool is a codec from string to boolean
-  const aot = compile(z.stringbool());
+  const aot = compile(Schema.stringbool());
   expect(valid(aot, "true")).toBe(true);
   expect(valid(aot, "false")).toBe(false);
   expect(valid(aot, "1")).toBe(true);
@@ -947,7 +947,7 @@ test("codec validates and transforms", () => {
 // === SuperRefine ===
 
 test("superRefine basic", () => {
-  const schema = z.string().superRefine((val, ctx) => {
+  const schema = Schema.string().superRefine((val, ctx) => {
     if (val.length < 3) {
       ctx.addIssue({ code: "custom", message: "Too short" });
     }
@@ -959,7 +959,7 @@ test("superRefine basic", () => {
 });
 
 test("superRefine with multiple issues", () => {
-  const schema = z.number().superRefine((val, ctx) => {
+  const schema = Schema.number().superRefine((val, ctx) => {
     if (val < 0) ctx.addIssue({ code: "custom", message: "Must be positive" });
     if (val > 100) ctx.addIssue({ code: "custom", message: "Must be <= 100" });
   });
@@ -969,8 +969,8 @@ test("superRefine with multiple issues", () => {
   invalid(aot, 101);
 });
 
-test("matches Zod: superRefine", () => {
-  const schema = z.string().superRefine((val, ctx) => {
+test("matches Schema: superRefine", () => {
+  const schema = Schema.string().superRefine((val, ctx) => {
     if (!val.includes("@")) {
       ctx.addIssue({ code: "custom", message: "Must contain @" });
     }
@@ -983,17 +983,17 @@ test("matches Zod: superRefine", () => {
 // === Transform ===
 
 test("transform basic", () => {
-  const schema = z.string().transform((val) => val.toUpperCase());
+  const schema = Schema.string().transform((val) => val.toUpperCase());
   const aot = compile(schema);
   expect(valid(aot, "hello")).toBe("HELLO"); // Transform succeeds
   invalid(aot, 123); // Not a string (fails before transform)
 });
 
 test("transform with validation", () => {
-  const schema = z.string().transform((val, ctx) => {
+  const schema = Schema.string().transform((val, ctx) => {
     if (val.length === 0) {
       ctx.addIssue({ code: "custom", message: "Empty string" });
-      return z.NEVER;
+      return Schema.NEVER;
     }
     return val.length;
   });
@@ -1002,8 +1002,8 @@ test("transform with validation", () => {
   invalid(aot, ""); // Transform adds issue
 });
 
-test("matches Zod: transform", () => {
-  const schema = z.string().transform((val) => val.length);
+test("matches Schema: transform", () => {
+  const schema = Schema.string().transform((val) => val.length);
   expectMatch(schema, "hello");
   expectMatch(schema, 123);
 });
@@ -1011,7 +1011,7 @@ test("matches Zod: transform", () => {
 // === Overwrite Checks (trim, toLowerCase, toUpperCase) ===
 
 test("trim", () => {
-  const schema = z.string().trim();
+  const schema = Schema.string().trim();
   const aot = compile(schema);
 
   // AOT validates the input type and applies trim transform
@@ -1022,7 +1022,7 @@ test("trim", () => {
 });
 
 test("toLowerCase", () => {
-  const schema = z.string().toLowerCase();
+  const schema = Schema.string().toLowerCase();
   const aot = compile(schema);
 
   // AOT validates the input type and applies toLowerCase transform
@@ -1033,7 +1033,7 @@ test("toLowerCase", () => {
 });
 
 test("toUpperCase", () => {
-  const schema = z.string().toUpperCase();
+  const schema = Schema.string().toUpperCase();
   const aot = compile(schema);
 
   // AOT validates the input type and applies toUpperCase transform
@@ -1044,7 +1044,7 @@ test("toUpperCase", () => {
 });
 
 test("chained overwrites", () => {
-  const schema = z.string().trim().toLowerCase();
+  const schema = Schema.string().trim().toLowerCase();
   const aot = compile(schema);
 
   // AOT validates the input type and applies transforms in order
@@ -1055,7 +1055,7 @@ test("chained overwrites", () => {
 });
 
 test("overwrite with validation", () => {
-  const schema = z.string().trim().min(3);
+  const schema = Schema.string().trim().min(3);
   const aot = compile(schema);
 
   // After trim, check min length
@@ -1066,36 +1066,36 @@ test("overwrite with validation", () => {
   invalid(aot, 123);
 });
 
-test("matches Zod: trim", () => {
-  const schema = z.string().trim();
+test("matches Schema: trim", () => {
+  const schema = Schema.string().trim();
   expectMatch(schema, "  hello  ");
   expectMatch(schema, "hello");
   expectMatch(schema, 123);
 });
 
-test("matches Zod: toLowerCase", () => {
-  const schema = z.string().toLowerCase();
+test("matches Schema: toLowerCase", () => {
+  const schema = Schema.string().toLowerCase();
   expectMatch(schema, "HELLO");
   expectMatch(schema, "hello");
   expectMatch(schema, 123);
 });
 
-test("matches Zod: toUpperCase", () => {
-  const schema = z.string().toUpperCase();
+test("matches Schema: toUpperCase", () => {
+  const schema = Schema.string().toUpperCase();
   expectMatch(schema, "hello");
   expectMatch(schema, "HELLO");
   expectMatch(schema, 123);
 });
 
-test("matches Zod: chained overwrites", () => {
-  const schema = z.string().trim().toLowerCase();
+test("matches Schema: chained overwrites", () => {
+  const schema = Schema.string().trim().toLowerCase();
   expectMatch(schema, "  HELLO  ");
   expectMatch(schema, "hello");
   expectMatch(schema, 123);
 });
 
-test("matches Zod: overwrite with validation", () => {
-  const schema = z.string().trim().min(3);
+test("matches Schema: overwrite with validation", () => {
+  const schema = Schema.string().trim().min(3);
   expectMatch(schema, "  hello  ");
   expectMatch(schema, "  ab  ");
   expectMatch(schema, "abc");
@@ -1106,20 +1106,20 @@ test("matches Zod: overwrite with validation", () => {
 
 test("object catchall ignores __proto__ key (#5898)", () => {
   // Passthrough variant
-  const loose = compile(z.looseObject({ name: z.string() }));
+  const loose = compile(Schema.looseObject({ name: Schema.string() }));
   const polluted = JSON.parse('{"name":"ok","__proto__":{"polluted":true}}');
   const out = valid(loose, polluted) as Record<string, unknown>;
   expect(Object.getPrototypeOf(out)).toBe(Object.prototype);
   expect((out as { polluted?: unknown }).polluted).toBeUndefined();
 
   // Schema-typed catchall
-  const typed = compile(z.object({ name: z.string() }).catchall(z.number()));
+  const typed = compile(Schema.object({ name: Schema.string() }).catchall(Schema.number()));
   const out2 = valid(typed, JSON.parse('{"name":"ok","extra":1}')) as Record<string, unknown>;
   expect(Object.getPrototypeOf(out2)).toBe(Object.prototype);
 });
 
 test("multipleOf with sub-integer step uses float tolerance (#5793)", () => {
-  const aot = compile(z.number().multipleOf(1e-7));
+  const aot = compile(Schema.number().multipleOf(1e-7));
   expect(valid(aot, 0)).toBe(0);
   expect(valid(aot, 1e-7)).toBe(1e-7);
   expect(valid(aot, 3e-7)).toBe(3e-7);
@@ -1128,7 +1128,7 @@ test("multipleOf with sub-integer step uses float tolerance (#5793)", () => {
 });
 
 test("tuple with trailing optionals accepts short input (#5661)", () => {
-  const schema = z.tuple([z.string(), z.number().optional()]);
+  const schema = Schema.tuple([Schema.string(), Schema.number().optional()]);
   const aot = compile(schema);
   expect(valid(aot, ["a"])).toEqual(["a"]);
   expect(valid(aot, ["a", 1])).toEqual(["a", 1]);
@@ -1138,7 +1138,7 @@ test("tuple with trailing optionals accepts short input (#5661)", () => {
 });
 
 test("tuple exactOptional rejects explicit undefined but accepts absence", () => {
-  const aot = compile(z.tuple([z.string().exactOptional()]));
+  const aot = compile(Schema.tuple([Schema.string().exactOptional()]));
   expect(valid(aot, [])).toEqual([]);
   expect(valid(aot, ["x"])).toEqual(["x"]);
   invalid(aot, [undefined]);
@@ -1146,7 +1146,7 @@ test("tuple exactOptional rejects explicit undefined but accepts absence", () =>
 });
 
 test("tuple mixed required and exactOptional", () => {
-  const aot = compile(z.tuple([z.number(), z.string().exactOptional(), z.boolean().exactOptional()]));
+  const aot = compile(Schema.tuple([Schema.number(), Schema.string().exactOptional(), Schema.boolean().exactOptional()]));
   expect(valid(aot, [1])).toEqual([1]);
   expect(valid(aot, [1, "x"])).toEqual([1, "x"]);
   expect(valid(aot, [1, "x", true])).toEqual([1, "x", true]);
@@ -1157,17 +1157,17 @@ test("tuple mixed required and exactOptional", () => {
 });
 
 test("tuple optional vs exactOptional differ on explicit undefined", () => {
-  const opt = compile(z.tuple([z.string().optional()]));
+  const opt = compile(Schema.tuple([Schema.string().optional()]));
   expect(valid(opt, [])).toEqual([]);
   expect(valid(opt, [undefined])).toEqual([undefined]);
 
-  const exact = compile(z.tuple([z.string().exactOptional()]));
+  const exact = compile(Schema.tuple([Schema.string().exactOptional()]));
   expect(valid(exact, [])).toEqual([]);
   invalid(exact, [undefined]);
 });
 
 test("default() shallow-clones Map/Set/array/object (#5855)", () => {
-  const mapSchema = z.map(z.string(), z.number()).default(new Map([["a", 1]]));
+  const mapSchema = Schema.map(Schema.string(), Schema.number()).default(new Map([["a", 1]]));
   const mapFn = compile(mapSchema);
   const m1 = valid(mapFn, undefined) as Map<string, number>;
   const m2 = valid(mapFn, undefined) as Map<string, number>;
@@ -1175,7 +1175,7 @@ test("default() shallow-clones Map/Set/array/object (#5855)", () => {
   m1.set("b", 2);
   expect(m2.has("b")).toBe(false);
 
-  const setSchema = z.set(z.string()).default(new Set(["x"]));
+  const setSchema = Schema.set(Schema.string()).default(new Set(["x"]));
   const setFn = compile(setSchema);
   const s1 = valid(setFn, undefined) as Set<string>;
   const s2 = valid(setFn, undefined) as Set<string>;
@@ -1183,7 +1183,7 @@ test("default() shallow-clones Map/Set/array/object (#5855)", () => {
 });
 
 test("multi-value literal accepts each value", () => {
-  const aot = compile(z.literal(["a", "b", 1]));
+  const aot = compile(Schema.literal(["a", "b", 1]));
   expect(valid(aot, "a")).toBe("a");
   expect(valid(aot, "b")).toBe("b");
   expect(valid(aot, 1)).toBe(1);
@@ -1194,18 +1194,18 @@ test("multi-value literal accepts each value", () => {
 // === Phase 1: schema-clone + fallback contract ===
 
 test("compile returns a fresh clone; original schema is untouched", () => {
-  const original = z.object({ name: z.string() });
-  const originalRun = original._zod.run;
+  const original = Schema.object({ name: Schema.string() });
+  const originalRun = original._schema.run;
   const compiled = compile(original);
   expect(compiled).not.toBe(original);
-  expect(original._zod.run).toBe(originalRun);
-  expect(compiled._zod.run).not.toBe(originalRun);
+  expect(original._schema.run).toBe(originalRun);
+  expect(compiled._schema.run).not.toBe(originalRun);
   // shape def is shared by reference; cloning is structural at the top
-  expect(compiled._zod.def).toBe(original._zod.def);
+  expect(compiled._schema.def).toBe(original._schema.def);
 });
 
-test("fallback produces ZodError identical to the original schema", () => {
-  const schema = z.object({ name: z.string(), age: z.number().min(0) });
+test("fallback produces SchemaError identical to the original schema", () => {
+  const schema = Schema.object({ name: Schema.string(), age: Schema.number().min(0) });
   const compiled = compile(schema);
   const cases: unknown[] = [
     { name: 123, age: 30 },
@@ -1216,7 +1216,7 @@ test("fallback produces ZodError identical to the original schema", () => {
     { name: "ok" },
   ];
   for (const value of cases) {
-    const a = schema.safeParse(value);
+    const a = Schema.safeParse(value);
     const b = compiled.safeParse(value);
     expect(b.success).toBe(a.success);
     if (!a.success && !b.success) {
@@ -1227,7 +1227,7 @@ test("fallback produces ZodError identical to the original schema", () => {
 
 test("fallback preserves instanceof class name in error message", () => {
   class User {}
-  const schema = z.instanceof(User);
+  const schema = Schema.instanceof(User);
   const compiled = compile(schema);
   expect(compiled.safeParse(new User()).success).toBe(true);
   const bad = compiled.safeParse({});
@@ -1239,7 +1239,7 @@ test("fallback preserves instanceof class name in error message", () => {
 });
 
 test("compile bypasses fast path for backward direction (codec encode)", () => {
-  const codec = z.stringbool();
+  const codec = Schema.stringbool();
   const compiled = compile(codec);
   expect(compiled.safeParse("true").data).toBe(true);
   expect(compiled.safeParse("false").data).toBe(false);
@@ -1248,7 +1248,7 @@ test("compile bypasses fast path for backward direction (codec encode)", () => {
 });
 
 test("compile bypasses fast path for safeParseAsync", async () => {
-  const schema = z.string().min(3);
+  const schema = Schema.string().min(3);
   const compiled = compile(schema);
   const r = await compiled.safeParseAsync("ok");
   expect(r.success).toBe(false);
@@ -1256,20 +1256,20 @@ test("compile bypasses fast path for safeParseAsync", async () => {
   expect(ok.success).toBe(true);
 });
 
-test("ZodCompileAsyncError thrown on async refinement", () => {
-  const schema = z.string().refine(async () => true);
-  expect(() => compile(schema, { strict: true })).toThrow(ZodCompileAsyncError);
+test("SchemaCompileAsyncError thrown on async refinement", () => {
+  const schema = Schema.string().refine(async () => true);
+  expect(() => compile(schema, { strict: true })).toThrow(SchemaCompileAsyncError);
 });
 
-test("ZodCompileAsyncError thrown on async transform", () => {
-  const schema = z.string().transform(async (s) => s.length);
-  expect(() => compile(schema, { strict: true })).toThrow(ZodCompileAsyncError);
+test("SchemaCompileAsyncError thrown on async transform", () => {
+  const schema = Schema.string().transform(async (s) => s.length);
+  expect(() => compile(schema, { strict: true })).toThrow(SchemaCompileAsyncError);
 });
 
 test("compiled clone is composable inside another schema", () => {
-  const inner = z.object({ name: z.string() });
+  const inner = Schema.object({ name: Schema.string() });
   const compiledInner = compile(inner);
-  const outer = z.object({ user: compiledInner, count: z.number() });
+  const outer = Schema.object({ user: compiledInner, count: Schema.number() });
   const r = outer.safeParse({ user: { name: "ok" }, count: 1 });
   expect(r.success).toBe(true);
   if (r.success) expect(r.data).toEqual({ user: { name: "ok" }, count: 1 });
@@ -1280,14 +1280,14 @@ test("compiled clone is composable inside another schema", () => {
 // === catch ===
 
 test("catch over primitive", () => {
-  const aot = compile(z.catch(z.string(), "fallback"));
+  const aot = compile(Schema.catch(Schema.string(), "fallback"));
   expect(valid(aot, "hello")).toBe("hello");
   expect(valid(aot, 123)).toBe("fallback");
   expect(valid(aot, undefined)).toBe("fallback");
 });
 
 test("catch as object property", () => {
-  const aot = compile(z.object({ name: z.catch(z.string(), "anon") }));
+  const aot = compile(Schema.object({ name: Schema.catch(Schema.string(), "anon") }));
   expect(valid(aot, { name: "Alice" })).toEqual({ name: "Alice" });
   expect(valid(aot, { name: 123 })).toEqual({ name: "anon" });
   expect(valid(aot, {})).toEqual({ name: "anon" });
@@ -1295,13 +1295,13 @@ test("catch as object property", () => {
 
 test("a catch callback reading ctx is refused; a constant catch compiles", () => {
   // Finalizing the issues the callback sees depends on the caller's per-parse error map, which generated code never receives — the compiled path produced the default message where `.parse(input, { error })` produces the mapped one. Refuse it, so a union treats it as uncompilable rather than as a rejected branch.
-  const reads = z.catch(z.string().min(5), (ctx) => `bad:${ctx.error.issues.length}`);
-  expect(() => compile(reads, { strict: true })).toThrow(ZodCompileUnsupportedError);
+  const reads = Schema.catch(Schema.string().min(5), (ctx) => `bad:${ctx.error.issues.length}`);
+  expect(() => compile(reads, { strict: true })).toThrow(SchemaCompileUnsupportedError);
   expect(reads.parse("hi")).toBe("bad:1");
   expect(reads.parse(42 as never)).toMatch(/^bad:\d+$/);
 
   // A constant catch value needs no issues at all, so it keeps the fast path.
-  const constant = compile(z.catch(z.string().min(5), "fb"));
+  const constant = compile(Schema.catch(Schema.string().min(5), "fb"));
   expect(valid(constant, "hello world")).toBe("hello world");
   expect(valid(constant, "hi")).toBe("fb");
   expect(valid(constant, 42)).toBe("fb");
@@ -1309,7 +1309,7 @@ test("a catch callback reading ctx is refused; a constant catch compiles", () =>
 
 test("catch falls through unsupported inner via runtime island", () => {
   // Async refine in the inner makes the inner uncompilable, but catch should still compile by treating the whole catch as a runtime island.
-  const aot = compile(z.catch(z.union([z.string(), z.number()]), "fb"));
+  const aot = compile(Schema.catch(Schema.union([Schema.string(), Schema.number()]), "fb"));
   expect(valid(aot, "x")).toBe("x");
   expect(valid(aot, 1)).toBe(1);
   expect(valid(aot, true)).toBe("fb");
@@ -1318,33 +1318,33 @@ test("catch falls through unsupported inner via runtime island", () => {
 // === IPv6 / CIDRv6 hoisted helpers ===
 
 test("ipv6 compiled rejects regex-passing but URL-rejecting values", () => {
-  const aot = compile(z.ipv6());
+  const aot = compile(Schema.ipv6());
   expect(valid(aot, "::1")).toBe("::1");
   expect(valid(aot, "2001:db8::1")).toBe("2001:db8::1");
   // "0:0:0:0:0:0:0:1:1" matches the IPv6 regex but `new URL` rejects it.
   invalid(aot, "0:0:0:0:0:0:0:1:1");
   // Differential: confirm runtime and compiled agree on this fixture.
-  expectMatch(z.ipv6(), "0:0:0:0:0:0:0:1:1");
+  expectMatch(Schema.ipv6(), "0:0:0:0:0:0:0:1:1");
 });
 
 test("cidrv6 compiled validates prefix range and address", () => {
-  const aot = compile(z.cidrv6());
+  const aot = compile(Schema.cidrv6());
   expect(valid(aot, "::1/128")).toBe("::1/128");
   invalid(aot, "::1/129");
   invalid(aot, "::1/-1");
   invalid(aot, "not-an-address/64");
   invalid(aot, "::1");
-  expectMatch(z.cidrv6(), "::1/129");
+  expectMatch(Schema.cidrv6(), "::1/129");
 });
 
 // === Runtime islands ===
 
 test("runtime island falls through unsupported child inside object", () => {
-  // z.xor (exclusive union) currently throws ZodCompileUnsupportedError. As an object property, the island should let the rest of the object compile.
+  // Schema.xor (exclusive union) currently throws SchemaCompileUnsupportedError. As an object property, the island should let the rest of the object compile.
   const aot = compile(
-    z.object({
-      label: z.string(),
-      payload: z.xor([z.string(), z.number()]),
+    Schema.object({
+      label: Schema.string(),
+      payload: Schema.xor([Schema.string(), Schema.number()]),
     })
   );
   expect(valid(aot, { label: "ok", payload: "x" })).toEqual({ label: "ok", payload: "x" });
@@ -1353,14 +1353,14 @@ test("runtime island falls through unsupported child inside object", () => {
 });
 
 test("runtime island inside array element", () => {
-  const aot = compile(z.array(z.xor([z.string(), z.number()])));
+  const aot = compile(Schema.array(Schema.xor([Schema.string(), Schema.number()])));
   expect(valid(aot, ["a", 1, "b"])).toEqual(["a", 1, "b"]);
   invalid(aot, ["a", true]);
 });
 
 test("an island thrown from inside an indented block leaves the indent level alone", () => {
   // nullable opens an indented block, coerce throws inside it, and the property islands the pair — two of them so a leak compounds
-  const schema = z.object({ a: z.coerce.number().nullable(), b: z.coerce.number().nullable(), tail: z.string() });
+  const schema = Schema.object({ a: Schema.coerce.number().nullable(), b: Schema.coerce.number().nullable(), tail: Schema.string() });
   expect(compileFn(schema, { debug: true }).code).toMatchInlineSnapshot(`
     "// Constants: INVALID, c0, c1, c2
     if (typeof input !== "object" || input === null || Array.isArray(input)) return INVALID;
@@ -1384,37 +1384,37 @@ test("an island thrown from inside an indented block leaves the indent level alo
 test("url string-format check never assigns to its accessor", () => {
   // const accessor (array element): previously emitted `elem = normalized`,
   // a TypeError on valid input.
-  const arr = compile(z.array(z.string().url()));
+  const arr = compile(Schema.array(Schema.string().url()));
   expect(valid(arr, ["https://example.com"])).toEqual(["https://example.com"]);
   invalid(arr, ["not a url"]);
 
   // property accessor: previously wrote the normalized value back into the caller's input object.
   const padded = " https://example.com ";
   const input = { u: padded };
-  expectMatch(z.object({ u: z.string().url() }), input);
+  expectMatch(Schema.object({ u: Schema.string().url() }), input);
   expect(input.u).toBe(padded);
 });
 
 test("lazy schemas with checked or defaulted descendants parse without crashing", () => {
   // Inner runtime run must receive a ctx — checks read ctx.skipChecks, default/transform read ctx.direction.
-  const aot = compile(z.lazy(() => z.string().min(2)));
+  const aot = compile(Schema.lazy(() => Schema.string().min(2)));
   expect(valid(aot, "abc")).toEqual("abc");
   invalid(aot, "a");
 
   // Recursive, so the fast path declines it; the runtime still parses it.
-  const tree: z.ZodType = z.lazy(() => z.object({ v: z.number().int(), kids: z.array(tree).default([]) }));
-  expect(() => compile(tree, { strict: true })).toThrow(ZodCompileUnsupportedError);
+  const tree: Schema.SchemaType = Schema.lazy(() => Schema.object({ v: Schema.number().int(), kids: Schema.array(tree).default([]) }));
+  expect(() => compile(tree, { strict: true })).toThrow(SchemaCompileUnsupportedError);
   expect(valid(tree, { v: 1, kids: [{ v: 2 }] })).toEqual({ v: 1, kids: [{ v: 2, kids: [] }] });
   invalid(tree, { v: 1.5 });
 });
 
 test("sync refine returning a Promise rejects like the runtime", () => {
-  const schema = z.string().refine((() => Promise.resolve(true)) as unknown as (v: string) => boolean);
+  const schema = Schema.string().refine((() => Promise.resolve(true)) as unknown as (v: string) => boolean);
   const aot = compile(schema);
   let runtimeErr: string | undefined;
   let compiledErr: string | undefined;
   try {
-    schema.parse("x");
+    Schema.parse("x");
   } catch (e) {
     runtimeErr = (e as Error).name;
   }
@@ -1428,32 +1428,32 @@ test("sync refine returning a Promise rejects like the runtime", () => {
 });
 
 test("literal-union Set optimization respects checks and multi-value literals", () => {
-  const withCheck = z.union([z.literal("a").refine(() => false), z.literal("b")]);
+  const withCheck = Schema.union([Schema.literal("a").refine(() => false), Schema.literal("b")]);
   expectMatch(withCheck, "a"); // runtime rejects via refine; compiled must too
   expectMatch(withCheck, "b");
 
-  const multi = z.union([z.literal(["a", "b"]), z.literal("c")]);
+  const multi = Schema.union([Schema.literal(["a", "b"]), Schema.literal("c")]);
   for (const v of ["a", "b", "c", "d"]) expectMatch(multi, v);
 });
 
 test("xor and custom when-gated checks force runtime fallback", () => {
-  expect(() => compile(z.xor([z.string(), z.number()]), { strict: true })).toThrow(ZodCompileUnsupportedError);
+  expect(() => compile(Schema.xor([Schema.string(), Schema.number()]), { strict: true })).toThrow(SchemaCompileUnsupportedError);
   // Multi-match must reject — verified through the object island.
-  expectMatch(z.object({ v: z.xor([z.number(), z.number().int()]) }), { v: 2 });
-  expectMatch(z.object({ v: z.xor([z.number(), z.number().int()]) }), { v: 1.5 });
+  expectMatch(Schema.object({ v: Schema.xor([Schema.number(), Schema.number().int()]) }), { v: 2 });
+  expectMatch(Schema.object({ v: Schema.xor([Schema.number(), Schema.number().int()]) }), { v: 1.5 });
 
-  const gated = z.number().gt(5);
-  (gated._zod.def.checks![0]!._zod.def as { when?: unknown }).when = () => false;
-  expect(() => compile(gated, { strict: true })).toThrow(ZodCompileUnsupportedError);
-  expectMatch(z.object({ n: gated }), { n: 3 }); // runtime skips the gated check
+  const gated = Schema.number().gt(5);
+  (gated._schema.def.checks![0]!._schema.def as { when?: unknown }).when = () => false;
+  expect(() => compile(gated, { strict: true })).toThrow(SchemaCompileUnsupportedError);
+  expectMatch(Schema.object({ n: gated }), { n: 3 }); // runtime skips the gated check
 });
 
 test("compiled parse surfaces the interpreter's throws through the fallback", () => {
   // an unmergeable intersection bails to INVALID, and the fallback it hands to raises the interpreter's own error
   const unmergeable = compile(
-    z.intersection(
-      z.number(),
-      z.number().transform((x) => x + 1)
+    Schema.intersection(
+      Schema.number(),
+      Schema.number().transform((x) => x + 1)
     ),
     { strict: true }
   );
@@ -1462,36 +1462,36 @@ test("compiled parse surfaces the interpreter's throws through the fallback", ()
   );
 
   // a when-gated check islands at codegen, and the island's INVALID for an async run reaches the same fallback
-  const gated = z.number().refine(() => Promise.resolve(true));
-  (gated._zod.def.checks![0]!._zod.def as { when?: unknown }).when = () => true;
-  const compiled = compile(z.object({ n: gated }), { strict: true });
-  expect(() => compiled.parse({ n: 3 })).toThrow($ZodAsyncError);
+  const gated = Schema.number().refine(() => Promise.resolve(true));
+  (gated._schema.def.checks![0]!._schema.def as { when?: unknown }).when = () => true;
+  const compiled = compile(Schema.object({ n: gated }), { strict: true });
+  expect(() => compiled.parse({ n: 3 })).toThrow($SchemaAsyncError);
 });
 
 test("strict objects reject inherited enumerable keys like the runtime", () => {
-  const schema = z.strictObject({ a: z.string() });
+  const schema = Schema.strictObject({ a: Schema.string() });
   expectMatch(schema, Object.assign(Object.create({ extra: 1 }), { a: "x" }));
   expectMatch(schema, { a: "x" });
   // Own __proto__ keys are skipped by the runtime, not unrecognized.
   expectMatch(schema, JSON.parse('{"a":"x","__proto__":{"polluted":true}}'));
 
-  const withOptional = z.strictObject({ a: z.string(), b: z.string().optional() });
+  const withOptional = Schema.strictObject({ a: Schema.string(), b: Schema.string().optional() });
   expectMatch(withOptional, Object.assign(Object.create({ extra: 1 }), { a: "x" }));
   expectMatch(withOptional, JSON.parse('{"a":"x","__proto__":{}}'));
 });
 
 test("object output parity: key order, undefined keys, inherited keys, getters", () => {
   // Loose object: shape keys precede unknown keys in the output.
-  const loose = z.looseObject({ a: z.string() });
+  const loose = Schema.looseObject({ a: Schema.string() });
   const looseIn = { x: 1, a: "q", y: 2 };
   expect(Object.keys(compile(loose).parse(looseIn) as object)).toEqual(Object.keys(loose.parse(looseIn)));
 
-  const cat = z.object({ a: z.string() }).catchall(z.number());
+  const cat = Schema.object({ a: Schema.string() }).catchall(Schema.number());
   const catIn = { x: 1, a: "q" };
   expect(Object.keys(compile(cat).parse(catIn) as object)).toEqual(Object.keys(cat.parse(catIn)));
 
   // optin-optional/optout-required prop: absent key omitted, explicit undefined preserved (runtime handlePropertyResult rule).
-  const tf = z.object({
+  const tf = Schema.object({
     a: z
       .string()
       .optional()
@@ -1499,11 +1499,11 @@ test("object output parity: key order, undefined keys, inherited keys, getters",
   });
   expect("a" in (compile(tf).parse({}) as object)).toBe(false);
   expect("a" in tf.parse({})).toBe(false);
-  const opt = z.object({ a: z.string().optional() });
+  const opt = Schema.object({ a: Schema.string().optional() });
   expect(Object.keys(compile(opt).parse({ a: undefined }) as object)).toEqual(["a"]);
 
   // Empty-shape loose: inherited enumerable keys included, own __proto__ dropped.
-  const empty = z.looseObject({});
+  const empty = Schema.looseObject({});
   const inherited = Object.assign(Object.create({ extra: 1 }), { own: 2 });
   expect(compile(empty).parse(inherited)).toEqual({ own: 2, extra: 1 });
   expect(empty.parse(inherited)).toEqual({ own: 2, extra: 1 });
@@ -1518,67 +1518,67 @@ test("object output parity: key order, undefined keys, inherited keys, getters",
       return "v";
     },
   };
-  expect(compile(z.object({ a: z.string().min(1) })).parse(getterIn)).toEqual({ a: "v" });
+  expect(compile(Schema.object({ a: Schema.string().min(1) })).parse(getterIn)).toEqual({ a: "v" });
   expect(reads).toBe(1);
 });
 
 // === Error taxonomy ===
 
-test("unsupported features throw ZodCompileUnsupportedError, not raw errors", () => {
+test("unsupported features throw SchemaCompileUnsupportedError, not raw errors", () => {
   // __proto__ shape key: output object literal would set the prototype.
-  expect(() => compile(z.object({ ["__proto__"]: z.string() }), { strict: true })).toThrow(ZodCompileUnsupportedError);
+  expect(() => compile(Schema.object({ ["__proto__"]: Schema.string() }), { strict: true })).toThrow(SchemaCompileUnsupportedError);
   // Exclusive unions need every branch's failure to be a real runtime failure.
-  expect(() => compile(z.xor([z.object({ a: z.string() }), z.object({ b: z.string() })]), { strict: true })).toThrow(
-    ZodCompileUnsupportedError
+  expect(() => compile(Schema.xor([Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.string() })]), { strict: true })).toThrow(
+    SchemaCompileUnsupportedError
   );
   // NaN comparison bounds can't compile to a faithful comparison.
-  expect(() => compile(z.number().gt(Number.NaN), { strict: true })).toThrow(ZodCompileUnsupportedError);
+  expect(() => compile(Schema.number().gt(Number.NaN), { strict: true })).toThrow(SchemaCompileUnsupportedError);
   // A zero bigint divisor has no compiled form: `x % 0n` throws.
-  expect(() => compile(z.bigint().multipleOf(BigInt(0)), { strict: true })).toThrow(ZodCompileUnsupportedError);
+  expect(() => compile(Schema.bigint().multipleOf(BigInt(0)), { strict: true })).toThrow(SchemaCompileUnsupportedError);
   // Unsupported children still island inside containers.
-  const aot = compile(z.object({ a: z.string(), x: z.xor([z.literal("p"), z.literal("q")]) }));
+  const aot = compile(Schema.object({ a: Schema.string(), x: Schema.xor([Schema.literal("p"), Schema.literal("q")]) }));
   expect(valid(aot, { a: "x", x: "p" })).toEqual({ a: "x", x: "p" });
   invalid(aot, { a: "x", x: "z" });
 });
 
 test("record key schemas compile: formats, checks, numbers, transforms", () => {
-  // A string format lives on the def rather than in `checks`, so an email key schema reads as a bare `z.string()` unless the key path looks for it.
+  // A string format lives on the def rather than in `checks`, so an email key schema reads as a bare `Schema.string()` unless the key path looks for it.
   for (const [schema, inputs] of [
-    [z.record(z.email(), z.number()), [{ "a@b.com": 1 }, { nope: 1 }, {}]],
-    [z.record(z.string().min(2), z.number()), [{ ab: 1 }, { a: 1 }]],
-    [z.record(z.string().regex(/^k_/), z.number()), [{ k_a: 1 }, { x: 1 }]],
+    [Schema.record(Schema.email(), Schema.number()), [{ "a@b.com": 1 }, { nope: 1 }, {}]],
+    [Schema.record(Schema.string().min(2), Schema.number()), [{ ab: 1 }, { a: 1 }]],
+    [Schema.record(Schema.string().regex(/^k_/), Schema.number()), [{ k_a: 1 }, { x: 1 }]],
     // Numeric keys arrive stringified; the runtime retries them as numbers.
-    [z.record(z.number(), z.string()), [{ 1: "a" }, { "1.5": "a" }, { x: "a" }]],
-    [z.record(z.templateLiteral(["id_", z.string()]), z.number()), [{ id_a: 1 }, { b: 1 }]],
+    [Schema.record(Schema.number(), Schema.string()), [{ 1: "a" }, { "1.5": "a" }, { x: "a" }]],
+    [Schema.record(Schema.templateLiteral(["id_", Schema.string()]), Schema.number()), [{ id_a: 1 }, { b: 1 }]],
     // The key schema picks the output key, not the input key.
     [
-      z.record(
+      Schema.record(
         z
           .string()
           .min(1)
           .overwrite((s: string) => s.toUpperCase()),
-        z.number()
+        Schema.number()
       ),
       [{ ab: 1 }, { "": 1 }],
     ],
-  ] as [z.ZodType, unknown[]][]) {
+  ] as [Schema.SchemaType, unknown[]][]) {
     for (const input of inputs) expectMatch(schema, input);
   }
 
   // Own __proto__ is skipped rather than validated, matching the runtime.
-  expectMatch(z.record(z.email(), z.number()), JSON.parse('{"__proto__":{"p":1},"a@b.com":1}'));
+  expectMatch(Schema.record(Schema.email(), Schema.number()), JSON.parse('{"__proto__":{"p":1},"a@b.com":1}'));
 
   // Coercion is modelled nowhere, so a coercing key schema is refused outright rather than compiled to the bare type test it would otherwise become.
-  expect(() => compile(z.record(z.coerce.string(), z.number()), { strict: true })).toThrow(ZodCompileUnsupportedError);
+  expect(() => compile(Schema.record(Schema.coerce.string(), Schema.number()), { strict: true })).toThrow(SchemaCompileUnsupportedError);
 
   // A loose record keeps a rejected key verbatim, copying its value across unvalidated instead of failing.
   for (const input of [{ "a@b.com": 1 }, { nope: 1 }, { "a@b.com": 1, nope: "raw" }, { "a@b.com": "bad" }]) {
-    expectMatch(z.looseRecord(z.email(), z.number()), input);
+    expectMatch(Schema.looseRecord(Schema.email(), Schema.number()), input);
   }
 });
 
 test("date min/max bounds compile with runtime parity", () => {
-  const schema = z.date().min(new Date("2024-01-01")).max(new Date("2025-01-01"));
+  const schema = Schema.date().min(new Date("2024-01-01")).max(new Date("2025-01-01"));
   const aot = compile(schema);
   const inputs = [new Date("2024-06-15"), new Date("2024-01-01"), new Date("2023-12-31"), new Date("2025-01-02")];
   for (const input of inputs) expectMatch(schema, input);
@@ -1587,14 +1587,14 @@ test("date min/max bounds compile with runtime parity", () => {
 });
 
 test("the compiled fallback builds the same Error-shaped error as the runtime", () => {
-  const schema = z.object({ a: z.string(), b: z.number() });
+  const schema = Schema.object({ a: Schema.string(), b: Schema.number() });
   const aot = compile(schema);
 
   // both fast closures fall back to the runtime on rejection, so the error is the runtime's
   const err = aot.safeParse({ a: 1, b: "x" }).error!;
   expect(err).toBeInstanceOf(Error);
-  expect(err).toBeInstanceOf(z.core.$ZodError);
-  expect(err.issues).toEqual(schema.safeParse({ a: 1, b: "x" }).error!.issues);
+  expect(err).toBeInstanceOf(Schema.core.$SchemaError);
+  expect(err.issues).toEqual(Schema.safeParse({ a: 1, b: "x" }).error!.issues);
 
   function callSite() {
     aot.parse({ a: 1, b: "x" });
@@ -1613,30 +1613,30 @@ test("the compiled fallback builds the same Error-shaped error as the runtime", 
 // === Never throws ===
 
 // Snapshot a parse outcome structurally, so a refused compile can be shown not to have disturbed it.
-function snap(schema: z.ZodType, value: unknown) {
-  const r = schema.safeParse(value);
+function snap(schema: Schema.SchemaType, value: unknown) {
+  const r = Schema.safeParse(value);
   return r.success ? { ok: true, data: r.data } : { ok: false, issues: r.error.issues };
 }
 
 // Every shape the compiler refuses, with inputs that exercise the pass, fail and fallback branches of each.
-function refusedCases(): [string, z.ZodType, unknown[]][] {
-  const gated = z.number().gt(5);
-  (gated._zod.def.checks![0]!._zod.def as { when?: unknown }).when = () => false;
-  const tree: z.ZodType = z.lazy(() => z.object({ v: z.number().int(), kids: z.array(tree).default([]) }));
+function refusedCases(): [string, Schema.SchemaType, unknown[]][] {
+  const gated = Schema.number().gt(5);
+  (gated._schema.def.checks![0]!._schema.def as { when?: unknown }).when = () => false;
+  const tree: Schema.SchemaType = Schema.lazy(() => Schema.object({ v: Schema.number().int(), kids: Schema.array(tree).default([]) }));
 
   return [
     ["cycle", tree, [{ v: 1, kids: [{ v: 2 }] }, { v: 1.5 }, "nope"]],
-    ["async refine", z.string().refine(async () => true), ["a", 1]],
-    ["async transform", z.string().transform(async (s) => s.length), ["a", 1]],
-    ["async custom", z.custom(async () => true), ["a"]],
-    ["xor", z.xor([z.string(), z.number()]), ["a", 1, true]],
-    ["coerce", z.coerce.number(), ["5", 5, Symbol("x")]],
-    ["catch callback", z.catch(z.string().min(5), (c) => `bad:${c.error.issues.length}`), ["hello world", "hi", 42]],
+    ["async refine", Schema.string().refine(async () => true), ["a", 1]],
+    ["async transform", Schema.string().transform(async (s) => s.length), ["a", 1]],
+    ["async custom", Schema.custom(async () => true), ["a"]],
+    ["xor", Schema.xor([Schema.string(), Schema.number()]), ["a", 1, true]],
+    ["coerce", Schema.coerce.number(), ["5", 5, Symbol("x")]],
+    ["catch callback", Schema.catch(Schema.string().min(5), (c) => `bad:${c.error.issues.length}`), ["hello world", "hi", 42]],
     ["when-gated check", gated, [3, 9, "x"]],
-    ["__proto__ key", z.object({ ["__proto__"]: z.string() }), [{}, { a: 1 }]],
-    ["NaN bound", z.number().gt(Number.NaN), [1, "x"]],
-    ["zero bigint divisor", z.bigint().multipleOf(BigInt(0)), [BigInt(4), "x"]],
-    ["coercing record key", z.record(z.coerce.string(), z.number()), [{ a: 1 }, { a: "x" }]],
+    ["__proto__ key", Schema.object({ ["__proto__"]: Schema.string() }), [{}, { a: 1 }]],
+    ["NaN bound", Schema.number().gt(Number.NaN), [1, "x"]],
+    ["zero bigint divisor", Schema.bigint().multipleOf(BigInt(0)), [BigInt(4), "x"]],
+    ["coercing record key", Schema.record(Schema.coerce.string(), Schema.number()), [{ a: 1 }, { a: "x" }]],
   ];
 }
 
@@ -1650,7 +1650,7 @@ test("compile hands back the original schema instead of throwing", () => {
 
 test("a refused compile leaves the schema parsing identically", () => {
   for (const [name, schema, inputs] of refusedCases()) {
-    // Async schemas throw $ZodAsyncError out of a sync parse; that path is covered separately.
+    // Async schemas throw $SchemaAsyncError out of a sync parse; that path is covered separately.
     if (name.startsWith("async")) continue;
     const before = inputs.map((i) => snap(schema, i));
     compile(schema);
@@ -1662,26 +1662,26 @@ test("a refused compile leaves the schema parsing identically", () => {
 });
 
 test("a refused compile keeps cyclic input parsing", () => {
-  const nodeSchema: z.ZodType = z.object({ value: z.string(), next: z.lazy(() => nodeSchema).optional() });
+  const nodeSchema: Schema.SchemaType = Schema.object({ value: Schema.string(), next: Schema.lazy(() => nodeSchema).optional() });
   const cyclic: any = { value: "a" };
   cyclic.next = cyclic;
   expect(() => compile(nodeSchema).parse(cyclic)).not.toThrow();
 });
 
 test("a refused async compile parses async and rejects sync like the runtime", async () => {
-  const schema = z.string().refine(async (s) => s.length > 1);
+  const schema = Schema.string().refine(async (s) => s.length > 1);
   const aot = compile(schema);
   expect(aot).toBe(schema);
 
   await expect(aot.parseAsync("ab")).resolves.toBe("ab");
   const bad = await aot.safeParseAsync("a");
   expect(bad.success).toBe(false);
-  expect(bad.error!.issues).toEqual((await schema.safeParseAsync("a")).error!.issues);
-  expect(() => aot.parse("ab")).toThrow(z.core.$ZodAsyncError);
+  expect(bad.error!.issues).toEqual((await Schema.safeParseAsync("a")).error!.issues);
+  expect(() => aot.parse("ab")).toThrow(Schema.core.$SchemaAsyncError);
 });
 
 test("strict is per-call, so a supported schema compiles either way", () => {
-  const schema = z.object({ a: z.string(), b: z.number() });
+  const schema = Schema.object({ a: Schema.string(), b: Schema.number() });
   for (const aot of [compile(schema), compile(schema, { strict: true }), compile(schema, { strict: false })]) {
     expect(aot).not.toBe(schema);
     expect(valid(aot, { a: "x", b: 1 })).toEqual({ a: "x", b: 1 });
@@ -1692,23 +1692,23 @@ test("strict is per-call, so a supported schema compiles either way", () => {
 test("compiled records walk own enumerable keys without Reflect.ownKeys", () => {
   // a getOwnPropertyNames snapshot plus a per-key recheck sees the same keys as the runtime's Reflect.ownKeys walk: inherited enumerables are skipped, symbols fail a string key schema but pass a symbol one, and the numeric-string retry still applies
   const sym = Symbol("s");
-  const bare = compile(z.record(z.string(), z.number()));
+  const bare = compile(Schema.record(Schema.string(), Schema.number()));
   const inherited = Object.assign(Object.create({ proto: 1 }), { a: 1 });
   expect(bare.parse(inherited)).toEqual({ a: 1 });
   const symbolic = { a: 1, [sym]: 2 };
   expect(bare.safeParse(symbolic).error!.issues).toEqual(
-    z.record(z.string(), z.number()).safeParse(symbolic).error!.issues
+    Schema.record(Schema.string(), Schema.number()).safeParse(symbolic).error!.issues
   );
   expect(bare.safeParse({ a: 1, b: "x" }).error!.issues).toEqual(
-    z.record(z.string(), z.number()).safeParse({ a: 1, b: "x" }).error!.issues
+    Schema.record(Schema.string(), Schema.number()).safeParse({ a: 1, b: "x" }).error!.issues
   );
-  const symKeys = compile(z.record(z.symbol(), z.number()));
+  const symKeys = compile(Schema.record(Schema.symbol(), Schema.number()));
   expect(symKeys.parse({ [sym]: 2 })).toEqual({ [sym]: 2 });
   expect(symKeys.safeParse({ a: 1 }).success).toBe(false);
-  const emailKeys = compile(z.record(z.email(), z.number()));
+  const emailKeys = compile(Schema.record(Schema.email(), Schema.number()));
   expect(emailKeys.parse({ "a@b.co": 1 })).toEqual({ "a@b.co": 1 });
   expect(emailKeys.safeParse({ "a@b.co": 1, [sym]: 2 }).success).toBe(false);
-  expect(compile(z.record(z.number(), z.string())).parse({ 1: "a" })).toEqual({ 1: "a" });
+  expect(compile(Schema.record(Schema.number(), Schema.string())).parse({ 1: "a" })).toEqual({ 1: "a" });
   // keys are snapshotted before any value is read and rechecked when visited, like the runtime's Reflect.ownKeys walk: a getter that adds a key mid-walk is not visited, one that hides a later key skips it
   const mutating = (effect: (o: Record<PropertyKey, unknown>) => void) => {
     const o: Record<PropertyKey, unknown> = {};
@@ -1722,7 +1722,7 @@ test("compiled records walk own enumerable keys without Reflect.ownKeys", () => 
     o.b = 2;
     return o;
   };
-  const both = z.record(z.union([z.string(), z.symbol()]), z.number());
+  const both = Schema.record(Schema.union([Schema.string(), Schema.symbol()]), Schema.number());
   for (const [schema, effect] of [
     [
       both,
@@ -1731,23 +1731,23 @@ test("compiled records walk own enumerable keys without Reflect.ownKeys", () => 
       },
     ],
     [
-      z.record(z.string(), z.number()),
+      Schema.record(Schema.string(), Schema.number()),
       (o: Record<PropertyKey, unknown>) => {
         o[sym] = "bad";
       },
     ],
     [
-      z.record(z.string(), z.number()),
+      Schema.record(Schema.string(), Schema.number()),
       (o: Record<PropertyKey, unknown>) => {
         o.z = "bad";
       },
     ],
     [
-      z.record(z.string(), z.number()),
+      Schema.record(Schema.string(), Schema.number()),
       (o: Record<PropertyKey, unknown>) => Object.defineProperty(o, "b", { enumerable: false }),
     ],
   ] as const) {
-    const expected = schema.safeParse(mutating(effect));
+    const expected = Schema.safeParse(mutating(effect));
     const actual = compile(schema).safeParse(mutating(effect));
     expect(actual.success).toBe(expected.success);
     if (expected.success)
@@ -1756,7 +1756,7 @@ test("compiled records walk own enumerable keys without Reflect.ownKeys", () => 
   }
   // a getter that defines an own key under an inherited enumerable name mid-walk: the snapshot predates it, so neither walk visits it, and a union that accepts the record cannot be corrected by a fallback
   const shadowing = () => {
-    const o = Object.create({ z: 0 });
+    const o = Object.create({ Schema: 0 });
     Object.defineProperty(o, "a", {
       enumerable: true,
       get() {
@@ -1766,7 +1766,7 @@ test("compiled records walk own enumerable keys without Reflect.ownKeys", () => 
     });
     return o;
   };
-  const inUnion = z.union([z.record(z.string(), z.number()), z.any()]);
+  const inUnion = Schema.union([Schema.record(Schema.string(), Schema.number()), Schema.any()]);
   expect(compile(inUnion).parse(shadowing())).toStrictEqual(inUnion.parse(shadowing()));
   expect(compile(inUnion).parse(shadowing())).toStrictEqual({ a: 1 });
   // a key that is non-enumerable at snapshot time and revealed by an earlier getter is in the snapshot and passes the recheck, like the runtime
@@ -1782,20 +1782,20 @@ test("compiled records walk own enumerable keys without Reflect.ownKeys", () => 
     Object.defineProperty(o, "b", { value: 2, enumerable: false, configurable: true });
     return o;
   };
-  const plain = z.record(z.string(), z.number());
+  const plain = Schema.record(Schema.string(), Schema.number());
   expect(compile(plain).parse(revealing())).toStrictEqual(plain.parse(revealing()));
   expect(compile(plain).parse(revealing())).toStrictEqual({ a: 1, b: 2 });
 });
 
 test("validate honors custom checks composed with format traits", () => {
-  const postProcessor = z.core.globalConfig.postProcessor;
-  z.core.globalConfig.postProcessor = undefined;
+  const postProcessor = Schema.core.globalConfig.postProcessor;
+  Schema.core.globalConfig.postProcessor = undefined;
   try {
-    const CustomEmail = z.core.$constructor<z.core.$ZodEmail>("CustomEmail", (inst, def) => {
-      inst._zod.check = (payload) => {
+    const CustomEmail = Schema.core.$constructor<Schema.core.$SchemaEmail>("CustomEmail", (inst, def) => {
+      inst._schema.check = (payload) => {
         if (payload.value !== "custom") payload.issues.push({ code: "custom", input: payload.value });
       };
-      z.core.$ZodEmail.init(inst, def);
+      Schema.core.$SchemaEmail.init(inst, def);
     });
     const schema = new CustomEmail({ type: "string", format: "email", check: "string_format" });
     for (const [input, valid] of [
@@ -1803,53 +1803,53 @@ test("validate honors custom checks composed with format traits", () => {
       ["test@example.com", false],
       [42, false],
     ] as const) {
-      expect(z.safeParse(schema, input).success).toBe(valid);
-      expect(z.validate(schema, input)).toBe(valid);
+      expect(Schema.safeParse(schema, input).success).toBe(valid);
+      expect(Schema.validate(schema, input)).toBe(valid);
     }
   } finally {
-    z.core.globalConfig.postProcessor = postProcessor;
+    Schema.core.globalConfig.postProcessor = postProcessor;
   }
 });
 
 test("validate honors standalone format checks", () => {
   const cases = [
-    [z.iso.datetime(), "2021-01-01T00:00:00Z"],
-    [z.iso.date(), "2021-01-01"],
-    [z.iso.time(), "00:00:00"],
-    [z.iso.duration(), "P1Y2M3DT4H5M6S"],
-    [z.email(), "test@example.com"],
-    [z.uuid(), "20354d7a-e4fe-47af-8ff6-187bca92f3f9"],
-    [z.ipv4(), "192.168.0.1"],
+    [Schema.iso.datetime(), "2021-01-01T00:00:00Z"],
+    [Schema.iso.date(), "2021-01-01"],
+    [Schema.iso.time(), "00:00:00"],
+    [Schema.iso.duration(), "P1Y2M3DT4H5M6S"],
+    [Schema.email(), "test@example.com"],
+    [Schema.uuid(), "20354d7a-e4fe-47af-8ff6-187bca92f3f9"],
+    [Schema.ipv4(), "192.168.0.1"],
   ] as const;
 
   for (const [schema, valid] of cases) {
-    expect(schema._zod.traits.has("$ZodStringFormat")).toBe(true);
-    expect(schema instanceof z.core.$ZodStringFormat).toBe(true);
-    expect(z.validate(schema, valid)).toBe(true);
-    expect(z.validate(schema, "invalid")).toBe(false);
-    expect(z.validate(schema, 1)).toBe(false);
+    expect(Schema._schema.traits.has("$SchemaStringFormat")).toBe(true);
+    expect(schema instanceof Schema.core.$SchemaStringFormat).toBe(true);
+    expect(Schema.validate(schema, valid)).toBe(true);
+    expect(Schema.validate(schema, "invalid")).toBe(false);
+    expect(Schema.validate(schema, 1)).toBe(false);
   }
 
-  const source = z.email();
+  const source = Schema.email();
   const refined = source.refine((value) => value.startsWith("x"));
   const asyncRefined = source.refine(async () => true);
-  const coercedDef = Object.assign(Object.create({ coerce: true }), source._zod.def);
+  const coercedDef = Object.assign(Object.create({ coerce: true }), source._schema.def);
   const coerced = source.clone(coercedDef);
-  const checkedDef = Object.assign(Object.create({ checks: refined._zod.def.checks }), source._zod.def);
+  const checkedDef = Object.assign(Object.create({ checks: refined._schema.def.checks }), source._schema.def);
   const inheritedChecked = source.clone(checkedDef);
-  expect(z.validate(refined, "test@example.com")).toBe(false);
-  expect(z.validate(refined, "x@example.com")).toBe(true);
-  expect(z.validate(inheritedChecked, "test@example.com")).toBe(false);
-  expect(() => z.validate(asyncRefined, "test@example.com")).toThrow($ZodAsyncError);
-  expect(z.validate(coerced, { toString: () => "test@example.com" })).toBe(true);
+  expect(Schema.validate(refined, "test@example.com")).toBe(false);
+  expect(Schema.validate(refined, "x@example.com")).toBe(true);
+  expect(Schema.validate(inheritedChecked, "test@example.com")).toBe(false);
+  expect(() => Schema.validate(asyncRefined, "test@example.com")).toThrow($SchemaAsyncError);
+  expect(Schema.validate(coerced, { toString: () => "test@example.com" })).toBe(true);
 });
 
 test("runtime validate preserves contexts, getters, errors, and regex state", () => {
-  const postProcessor = z.core.globalConfig.postProcessor;
-  z.core.globalConfig.postProcessor = undefined;
+  const postProcessor = Schema.core.globalConfig.postProcessor;
+  Schema.core.globalConfig.postProcessor = undefined;
   try {
-    const source = z.email();
-    expect(z.validate(source, "invalid", { skipChecks: true } as any)).toBe(true);
+    const source = Schema.email();
+    expect(Schema.validate(source, "invalid", { skipChecks: true } as any)).toBe(true);
 
     let whenReads = 0;
     const whenProto = Object.defineProperty({}, "when", {
@@ -1859,14 +1859,14 @@ test("runtime validate preserves contexts, getters, errors, and regex state", ()
         return () => false;
       },
     });
-    const whenDef = Object.assign(Object.create(whenProto), source._zod.def);
-    const gated = source.clone(whenDef as typeof source._zod.def);
+    const whenDef = Object.assign(Object.create(whenProto), source._schema.def);
+    const gated = source.clone(whenDef as typeof source._schema.def);
     expect(whenReads).toBe(0);
-    expect(z.validate(gated, "invalid")).toBe(true);
+    expect(Schema.validate(gated, "invalid")).toBe(true);
     expect(whenReads).toBeGreaterThan(0);
 
     let errorReads = 0;
-    const errorDef = Object.defineProperties({}, Object.getOwnPropertyDescriptors(source._zod.def));
+    const errorDef = Object.defineProperties({}, Object.getOwnPropertyDescriptors(source._schema.def));
     Object.defineProperty(errorDef, "error", {
       enumerable: true,
       get() {
@@ -1874,8 +1874,8 @@ test("runtime validate preserves contexts, getters, errors, and regex state", ()
         return () => "custom";
       },
     });
-    const customError = source.clone(errorDef as typeof source._zod.def);
-    expect(z.validate(customError, "invalid")).toBe(false);
+    const customError = source.clone(errorDef as typeof source._schema.def);
+    expect(Schema.validate(customError, "invalid")).toBe(false);
     expect(errorReads).toBe(0);
     const result = customError.safeParse("invalid");
     expect(errorReads).toBe(0);
@@ -1884,48 +1884,48 @@ test("runtime validate preserves contexts, getters, errors, and regex state", ()
     expect(errorReads).toBeGreaterThan(0);
 
     const pattern = /^a$/g;
-    const cloned = source.clone({ ...source._zod.def, pattern });
-    for (let i = 0; i < 3; i++) expect(z.validate(cloned, "a")).toBe(true);
-    expect(z.validate(cloned, "b")).toBe(false);
+    const cloned = source.clone({ ...source._schema.def, pattern });
+    for (let i = 0; i < 3; i++) expect(Schema.validate(cloned, "a")).toBe(true);
+    expect(Schema.validate(cloned, "b")).toBe(false);
     expect(pattern.lastIndex).toBe(0);
     const replacement = /^b$/g;
-    cloned._zod.def.pattern = replacement;
-    expect(z.validate(cloned, "a")).toBe(false);
-    expect(z.validate(cloned, "b")).toBe(true);
+    cloned._schema.def.pattern = replacement;
+    expect(Schema.validate(cloned, "a")).toBe(false);
+    expect(Schema.validate(cloned, "b")).toBe(true);
   } finally {
-    z.core.globalConfig.postProcessor = postProcessor;
+    Schema.core.globalConfig.postProcessor = postProcessor;
   }
 });
 
 test("validate preserves live pattern accessor reads", () => {
-  const postProcessor = z.core.globalConfig.postProcessor;
-  z.core.globalConfig.postProcessor = undefined;
+  const postProcessor = Schema.core.globalConfig.postProcessor;
+  Schema.core.globalConfig.postProcessor = undefined;
   try {
-    const schema = z.email();
+    const schema = Schema.email();
     let reads = 0;
-    Object.defineProperty(schema.def, "pattern", {
+    Object.defineProperty(Schema.def, "pattern", {
       get: () => (++reads % 2 === 1 ? /^a$/ : /^b$/),
     });
-    expect(schema.safeParse("b").success).toBe(true);
+    expect(Schema.safeParse("b").success).toBe(true);
     expect(reads).toBe(2);
     reads = 0;
-    expect(z.validate(schema, "b")).toBe(true);
+    expect(Schema.validate(schema, "b")).toBe(true);
     expect(reads).toBe(2);
   } finally {
-    z.core.globalConfig.postProcessor = postProcessor;
+    Schema.core.globalConfig.postProcessor = postProcessor;
   }
 });
 
 test.each(["when", "coerce"] as const)("runtime validate honors live %s options", (option) => {
-  const postProcessor = z.core.globalConfig.postProcessor;
-  z.core.globalConfig.postProcessor = undefined;
+  const postProcessor = Schema.core.globalConfig.postProcessor;
+  Schema.core.globalConfig.postProcessor = undefined;
   try {
     for (const inherited of [false, true]) {
-      const schema = z.email();
+      const schema = Schema.email();
       const input = option === "when" ? "invalid" : { toString: () => "test@example.com" };
-      expect(z.validate(schema, input)).toBe(false);
+      expect(Schema.validate(schema, input)).toBe(false);
 
-      const target = inherited ? Object.create(Object.getPrototypeOf(schema.def)) : schema.def;
+      const target = inherited ? Object.create(Object.getPrototypeOf(Schema.def)) : Schema.def;
       let reads = 0;
       Object.defineProperty(target, option, {
         get() {
@@ -1933,38 +1933,38 @@ test.each(["when", "coerce"] as const)("runtime validate honors live %s options"
           return option === "when" ? () => false : true;
         },
       });
-      if (inherited) Object.setPrototypeOf(schema.def, target);
+      if (inherited) Object.setPrototypeOf(Schema.def, target);
       expect(reads).toBe(0);
-      expect(z.validate(schema, input)).toBe(true);
+      expect(Schema.validate(schema, input)).toBe(true);
       expect(reads).toBeGreaterThan(0);
-      expect(schema.safeParse(input).success).toBe(true);
+      expect(Schema.safeParse(input).success).toBe(true);
     }
   } finally {
-    z.core.globalConfig.postProcessor = postProcessor;
+    Schema.core.globalConfig.postProcessor = postProcessor;
   }
 });
 
 test("validate uses compiled validators and runtime fallbacks", () => {
-  const compiled = compile(z.email());
-  expect((compiled._zod.bag as { validator?: unknown }).validator).toBeTypeOf("function");
-  expect(z.validate(compiled, "test@example.com")).toBe(true);
-  expect(z.validate(compiled, "invalid")).toBe(false);
-  expect(z.validate(compiled, "invalid", { skipChecks: true } as any)).toBe(true);
+  const compiled = compile(Schema.email());
+  expect((compiled._schema.bag as { validator?: unknown }).validator).toBeTypeOf("function");
+  expect(Schema.validate(compiled, "test@example.com")).toBe(true);
+  expect(Schema.validate(compiled, "invalid")).toBe(false);
+  expect(Schema.validate(compiled, "invalid", { skipChecks: true } as any)).toBe(true);
 
-  const source = z.email();
+  const source = Schema.email();
   const installed = withParser(source, () => INVALID);
-  const bag = installed._zod.bag as { fallbackRun: typeof source._zod.run };
+  const bag = installed._schema.bag as { fallbackRun: typeof source._schema.run };
   const originalRun = bag.fallbackRun;
   let fallbackRuns = 0;
   bag.fallbackRun = (payload, ctx) => {
     fallbackRuns++;
     return originalRun(payload, ctx);
   };
-  expect(z.validate(installed, "invalid")).toBe(false);
+  expect(Schema.validate(installed, "invalid")).toBe(false);
   expect(fallbackRuns).toBeGreaterThan(0);
 });
 
-// withParser: a parser Zod did not generate, installed on the same wrapper compile() uses.
+// withParser: a parser Schema did not generate, installed on the same wrapper compile() uses.
 
 // tags its output so a test fails loudly if the runtime ran instead of the supplied parser
 function taggedParser(input: unknown) {
@@ -1974,7 +1974,7 @@ function taggedParser(input: unknown) {
   return { a: o.a, tag: "supplied" };
 }
 
-const withParserSchema = z.object({ a: z.string() });
+const withParserSchema = Schema.object({ a: Schema.string() });
 
 test("withParser installs the supplied parser", () => {
   const installed = withParser(withParserSchema, taggedParser);
@@ -1984,7 +1984,7 @@ test("withParser installs the supplied parser", () => {
   expect(withParserSchema.parse({ a: "x" })).toStrictEqual({ a: "x" });
 });
 
-test("withParser hands INVALID to the runtime and gets a real ZodError", () => {
+test("withParser hands INVALID to the runtime and gets a real SchemaError", () => {
   const installed = withParser(withParserSchema, taggedParser);
   const result = installed.safeParse({ a: 1 });
   expect(result.success).toBe(false);
@@ -1993,8 +1993,8 @@ test("withParser hands INVALID to the runtime and gets a real ZodError", () => {
 
 test("withParser answers validate with the supplied parser", () => {
   const installed = withParser(withParserSchema, taggedParser);
-  expect(z.validate(installed, { a: "x" })).toBe(true);
-  expect(z.validate(installed, { a: 1 })).toBe(false);
+  expect(Schema.validate(installed, { a: "x" })).toBe(true);
+  expect(Schema.validate(installed, { a: 1 })).toBe(false);
 });
 
 test("withParser bypasses the fast path on async, like compile()", async () => {
@@ -2005,32 +2005,32 @@ test("withParser bypasses the fast path on async, like compile()", async () => {
 
 test("withParser reaches a parse it does not own the call site of", () => {
   const installed = withParser(withParserSchema, taggedParser);
-  // installing on _zod.run rather than wrapping a call site is the whole point: a framework holding the schema gets the supplied parser through Standard Schema, and so does z.parse
+  // installing on _schema.run rather than wrapping a call site is the whole point: a framework holding the schema gets the supplied parser through Standard Schema, and so does Schema.parse
   expect((installed["~standard"].validate({ a: "x" }) as { value: unknown }).value).toStrictEqual({
     a: "x",
     tag: "supplied",
   });
-  expect(z.parse(installed, { a: "x" })).toStrictEqual({ a: "x", tag: "supplied" });
+  expect(Schema.parse(installed, { a: "x" })).toStrictEqual({ a: "x", tag: "supplied" });
 });
 
 test("withParser refuses a recursive schema", () => {
   type Node = { next: Node | null };
-  const Node: z.ZodType<Node> = z.object({ next: z.lazy(() => z.nullable(Node)) });
-  expect(() => withParser(Node, () => INVALID)).toThrow(ZodCompileUnsupportedError);
+  const Node: Schema.SchemaType<Node> = Schema.object({ next: Schema.lazy(() => Schema.nullable(Node)) });
+  expect(() => withParser(Node, () => INVALID)).toThrow(SchemaCompileUnsupportedError);
 });
 
 test("withParser leaves encode on the runtime", () => {
-  const codec = z.codec(z.string(), z.number(), {
+  const codec = Schema.codec(Schema.string(), Schema.number(), {
     decode: (s) => Number(s),
     encode: (n) => String(n),
   });
   const installed = withParser(codec, () => INVALID);
-  expect(z.encode(installed, 5)).toBe("5");
+  expect(Schema.encode(installed, 5)).toBe("5");
 });
 
 test("withParser rejects a parser whose output contradicts the schema", () => {
   // the returned schema still claims T, so a parser that succeeds with something else would make parse() lie about its own type
-  // @ts-expect-error a number is not the output of z.string()
-  withParser(z.string(), () => 123);
-  expectTypeOf(withParser(z.string(), () => "ok")).toEqualTypeOf<z.ZodString>();
+  // @ts-expect-error a number is not the output of Schema.string()
+  withParser(Schema.string(), () => 123);
+  expectTypeOf(withParser(Schema.string(), () => "ok")).toEqualTypeOf<Schema.SchemaString>();
 });

@@ -1,10 +1,10 @@
 import { expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
-import type * as core from "zod/v4/core";
+import * as Schema from "schema/v4";
+import type * as core from "schema/v4/core";
 
 test("first party switch", () => {
-  const myType = z.string() as core.$ZodTypes;
-  const def = myType._zod.def;
+  const myType = Schema.string() as core.$SchemaTypes;
+  const def = myType._schema.def;
   switch (def.type) {
     case "string":
       break;
@@ -89,8 +89,8 @@ test("first party switch", () => {
   }
 });
 
-test("$ZodSchemaTypes", () => {
-  const type = "string" as core.$ZodTypeDef["type"];
+test("$SchemaSchemaTypes", () => {
+  const type = "string" as core.$SchemaTypeDef["type"];
   switch (type) {
     case "string":
       break;

@@ -1,14 +1,14 @@
 import { expect, expectTypeOf, test } from "vitest";
-import { z } from "zod/v4";
+import { Schema } from "schema/v4";
 
 test("basic defaults", () => {
-  expect(z.string().default("default").parse(undefined)).toBe("default");
+  expect(Schema.string().default("default").parse(undefined)).toBe("default");
 });
 
 test("default with optional", () => {
-  const schema = z.string().optional().default("default");
-  expect(schema.parse(undefined)).toBe("default");
-  expect(schema.unwrap().parse(undefined)).toBe(undefined);
+  const schema = Schema.string().optional().default("default");
+  expect(Schema.parse(undefined)).toBe("default");
+  expect(Schema.unwrap().parse(undefined)).toBe(undefined);
 });
 
 test("default with transform", () => {
@@ -17,36 +17,36 @@ test("default with transform", () => {
     .transform((val) => val.toUpperCase())
     .default("default");
   expect(stringWithDefault.parse(undefined)).toBe("default");
-  expect(stringWithDefault).toBeInstanceOf(z.ZodDefault);
-  expect(stringWithDefault.unwrap()).toBeInstanceOf(z.ZodPipe);
-  expect(stringWithDefault.unwrap().in).toBeInstanceOf(z.ZodString);
-  expect(stringWithDefault.unwrap().out).toBeInstanceOf(z.ZodTransform);
+  expect(stringWithDefault).toBeInstanceOf(Schema.SchemaDefault);
+  expect(stringWithDefault.unwrap()).toBeInstanceOf(Schema.SchemaPipe);
+  expect(stringWithDefault.unwrap().in).toBeInstanceOf(Schema.SchemaString);
+  expect(stringWithDefault.unwrap().out).toBeInstanceOf(Schema.SchemaTransform);
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   expectTypeOf<inp>().toEqualTypeOf<string | undefined>();
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   expectTypeOf<out>().toEqualTypeOf<string>();
 });
 
 test("default on existing optional", () => {
-  const stringWithDefault = z.string().optional().default("asdf");
+  const stringWithDefault = Schema.string().optional().default("asdf");
   expect(stringWithDefault.parse(undefined)).toBe("asdf");
-  expect(stringWithDefault).toBeInstanceOf(z.ZodDefault);
-  expect(stringWithDefault.unwrap()).toBeInstanceOf(z.ZodOptional);
-  expect(stringWithDefault.unwrap().unwrap()).toBeInstanceOf(z.ZodString);
+  expect(stringWithDefault).toBeInstanceOf(Schema.SchemaDefault);
+  expect(stringWithDefault.unwrap()).toBeInstanceOf(Schema.SchemaOptional);
+  expect(stringWithDefault.unwrap().unwrap()).toBeInstanceOf(Schema.SchemaString);
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   expectTypeOf<inp>().toEqualTypeOf<string | undefined>();
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   expectTypeOf<out>().toEqualTypeOf<string>();
 });
 
 test("optional on default", () => {
-  const stringWithDefault = z.string().default("asdf").optional();
+  const stringWithDefault = Schema.string().default("asdf").optional();
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   expectTypeOf<inp>().toEqualTypeOf<string | undefined>();
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   expectTypeOf<out>().toEqualTypeOf<string | undefined>();
 
   expect(stringWithDefault.parse(undefined)).toBe("asdf");
@@ -66,9 +66,9 @@ test("optional on default", () => {
 // });
 
 test("removeDefault", () => {
-  const stringWithRemovedDefault = z.string().default("asdf").removeDefault();
+  const stringWithRemovedDefault = Schema.string().default("asdf").removeDefault();
 
-  type out = z.output<typeof stringWithRemovedDefault>;
+  type out = Schema.output<typeof stringWithRemovedDefault>;
   expectTypeOf<out>().toEqualTypeOf<string>();
 });
 
@@ -77,17 +77,17 @@ test("apply default at output", () => {
     .string()
     .transform((_) => (Math.random() > 0 ? undefined : _))
     .default("asdf");
-  expect(schema.parse("")).toEqual("asdf");
+  expect(Schema.parse("")).toEqual("asdf");
 });
 
 test("nested", () => {
-  const inner = z.string().default("asdf");
-  const outer = z.object({ inner }).default({
+  const inner = Schema.string().default("asdf");
+  const outer = Schema.object({ inner }).default({
     inner: "qwer",
   });
-  type input = z.input<typeof outer>;
+  type input = Schema.input<typeof outer>;
   expectTypeOf<input>().toEqualTypeOf<{ inner?: string | undefined } | undefined>();
-  type out = z.output<typeof outer>;
+  type out = Schema.output<typeof outer>;
   expectTypeOf<out>().toEqualTypeOf<{ inner: string }>();
   expect(outer.parse(undefined)).toEqual({ inner: "qwer" });
   expect(outer.parse({})).toEqual({ inner: "asdf" });
@@ -95,20 +95,20 @@ test("nested", () => {
 });
 
 test("chained defaults", () => {
-  const stringWithDefault = z.string().default("inner").default("outer");
+  const stringWithDefault = Schema.string().default("inner").default("outer");
   const result = stringWithDefault.parse(undefined);
   expect(result).toEqual("outer");
 });
 
 test("object optionality", () => {
-  const schema = z.object({
-    hi: z.string().default("hi"),
+  const schema = Schema.object({
+    hi: Schema.string().default("hi"),
   });
-  type schemaInput = z.input<typeof schema>;
-  type schemaOutput = z.output<typeof schema>;
+  type schemaInput = Schema.input<typeof schema>;
+  type schemaOutput = Schema.output<typeof schema>;
   expectTypeOf<schemaInput>().toEqualTypeOf<{ hi?: string | undefined }>();
   expectTypeOf<schemaOutput>().toEqualTypeOf<{ hi: string }>();
-  expect(schema.parse({})).toEqual({
+  expect(Schema.parse({})).toEqual({
     hi: "hi",
   });
 });
@@ -131,7 +131,7 @@ test("nested prefault/default", () => {
     .refine((val) => val.startsWith("d"))
     .prefault("d");
 
-  const obj = z.object({
+  const obj = Schema.object({
     a,
     b,
     c,
@@ -152,7 +152,7 @@ test("nested prefault/default", () => {
 
   expect(obj.safeParse({ a: "f", b: "f", c: "f", d: "f" })).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "path": [
@@ -210,7 +210,7 @@ test("nested prefault/default", () => {
     }
   `);
 
-  const obj2 = z.object({
+  const obj2 = Schema.object({
     a: a.optional(),
     b: b.optional(),
     c: c.optional(),
@@ -252,7 +252,7 @@ test("failing default", () => {
     .refine((val) => val.startsWith("d"))
     .prefault("z");
 
-  const obj = z.object({
+  const obj = Schema.object({
     a,
     b,
     c,
@@ -294,10 +294,10 @@ test("failing default", () => {
 });
 
 test("partial should not clobber defaults", () => {
-  const objWithDefaults = z.object({
-    a: z.string().default("defaultA"),
-    b: z.string().default("defaultB"),
-    c: z.string().default("defaultC"),
+  const objWithDefaults = Schema.object({
+    a: Schema.string().default("defaultA"),
+    b: Schema.string().default("defaultB"),
+    c: Schema.string().default("defaultC"),
   });
 
   const objPartialWithOneRequired = objWithDefaults.partial(); //.required({ a: true });
@@ -315,43 +315,43 @@ test("partial should not clobber defaults", () => {
 test("defaulted object schema returns shallow clone", () => {
   const schema = z
     .object({
-      a: z.string(),
+      a: Schema.string(),
     })
     .default({ a: "x" });
-  const result1 = schema.parse(undefined);
-  const result2 = schema.parse(undefined);
+  const result1 = Schema.parse(undefined);
+  const result2 = Schema.parse(undefined);
   expect(result1).not.toBe(result2);
   expect(result1).toEqual(result2);
 });
 
 test("defaulted array schema returns shallow clone", () => {
-  const schema = z.array(z.string()).default(["x"]);
-  const result1 = schema.parse(undefined);
-  const result2 = schema.parse(undefined);
+  const schema = Schema.array(Schema.string()).default(["x"]);
+  const result1 = Schema.parse(undefined);
+  const result2 = Schema.parse(undefined);
   expect(result1).not.toBe(result2);
   expect(result1).toEqual(result2);
 });
 
 test("defaulted Map schema returns shallow clone", () => {
-  const schema = z.map(z.string(), z.number()).default(new Map([["a", 1]]));
-  const result1 = schema.parse(undefined);
-  const result2 = schema.parse(undefined);
+  const schema = Schema.map(Schema.string(), Schema.number()).default(new Map([["a", 1]]));
+  const result1 = Schema.parse(undefined);
+  const result2 = Schema.parse(undefined);
   expect(result1).not.toBe(result2);
   expect(result1).toEqual(result2);
 });
 
 test("defaulted Set schema returns shallow clone", () => {
-  const schema = z.set(z.string()).default(new Set(["x"]));
-  const result1 = schema.parse(undefined);
-  const result2 = schema.parse(undefined);
+  const schema = Schema.set(Schema.string()).default(new Set(["x"]));
+  const result1 = Schema.parse(undefined);
+  const result2 = Schema.parse(undefined);
   expect(result1).not.toBe(result2);
   expect(result1).toEqual(result2);
 });
 
 test("mutations on defaulted Map do not affect subsequent parses", () => {
-  const schema = z.map(z.string(), z.number()).default(new Map());
-  const result1 = schema.parse(undefined);
-  const result2 = schema.parse(undefined);
+  const schema = Schema.map(Schema.string(), Schema.number()).default(new Map());
+  const result1 = Schema.parse(undefined);
+  const result2 = Schema.parse(undefined);
   result1.set("key1", 1);
   result2.set("key2", 2);
   expect(result1.size).toBe(1);
@@ -363,9 +363,9 @@ test("mutations on defaulted Map do not affect subsequent parses", () => {
 });
 
 test("mutations on defaulted Set do not affect subsequent parses", () => {
-  const schema = z.set(z.string()).default(new Set());
-  const result1 = schema.parse(undefined);
-  const result2 = schema.parse(undefined);
+  const schema = Schema.set(Schema.string()).default(new Set());
+  const result1 = Schema.parse(undefined);
+  const result2 = Schema.parse(undefined);
   result1.add("item1");
   result2.add("item2");
   expect(result1.size).toBe(1);
@@ -377,25 +377,25 @@ test("mutations on defaulted Set do not affect subsequent parses", () => {
 });
 
 test("direction-aware defaults", () => {
-  const schema = z.string().default("hello");
+  const schema = Schema.string().default("hello");
 
   // Forward direction (regular parse): defaults should be applied
-  expect(schema.parse(undefined)).toBe("hello");
-  expect(schema.parse("hello")).toBe("hello");
+  expect(Schema.parse(undefined)).toBe("hello");
+  expect(Schema.parse("hello")).toBe("hello");
 
   // Reverse direction (encode): defaults should NOT be applied, undefined should fail validation
-  expect(() => z.encode(schema, undefined as any)).toThrow();
+  expect(() => Schema.encode(schema, undefined as any)).toThrow();
 
   // But valid values should still work in reverse
-  expect(z.safeEncode(schema, "world")).toMatchInlineSnapshot(`
+  expect(Schema.safeEncode(schema, "world")).toMatchInlineSnapshot(`
     {
       "data": "world",
       "success": true,
     }
   `);
-  expect(z.safeEncode(schema, undefined as any)).toMatchInlineSnapshot(`
+  expect(Schema.safeEncode(schema, undefined as any)).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "expected": "string",
         "code": "invalid_type",
@@ -410,39 +410,39 @@ test("direction-aware defaults", () => {
 
 test("default factory runs once per parse inside a container", () => {
   let calls = 0;
-  const schema = z.object({
-    a: z.string().default(() => {
+  const schema = Schema.object({
+    a: Schema.string().default(() => {
       calls++;
       return "d";
     }),
   });
 
-  expect(schema.parse({})).toEqual({ a: "d" });
+  expect(Schema.parse({})).toEqual({ a: "d" });
   expect(calls).toBe(1);
 
   // the key is present, so the factory has nothing to produce
-  expect(schema.parse({ a: "given" })).toEqual({ a: "given" });
+  expect(Schema.parse({ a: "given" })).toEqual({ a: "given" });
   expect(calls).toBe(1);
 });
 
 test("prefault factory runs once per parse inside a container", () => {
   let calls = 0;
-  const schema = z.object({
-    a: z.string().prefault(() => {
+  const schema = Schema.object({
+    a: Schema.string().prefault(() => {
       calls++;
       return "d";
     }),
   });
 
-  expect(schema.parse({})).toEqual({ a: "d" });
+  expect(Schema.parse({})).toEqual({ a: "d" });
   expect(calls).toBe(1);
 });
 
 test("default factory does not run at compile time", () => {
   let calls = 0;
-  const compiled = z.compile(
-    z.object({
-      a: z.string().default(() => {
+  const compiled = Schema.compile(
+    Schema.object({
+      a: Schema.string().default(() => {
         calls++;
         return "d";
       }),

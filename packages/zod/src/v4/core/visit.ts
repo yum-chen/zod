@@ -3,49 +3,49 @@
 import * as schemas from "./schemas.js";
 import { clone } from "./util.js";
 
-const RESOLVING: unique symbol = Symbol("z.visit/resolving");
+const RESOLVING: unique symbol = Symbol("Schema.visit/resolving");
 type Resolving = typeof RESOLVING;
 
-type AnyZod = schemas.$ZodType;
-type Kind = schemas.$ZodTypeDef["type"];
+type AnySchema = schemas.$SchemaType;
+type Kind = schemas.$SchemaTypeDef["type"];
 
-/** The concrete schema class for a `def.type`, or `$ZodType` for kinds with no dedicated class. */
-type SchemaOfKind<K extends Kind> = [Extract<schemas.$ZodTypes, { _zod: { def: { type: K } } }>] extends [never]
-  ? AnyZod
-  : Extract<schemas.$ZodTypes, { _zod: { def: { type: K } } }>;
+/** The concrete schema class for a `def.type`, or `$SchemaType` for kinds with no dedicated class. */
+type SchemaOfKind<K extends Kind> = [Extract<schemas.$SchemaTypes, { _schema: { def: { type: K } } }>] extends [never]
+  ? AnySchema
+  : Extract<schemas.$SchemaTypes, { _schema: { def: { type: K } } }>;
 
-export type VisitFn = (node: AnyZod, rewritten: boolean) => AnyZod;
-export type VisitHandlers = { [K in Kind]?: (node: SchemaOfKind<K>, rewritten: boolean) => AnyZod };
+export type VisitFn = (node: AnySchema, rewritten: boolean) => AnySchema;
+export type VisitHandlers = { [K in Kind]?: (node: SchemaOfKind<K>, rewritten: boolean) => AnySchema };
 
 /**
  * @internal Bottom-up rewrite of a schema tree. Unhandled kinds and unchanged branches keep their
- * identity. Returns `$ZodType`: a visitor can swap in a schema of any type, so callers declare
+ * identity. Returns `$SchemaType`: a visitor can swap in a schema of any type, so callers declare
  * their own return type. `rewritten` tells a handler whether the traversal replaced anything
  * below the node it is looking at.
  */
-export function visit(schema: schemas.SomeType, fn: VisitFn): AnyZod;
-export function visit(schema: schemas.SomeType, handlers: VisitHandlers): AnyZod;
-export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHandlers): AnyZod {
+export function visit(schema: schemas.SomeType, fn: VisitFn): AnySchema;
+export function visit(schema: schemas.SomeType, handlers: VisitHandlers): AnySchema;
+export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHandlers): AnySchema {
   const fn: VisitFn =
     typeof fnOrHandlers === "function"
       ? fnOrHandlers
       : (node, rewritten) => {
           // A union of handlers isn't callable with one argument; handler `K` only ever sees kind `K`.
-          const h = (fnOrHandlers as VisitHandlers)[node._zod.def.type] as
-            | ((n: AnyZod, rewritten: boolean) => AnyZod)
+          const h = (fnOrHandlers as VisitHandlers)[node._schema.def.type] as
+            | ((n: AnySchema, rewritten: boolean) => AnySchema)
             | undefined;
           return h ? h(node, rewritten) : node;
         };
 
-  const cache = new Map<AnyZod, AnyZod | Resolving>();
+  const cache = new Map<AnySchema, AnySchema | Resolving>();
 
-  function run(s: AnyZod): AnyZod {
+  function run(s: AnySchema): AnySchema {
     const cached = cache.get(s);
     if (cached === RESOLVING) {
       // Non-lazy cycle. Defer to parse time, when the cache holds the finished node.
-      return new schemas.$ZodLazy({
+      return new schemas.$SchemaLazy({
         type: "lazy",
-        getter: () => cache.get(s) as AnyZod,
+        getter: () => cache.get(s) as AnySchema,
       });
     }
     if (cached !== undefined) return cached;
@@ -56,15 +56,15 @@ export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHan
     return mapped;
   }
 
-  function mapInner(s: AnyZod): AnyZod {
-    const def = s._zod.def as any;
+  function mapInner(s: AnySchema): AnySchema {
+    const def = s._schema.def as any;
     const kind = def.type as Kind;
     switch (kind) {
       case "object": {
-        const oldShape = def.shape as Record<string, AnyZod>;
+        const oldShape = def.shape as Record<string, AnySchema>;
         const keys = Object.keys(oldShape);
         let changed = false;
-        const newShape: Record<string, AnyZod> = {};
+        const newShape: Record<string, AnySchema> = {};
         for (const k of keys) {
           const mapped = run(oldShape[k]!);
           if (mapped !== oldShape[k]) changed = true;
@@ -82,9 +82,9 @@ export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHan
         return mapped === def.element ? s : clone(s, { ...def, element: mapped });
       }
       case "tuple": {
-        const oldItems = def.items as AnyZod[];
+        const oldItems = def.items as AnySchema[];
         let changed = false;
-        const newItems: AnyZod[] = [];
+        const newItems: AnySchema[] = [];
         for (const item of oldItems) {
           const mapped = run(item);
           if (mapped !== item) changed = true;
@@ -110,9 +110,9 @@ export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHan
         return newVal === def.valueType ? s : clone(s, { ...def, valueType: newVal });
       }
       case "union": {
-        const oldOptions = def.options as AnyZod[];
+        const oldOptions = def.options as AnySchema[];
         let changed = false;
-        const newOptions: AnyZod[] = [];
+        const newOptions: AnySchema[] = [];
         for (const opt of oldOptions) {
           const mapped = run(opt);
           if (mapped !== opt) changed = true;
@@ -153,7 +153,7 @@ export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHan
       }
       case "lazy": {
         // Invoking the getter here would trip the cycle check, so lazy nodes always re-clone.
-        const original = def.getter as () => AnyZod;
+        const original = def.getter as () => AnySchema;
         // Drop the memo, or it shadows the new getter forever.
         const { _cachedInner, ...rest } = def;
         return clone(s, { ...rest, getter: () => run(original()) });
@@ -189,5 +189,5 @@ export function visit(schema: schemas.SomeType, fnOrHandlers: VisitFn | VisitHan
     }
   }
 
-  return run(schema as AnyZod);
+  return run(schema as AnySchema);
 }

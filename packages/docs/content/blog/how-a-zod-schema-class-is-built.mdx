@@ -1,33 +1,33 @@
 ---
-title: How a Zod schema class is built
+title: How a Schema schema class is built
 author: Colin McDonnell
 date: 2026-08-24
-description: Zod's schema classes aren't plain classes. They're built from composable, typesafe traits that let one class inherit from both Zod Core and Zod's fluent API.
+description: Schema's schema classes aren't plain classes. They're built from composable, typesafe traits that let one class inherit from both Schema Core and Schema's fluent API.
 draft: true
 ---
 
 import { ThemedImage } from "@/components/themed-image";
 
-Both Zod and Zod Mini are user-facing "API frontends" over a shared set of internal validators Zod Core (`"zod/core"`). 
+Both Schema and Schema Mini are user-facing "API frontends" over a shared set of internal validators Schema Core (`"schema/core"`). 
 
-Zod is fluent (method-first) and optimizes for readability/discoverability, whereas Zod Mini is functional and optimized for treeshakability and bundle size. 
+Schema is fluent (method-first) and optimizes for readability/discoverability, whereas Schema Mini is functional and optimized for treeshakability and bundle size. 
 
-This presents some tricky problems. Zod's class structure is not purely hierarchical. A regular Zod string schema must functionally extend both Zod Core's `$ZodString` class—which implements all string validation—as well as the `ZodType` class—defining Zod's base methods like `.optional()`, `.nullable()`, etc. This is the classic "diamond inheritance" problem.
+This presents some tricky problems. Schema's class structure is not purely hierarchical. A regular Schema string schema must functionally extend both Schema Core's `$SchemaString` class—which implements all string validation—as well as the `SchemaType` class—defining Schema's base methods like `.optional()`, `.nullable()`, etc. This is the classic "diamond inheritance" problem.
 
 <ThemedImage
   lightSrc="/blog/diamond-light.png"
   darkSrc="/blog/diamond-dark.png"
-  alt="Diamond inheritance: $ZodType at the top, splitting into $ZodString (Zod Core, string validation) and ZodType (classic, .optional() / .nullable()), which meet at ZodString."
-  caption="The ZodString inheritance diamond"
+  alt="Diamond inheritance: $SchemaType at the top, splitting into $SchemaString (Schema Core, string validation) and SchemaType (classic, .optional() / .nullable()), which meet at SchemaString."
+  caption="The SchemaString inheritance diamond"
 />
 
-Since JavaScript doesn't support multiple inheritance, Zod implements a *typesafe trait pattern*. Each "trait" is an interface coupled with an initializer function.
+Since JavaScript doesn't support multiple inheritance, Schema implements a *typesafe trait pattern*. Each "trait" is an interface coupled with an initializer function.
 
 ```ts
-import { $constructor } from "zod/v4/core";
+import { $constructor } from "schema/v4/core";
 
 interface Pet {
-  _zod: { def: { name: string } };
+  _schema: { def: { name: string } };
   name: string;
   greet(): string;
 }
@@ -94,11 +94,11 @@ duck.greet(); // "Rex says hi"
 duck.swim(); // "Rex swims"
 duck.fly(); // "Rex flies"
 
-duck._zod.traits; // a Set of implemented traits
+duck._schema.traits; // a Set of implemented traits
 // => Set(['Duck', 'Swimmer', 'Pet', 'Flyer'])
 ```
 
-This is the same diamond inheritance pattern Zod uses.
+This is the same diamond inheritance pattern Schema uses.
 
 
 ```

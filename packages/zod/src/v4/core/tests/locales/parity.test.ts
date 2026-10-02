@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, test } from "vitest";
-import { z } from "../../../../index.js";
+import { Schema } from "../../../../index.js";
 
 // Every locale must carry an entry for each key `en` translates. Four keys have drifted this way already — `credit_card` (#5931), `mac` (#5440), `Sizable.map` (#5316) and Hebrew's `uuidv4`/`uuidv6`/`template_literal` — each shipped in `en` and left the rest behind, so the gap only surfaced as a raw key in a user's error message.
 //
@@ -15,7 +15,7 @@ function keysOf(block: string): string[] {
   return [...body.matchAll(/^\s{4}([a-z_0-9]+):/gm)].map((m) => m[1]!);
 }
 
-const locales = z.locales as unknown as Record<string, () => { localeError: z.core.$ZodErrorMap }>;
+const locales = Schema.locales as unknown as Record<string, () => { localeError: Schema.core.$SchemaErrorMap }>;
 const names = Object.keys(locales).filter((k) => typeof locales[k] === "function");
 const SENTINEL = "zzsentinelzz";
 

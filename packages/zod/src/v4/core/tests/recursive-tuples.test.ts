@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 describe("Recursive Tuples Regression #5089", () => {
   it("creates recursive tuple without crash", () => {
     expect(() => {
-      const y = z.lazy((): any => z.tuple([y, y]).or(z.string()));
+      const y = Schema.lazy((): any => Schema.tuple([y, y]).or(Schema.string()));
     }).not.toThrow();
   });
 
   it("parses recursive tuple data correctly", () => {
-    const y = z.lazy((): any => z.tuple([y, y]).or(z.string()));
+    const y = Schema.lazy((): any => Schema.tuple([y, y]).or(Schema.string()));
 
     // Base case
     expect(y.parse("hello")).toBe("hello");
@@ -22,7 +22,7 @@ describe("Recursive Tuples Regression #5089", () => {
   it("matches #5089 expected behavior", () => {
     // Exact code from the issue
     expect(() => {
-      const y = z.lazy((): any => z.tuple([y, y]).or(z.string()));
+      const y = Schema.lazy((): any => Schema.tuple([y, y]).or(Schema.string()));
       y.parse(["a", ["b", "c"]]);
     }).not.toThrow();
   });
@@ -30,13 +30,13 @@ describe("Recursive Tuples Regression #5089", () => {
   it("handles workaround pattern", () => {
     // Alternative pattern from issue discussion
     expect(() => {
-      const y = z.lazy((): any => z.string().or(z.lazy(() => z.tuple([y, y]))));
+      const y = Schema.lazy((): any => Schema.string().or(Schema.lazy(() => Schema.tuple([y, y]))));
       y.parse(["a", ["b", "c"]]);
     }).not.toThrow();
   });
 
   it("recursive arrays still work (comparison)", () => {
-    const y = z.lazy((): any => z.array(y).or(z.string()));
+    const y = Schema.lazy((): any => Schema.array(y).or(Schema.string()));
 
     expect(y.parse("hello")).toBe("hello");
     expect(y.parse(["hello", "world"])).toEqual(["hello", "world"]);

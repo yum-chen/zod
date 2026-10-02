@@ -1,19 +1,19 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
-import { ZodError } from "../ZodError.js";
+import * as Schema from "schema/v3";
+import { SchemaError } from "../SchemaError.js";
 import { util } from "../helpers/util.js";
 
-const testTuple = z.tuple([z.string(), z.object({ name: z.literal("Rudy") }), z.array(z.literal("blue"))]);
+const testTuple = Schema.tuple([Schema.string(), Schema.object({ name: Schema.literal("Rudy") }), Schema.array(Schema.literal("blue"))]);
 const testData = ["asdf", { name: "Rudy" }, ["blue"]];
 const badData = [123, { name: "Rudy2" }, ["blue", "red"]];
 
 test("tuple inference", () => {
-  const args1 = z.tuple([z.string()]);
-  const returns1 = z.number();
-  const func1 = z.function(args1, returns1);
-  type func1 = z.TypeOf<typeof func1>;
+  const args1 = Schema.tuple([Schema.string()]);
+  const returns1 = Schema.number();
+  const func1 = Schema.function(args1, returns1);
+  type func1 = Schema.TypeOf<typeof func1>;
   util.assertEqual<func1, (k: string) => number>(true);
 });
 
@@ -34,7 +34,7 @@ test("failed validation", () => {
   try {
     checker();
   } catch (err) {
-    if (err instanceof ZodError) {
+    if (err instanceof SchemaError) {
       expect(err.issues.length).toEqual(3);
     }
   }
@@ -49,31 +49,31 @@ test("failed async validation", async () => {
   // try {
   //   checker();
   // } catch (err) {
-  //   if (err instanceof ZodError) {
+  //   if (err instanceof SchemaError) {
   //     expect(err.issues.length).toEqual(3);
   //   }
   // }
 });
 
 test("tuple with transformers", () => {
-  const stringToNumber = z.string().transform((val) => val.length);
-  const val = z.tuple([stringToNumber]);
+  const stringToNumber = Schema.string().transform((val) => val.length);
+  const val = Schema.tuple([stringToNumber]);
 
-  type t1 = z.input<typeof val>;
+  type t1 = Schema.input<typeof val>;
   util.assertEqual<t1, [string]>(true);
-  type t2 = z.output<typeof val>;
+  type t2 = Schema.output<typeof val>;
   util.assertEqual<t2, [number]>(true);
   expect(val.parse(["1234"])).toEqual([4]);
 });
 
 test("tuple with rest schema", () => {
-  const myTuple = z.tuple([z.string(), z.number()]).rest(z.boolean());
+  const myTuple = Schema.tuple([Schema.string(), Schema.number()]).rest(Schema.boolean());
   expect(myTuple.parse(["asdf", 1234, true, false, true])).toEqual(["asdf", 1234, true, false, true]);
 
   expect(myTuple.parse(["asdf", 1234])).toEqual(["asdf", 1234]);
 
   expect(() => myTuple.parse(["asdf", 1234, "asdf"])).toThrow();
-  type t1 = z.output<typeof myTuple>;
+  type t1 = Schema.output<typeof myTuple>;
 
   util.assertEqual<t1, [string, number, ...boolean[]]>(true);
 });
@@ -84,7 +84,7 @@ test("parse should fail given sparse array as tuple", () => {
 
 // test('tuple with optional elements', () => {
 //   const result = z
-//     .tuple([z.string(), z.number().optional()])
+//     .tuple([Schema.string(), Schema.number().optional()])
 //     .safeParse(['asdf']);
 //   expect(result).toEqual(['asdf']);
 // });

@@ -1,18 +1,18 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const promSchema = z.promise(
-  z.object({
-    name: z.string(),
-    age: z.number(),
+const promSchema = Schema.promise(
+  Schema.object({
+    name: Schema.string(),
+    age: Schema.number(),
   })
 );
 
 test("promise inference", () => {
-  type promSchemaType = z.infer<typeof promSchema>;
+  type promSchemaType = Schema.infer<typeof promSchema>;
   util.assertEqual<promSchemaType, Promise<{ name: string; age: number }>>(true);
 });
 
@@ -40,13 +40,13 @@ test("promise parsing success 2", () => {
 test("promise parsing fail", async () => {
   const bad = promSchema.parse(Promise.resolve({ name: "Bobby", age: "10" }));
   // return await expect(bad).resolves.toBe({ name: 'Bobby', age: '10' });
-  return await expect(bad).rejects.toBeInstanceOf(z.ZodError);
+  return await expect(bad).rejects.toBeInstanceOf(Schema.SchemaError);
   // done();
 });
 
 test("promise parsing fail 2", async () => {
   const failPromise = promSchema.parse(Promise.resolve({ name: "Bobby", age: "10" }));
-  await expect(failPromise).rejects.toBeInstanceOf(z.ZodError);
+  await expect(failPromise).rejects.toBeInstanceOf(Schema.SchemaError);
   // done();/z
 });
 
@@ -56,10 +56,10 @@ test("promise parsing fail", () => {
 });
 
 // test('sync promise parsing', () => {
-//   expect(() => z.promise(z.string()).parse(Promise.resolve('asfd'))).toThrow();
+//   expect(() => Schema.promise(Schema.string()).parse(Promise.resolve('asfd'))).toThrow();
 // });
 
-const asyncFunction = z.function(z.tuple([]), promSchema);
+const asyncFunction = Schema.function(Schema.tuple([]), promSchema);
 
 test("async function pass", async () => {
   const validatedFunction = asyncFunction.implement(async () => {
@@ -75,16 +75,16 @@ test("async function fail", async () => {
   const validatedFunction = asyncFunction.implement(() => {
     return Promise.resolve("asdf" as any);
   });
-  await expect(validatedFunction()).rejects.toBeInstanceOf(z.ZodError);
+  await expect(validatedFunction()).rejects.toBeInstanceOf(Schema.SchemaError);
 });
 
 test("async promise parsing", () => {
-  const res = z.promise(z.number()).parseAsync(Promise.resolve(12));
+  const res = Schema.promise(Schema.number()).parseAsync(Promise.resolve(12));
   expect(res).toBeInstanceOf(Promise);
 });
 
 test("resolves", () => {
-  const foo = z.literal("foo");
-  const res = z.promise(foo);
+  const foo = Schema.literal("foo");
+  const res = Schema.promise(foo);
   expect(res.unwrap()).toEqual(foo);
 });

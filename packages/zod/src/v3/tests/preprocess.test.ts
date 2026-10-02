@@ -1,33 +1,33 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 import { util } from "../helpers/util.js";
 
 test("preprocess", () => {
-  const schema = z.preprocess((data) => [data], z.string().array());
+  const schema = Schema.preprocess((data) => [data], Schema.string().array());
 
-  const value = schema.parse("asdf");
+  const value = Schema.parse("asdf");
   expect(value).toEqual(["asdf"]);
   util.assertEqual<(typeof schema)["_input"], unknown>(true);
 });
 
 test("async preprocess", async () => {
-  const schema = z.preprocess(async (data) => [data], z.string().array());
+  const schema = Schema.preprocess(async (data) => [data], Schema.string().array());
 
-  const value = await schema.parseAsync("asdf");
+  const value = await Schema.parseAsync("asdf");
   expect(value).toEqual(["asdf"]);
 });
 
 test("preprocess ctx.addIssue with parse", () => {
   expect(() => {
-    z.preprocess((data, ctx) => {
+    Schema.preprocess((data, ctx) => {
       ctx.addIssue({
         code: "custom",
         message: `${data} is not one of our allowed strings`,
       });
       return data;
-    }, z.string()).parse("asdf");
+    }, Schema.string()).parse("asdf");
   }).toThrow(
     JSON.stringify(
       [
@@ -45,47 +45,47 @@ test("preprocess ctx.addIssue with parse", () => {
 
 test("preprocess ctx.addIssue non-fatal by default", () => {
   try {
-    z.preprocess((data, ctx) => {
+    Schema.preprocess((data, ctx) => {
       ctx.addIssue({
         code: "custom",
         message: `custom error`,
       });
       return data;
-    }, z.string()).parse(1234);
+    }, Schema.string()).parse(1234);
   } catch (err) {
-    z.ZodError.assert(err);
+    Schema.SchemaError.assert(err);
     expect(err.issues.length).toEqual(2);
   }
 });
 
 test("preprocess ctx.addIssue fatal true", () => {
   try {
-    z.preprocess((data, ctx) => {
+    Schema.preprocess((data, ctx) => {
       ctx.addIssue({
         code: "custom",
         message: `custom error`,
         fatal: true,
       });
       return data;
-    }, z.string()).parse(1234);
+    }, Schema.string()).parse(1234);
   } catch (err) {
-    z.ZodError.assert(err);
+    Schema.SchemaError.assert(err);
     expect(err.issues.length).toEqual(1);
   }
 });
 
 test("async preprocess ctx.addIssue with parse", async () => {
-  const schema = z.preprocess(async (data, ctx) => {
+  const schema = Schema.preprocess(async (data, ctx) => {
     ctx.addIssue({
       code: "custom",
       message: `custom error`,
     });
     return data;
-  }, z.string());
+  }, Schema.string());
 
-  expect(await schema.safeParseAsync("asdf")).toMatchInlineSnapshot(`
+  expect(await Schema.safeParseAsync("asdf")).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "code": "custom",
         "message": "custom error",
@@ -105,7 +105,7 @@ test("preprocess ctx.addIssue with parseAsync", async () => {
         message: `${data} is not one of our allowed strings`,
       });
       return data;
-    }, z.string())
+    }, Schema.string())
     .safeParseAsync("asdf");
 
   expect(JSON.parse(JSON.stringify(result))).toEqual({
@@ -118,49 +118,49 @@ test("preprocess ctx.addIssue with parseAsync", async () => {
           path: [],
         },
       ],
-      name: "ZodError",
+      name: "SchemaError",
     },
   });
 });
 
-test("z.NEVER in preprocess", () => {
-  const foo = z.preprocess((val, ctx) => {
+test("Schema.NEVER in preprocess", () => {
+  const foo = Schema.preprocess((val, ctx) => {
     if (!val) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "bad" });
-      return z.NEVER;
+      ctx.addIssue({ code: Schema.SchemaIssueCode.custom, message: "bad" });
+      return Schema.NEVER;
     }
     return val;
-  }, z.number());
+  }, Schema.number());
 
-  type foo = z.infer<typeof foo>;
+  type foo = Schema.infer<typeof foo>;
   util.assertEqual<foo, number>(true);
   const arg = foo.safeParse(undefined);
   expect(arg.error!.issues).toHaveLength(2);
   expect(arg.error!.issues[0].message).toEqual("bad");
 });
 test("preprocess as the second property of object", () => {
-  const schema = z.object({
-    nonEmptyStr: z.string().min(1),
-    positiveNum: z.preprocess((v) => Number(v), z.number().positive()),
+  const schema = Schema.object({
+    nonEmptyStr: Schema.string().min(1),
+    positiveNum: Schema.preprocess((v) => Number(v), Schema.number().positive()),
   });
-  const result = schema.safeParse({
+  const result = Schema.safeParse({
     nonEmptyStr: "",
     positiveNum: "",
   });
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues.length).toEqual(2);
-    expect(result.error.issues[0].code).toEqual(z.ZodIssueCode.too_small);
-    expect(result.error.issues[1].code).toEqual(z.ZodIssueCode.too_small);
+    expect(result.error.issues[0].code).toEqual(Schema.SchemaIssueCode.too_small);
+    expect(result.error.issues[1].code).toEqual(Schema.SchemaIssueCode.too_small);
   }
 });
 
 test("preprocess validates with sibling errors", () => {
   expect(() => {
-    z.object({
+    Schema.object({
       // Must be first
-      missing: z.string().refine(() => false),
-      preprocess: z.preprocess((data: any) => data?.trim(), z.string().regex(/ asdf/)),
+      missing: Schema.string().refine(() => false),
+      preprocess: Schema.preprocess((data: any) => data?.trim(), Schema.string().regex(/ asdf/)),
     }).parse({ preprocess: " asdf" });
   }).toThrow(
     JSON.stringify(

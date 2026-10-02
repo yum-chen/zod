@@ -4,47 +4,47 @@
  * schemas held for the process lifetime, each with nested objects, unions,
  * arrays and refinements.
  */
-import * as z from "zod";
+import * as Schema   from "schema";
 import { collect, fmtBytes, table } from "./harness.js";
 
 /** One "resource" the way an API codebase tends to define them. */
 function makeResource(i: number) {
-  const Address = z.object({
-    street: z.string().min(1).max(200),
-    city: z.string().min(1),
-    postalCode: z.string().regex(/^\d{5}$/),
-    country: z.string().length(2),
+  const Address = Schema.object({
+    street: Schema.string().min(1).max(200),
+    city: Schema.string().min(1),
+    postalCode: Schema.string().regex(/^\d{5}$/),
+    country: Schema.string().length(2),
   });
 
-  const Contact = z.object({
-    email: z.email(),
-    phone: z.string().optional(),
+  const Contact = Schema.object({
+    email: Schema.email(),
+    phone: Schema.string().optional(),
     address: Address.optional(),
   });
 
-  const Status = z.enum(["active", "pending", "archived", "deleted"]);
+  const Status = Schema.enum(["active", "pending", "archived", "deleted"]);
 
-  const Event = z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("created"), at: z.iso.datetime(), by: z.uuid() }),
-    z.object({ kind: z.literal("updated"), at: z.iso.datetime(), fields: z.array(z.string()) }),
-    z.object({ kind: z.literal("deleted"), at: z.iso.datetime(), reason: z.string().nullable() }),
+  const Event = Schema.discriminatedUnion("kind", [
+    Schema.object({ kind: Schema.literal("created"), at: Schema.iso.datetime(), by: Schema.uuid() }),
+    Schema.object({ kind: Schema.literal("updated"), at: Schema.iso.datetime(), fields: Schema.array(Schema.string()) }),
+    Schema.object({ kind: Schema.literal("deleted"), at: Schema.iso.datetime(), reason: Schema.string().nullable() }),
   ]);
 
   return z
     .object({
-      id: z.uuid(),
-      slug: z.string().regex(/^[a-z0-9-]+$/),
-      title: z.string().min(1).max(300),
-      description: z.string().max(5000).optional(),
+      id: Schema.uuid(),
+      slug: Schema.string().regex(/^[a-z0-9-]+$/),
+      title: Schema.string().min(1).max(300),
+      description: Schema.string().max(5000).optional(),
       status: Status,
-      count: z.number().int().nonnegative(),
-      score: z.number().min(0).max(100),
-      tags: z.array(z.string().min(1)).max(50),
+      count: Schema.number().int().nonnegative(),
+      score: Schema.number().min(0).max(100),
+      tags: Schema.array(Schema.string().min(1)).max(50),
       contact: Contact,
-      history: z.array(Event),
-      metadata: z.record(z.string(), z.unknown()).optional(),
-      createdAt: z.iso.datetime(),
-      updatedAt: z.iso.datetime().nullable(),
+      history: Schema.array(Event),
+      metadata: Schema.record(Schema.string(), Schema.unknown()).optional(),
+      createdAt: Schema.iso.datetime(),
+      updatedAt: Schema.iso.datetime().nullable(),
     })
     .refine((v) => v.createdAt <= (v.updatedAt ?? v.createdAt), `resource ${i}: updatedAt precedes createdAt`);
 }

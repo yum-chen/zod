@@ -1,7 +1,7 @@
 import { fetchStars } from "@/loaders/stars";
 import type React from "react";
 
-interface ZodResource {
+interface SchemaResource {
   name: string;
   url: string;
   description: React.ReactNode;
@@ -9,7 +9,7 @@ interface ZodResource {
   stars?: number;
 }
 
-const apiLibraries: ZodResource[] = [
+const apiLibraries: SchemaResource[] = [
   {
     name: "tRPC",
     url: "https://github.com/trpc/trpc",
@@ -19,7 +19,7 @@ const apiLibraries: ZodResource[] = [
   {
     name: "GQLoom",
     url: "https://gqloom.dev/",
-    description: "Weave GraphQL schema and resolvers using Zod.",
+    description: "Weave GraphQL schema and resolvers using Schema.",
     slug: "modevol-com/gqloom",
   },
   {
@@ -29,29 +29,29 @@ const apiLibraries: ZodResource[] = [
     slug: "unnoq/orpc",
   },
   {
-    name: "Express Zod API",
-    url: "https://github.com/RobinTail/express-zod-api",
+    name: "Express Schema API",
+    url: "https://github.com/RobinTail/express-schema-api",
     description: "Build Express-based API with I/O validation and middlewares, OpenAPI docs and type-safe client.",
-    slug: "RobinTail/express-zod-api",
+    slug: "RobinTail/express-schema-api",
   },
   {
-    name: "nestjs-zod",
-    url: "https://github.com/BenLorantfy/nestjs-zod",
+    name: "nestjs-schema",
+    url: "https://github.com/BenLorantfy/nestjs-schema",
     description:
-      "Integrate nestjs and zod.  Create nestjs DTOs using zod, serialize with zod, and generate OpenAPI documentation from zod schemas",
-    slug: "BenLorantfy/nestjs-zod",
+      "Integrate nestjs and Schema.  Create nestjs DTOs using schema, serialize with schema, and generate OpenAPI documentation from schema schemas",
+    slug: "BenLorantfy/nestjs-schema",
   },
   {
-    name: "Zod Sockets",
-    url: "https://github.com/RobinTail/zod-sockets",
+    name: "Schema Sockets",
+    url: "https://github.com/RobinTail/schema-sockets",
     description: "Socket.IO solution with I/O validation, an AsyncAPI generator, and a type-safe events map.",
-    slug: "RobinTail/zod-sockets",
+    slug: "RobinTail/schema-sockets",
   },
   {
-    name: "Zod JSON-RPC",
-    url: "https://github.com/danscan/zod-jsonrpc",
-    description: "Type-safe JSON-RPC 2.0 client/server library using Zod.",
-    slug: "danscan/zod-jsonrpc",
+    name: "Schema JSON-RPC",
+    url: "https://github.com/danscan/schema-jsonrpc",
+    description: "Type-safe JSON-RPC 2.0 client/server library using Schema.",
+    slug: "danscan/schema-jsonrpc",
   },
   {
     name: "upfetch",
@@ -60,22 +60,22 @@ const apiLibraries: ZodResource[] = [
     slug: "L-Blondy/up-fetch",
   },
   {
-    name: "zodql",
-    url: "https://github.com/mattiasahlsen/zodql",
+    name: "schemaql",
+    url: "https://github.com/mattiasahlsen/schemaql",
     description:
-      "Use a single Zod schema as the source of truth for a GraphQL query, its inferred response type, and runtime validation.",
-    slug: "mattiasahlsen/zodql",
+      "Use a single Schema schema as the source of truth for a GraphQL query, its inferred response type, and runtime validation.",
+    slug: "mattiasahlsen/schemaql",
   },
-  // https://github.com/honojs/middleware/tree/main/packages/zod-validator
+  // https://github.com/honojs/middleware/tree/main/packages/schema-validator
   // {
-  //   name: "@hono/zod-validator",
-  //   url: "https://github.com/honojs/middleware/tree/main/packages/zod-validator",
-  //   description: "Zod validator middleware for Hono",
+  //   name: "@hono/schema-validator",
+  //   url: "https://github.com/honojs/middleware/tree/main/packages/schema-validator",
+  //   description: "Schema validator middleware for Hono",
   //   slug: "honojs/middleware",
   // },
 ];
 
-const formIntegrations: ZodResource[] = [
+const formIntegrations: SchemaResource[] = [
   {
     name: "regle",
     url: "https://github.com/victorgarciaesgi/regle",
@@ -84,7 +84,7 @@ const formIntegrations: ZodResource[] = [
   },
   {
     name: "conform",
-    url: "https://conform.guide/api/zod/parseWithZod",
+    url: "https://conform.guide/api/schema/parseWithSchema",
     description:
       "A type-safe form validation library utilizing web fundamentals to progressively enhance HTML Forms with full support for server frameworks like Remix and Next.js.",
     slug: "edmundhung/conform",
@@ -96,21 +96,21 @@ const formIntegrations: ZodResource[] = [
     slug: "ciscoheat/sveltekit-superforms",
   },
   {
-    name: "zod-validation-error",
-    url: "https://github.com/causaly/zod-validation-error",
-    description: "Generate user-friendly error messages from ZodError instances.",
-    slug: "causaly/zod-validation-error",
+    name: "schema-validation-error",
+    url: "https://github.com/causaly/schema-validation-error",
+    description: "Generate user-friendly error messages from SchemaError instances.",
+    slug: "causaly/schema-validation-error",
   },
   {
     name: "svelte-jsonschema-form",
-    url: "https://x0k.dev/svelte-jsonschema-form/validators/zod4/",
-    description: "Svelte 5 library for creating forms based on JSON schema.",
+    url: "https://x0k.dev/svelte-jsonschema-form/validators/schema4/",
+    description: "Svelte 5 library for creating forms based on JSON Schema.",
     slug: "x0k/svelte-jsonschema-form",
   },
   {
     name: "frrm",
     url: "https://www.npmjs.com/package/frrm",
-    description: "Tiny 0.5kb Zod-based, HTML form abstraction that goes brr.",
+    description: "Tiny 0.5kb Schema-based, HTML form abstraction that goes brr.",
     slug: "schalkventer/frrm",
   },
   {
@@ -122,73 +122,73 @@ const formIntegrations: ZodResource[] = [
   {
     name: "Attaform",
     url: "https://attaform.dev",
-    description: "Type-safe, Zod-first form library for Vue 3 and Nuxt.",
+    description: "Type-safe, Schema-first form library for Vue 3 and Nuxt.",
     slug: "attaform/Attaform",
   },
   {
-    name: "zod-form-action",
-    url: "https://github.com/Vish05/zod-form-action",
-    description: "A tiny helper for wiring Zod validation into React's useActionState — typed field errors, zero boilerplate.",
-    slug: "Vish05/zod-form-action",
+    name: "schema-form-action",
+    url: "https://github.com/Vish05/schema-form-action",
+    description: "A tiny helper for wiring Schema validation into React's useActionState — typed field errors, zero boilerplate.",
+    slug: "Vish05/schema-form-action",
   },
 ];
 
-const zodToXConverters: ZodResource[] = [
+const schemaToXConverters: SchemaResource[] = [
   {
-    name: "zod-openapi",
-    url: "https://github.com/samchungy/zod-openapi",
-    description: "Use Zod Schemas to create OpenAPI v3.x documentation",
-    slug: "samchungy/zod-openapi",
+    name: "schema-openapi",
+    url: "https://github.com/samchungy/schema-openapi",
+    description: "Use Schema Schemas to create OpenAPI v3.x documentation",
+    slug: "samchungy/schema-openapi",
   },
   {
-    name: "fastify-zod-openapi",
-    url: "https://github.com/samchungy/fastify-zod-openapi",
-    description: "Fastify type provider, validation, serialization and @fastify/swagger support for Zod schemas",
-    slug: "samchungy/fastify-zod-openapi",
+    name: "fastify-schema-openapi",
+    url: "https://github.com/samchungy/fastify-schema-openapi",
+    description: "Fastify type provider, validation, serialization and @fastify/swagger support for Schema schemas",
+    slug: "samchungy/fastify-schema-openapi",
   },
   {
-    name: "zod2md",
-    url: "https://github.com/matejchalk/zod2md",
-    description: "Generate Markdown docs from Zod schemas",
-    slug: "matejchalk/zod2md",
+    name: "schema2md",
+    url: "https://github.com/matejchalk/schema2md",
+    description: "Generate Markdown docs from Schema schemas",
+    slug: "matejchalk/schema2md",
   },
   {
-    name: "prisma-zod-generator",
-    url: "https://github.com/omar-dulaimi/prisma-zod-generator",
-    description: "Generate Zod schemas from Prisma schema with full ZodObject method support",
-    slug: "omar-dulaimi/prisma-zod-generator",
+    name: "prisma-schema-generator",
+    url: "https://github.com/omar-dulaimi/prisma-schema-generator",
+    description: "Generate Schema schemas from Prisma schema with full SchemaObject method support",
+    slug: "omar-dulaimi/prisma-schema-generator",
   },
   {
-    name: "@traversable/zod",
-    url: "https://github.com/traversable/schema/tree/main/packages/zod",
-    description: 'Build your own "Zod to x" library, or pick one of 25+ off-the-shelf transformers',
+    name: "@traversable/schema",
+    url: "https://github.com/traversable/schema/tree/main/packages/schema",
+    description: 'Build your own "Schema to x" library, or pick one of 25+ off-the-shelf transformers',
     slug: "traversable/schema",
   },
   {
-    name: "zod-mongo-schema",
-    url: "https://github.com/udohjeremiah/zod-mongo-schema",
-    description: "Convert Zod schemas to MongoDB-compatible JSON Schemas effortlessly",
-    slug: "udohjeremiah/zod-mongo-schema",
+    name: "schema-mongo-schema",
+    url: "https://github.com/udohjeremiah/schema-mongo-schema",
+    description: "Convert Schema schemas to MongoDB-compatible JSON Schemas effortlessly",
+    slug: "udohjeremiah/schema-mongo-schema",
   },
   {
     name: "convex-helpers",
-    url: "https://github.com/get-convex/convex-helpers/blob/main/packages/convex-helpers/README.md#zod-validation",
-    description: "Use Zod to validate arguments and return values of Convex functions, and to create Convex database schemas",
+    url: "https://github.com/get-convex/convex-helpers/blob/main/packages/convex-helpers/README.md#schema-validation",
+    description: "Use Schema to validate arguments and return values of Convex functions, and to create Convex database schemas",
     slug: "get-convex/convex-helpers",
   },
   {
-    name: "@nullix/zod-mongoose",
-    url: "https://zodmongoose.com/",
-    description: "Convert zod schemas into typesafe mongoose schemas with full transparent mongoose options and helpers",
-    slug: "Harm-Nullix/zod-mongoose",
+    name: "@nullix/schema-mongoose",
+    url: "https://schemamongoose.com/",
+    description: "Convert schema schemas into typesafe mongoose schemas with full transparent mongoose options and helpers",
+    slug: "Harm-Nullix/schema-mongoose",
   },
 ];
 
-const xToZodConverters: ZodResource[] = [
+const xToSchemaConverters: SchemaResource[] = [
   {
     name: "orval",
     url: "https://github.com/orval-labs/orval",
-    description: "Generate Zod schemas from OpenAPI schemas",
+    description: "Generate Schema schemas from OpenAPI schemas",
     slug: "orval-labs/orval",
   },
   {
@@ -199,85 +199,85 @@ const xToZodConverters: ZodResource[] = [
   },
   {
     name: "Hey API",
-    url: "https://heyapi.dev/openapi-ts/plugins/zod",
-    description: "OpenAPI to TypeScript codegen. Production-ready SDKs, Zod schemas, TanStack Query hooks, and 20+ plugins. Used by Vercel, OpenCode, and PayPal.",
+    url: "https://heyapi.dev/openapi-ts/plugins/schema",
+    description: "OpenAPI to TypeScript codegen. Production-ready SDKs, Schema schemas, TanStack Query hooks, and 20+ plugins. Used by Vercel, OpenCode, and PayPal.",
     slug: "hey-api/openapi-ts",
   },
   {
     name: "valype",
     url: "https://github.com/yuzheng14/valype",
-    description: "Typescript's type definition to runtime validator (including zod).",
+    description: "Typescript's type definition to runtime validator (including schema).",
     slug: "yuzheng14/valype",
   },
   {
-    name: "Prisma Zod Generator",
-    url: "https://github.com/omar-dulaimi/prisma-zod-generator",
+    name: "Prisma Schema Generator",
+    url: "https://github.com/omar-dulaimi/prisma-schema-generator",
     description:
-      "Generates Zod schemas with input/result/pure variants, minimal/full/custom, selective emit/filtering, single/multi-file output, @zod rules, relation depth guards.",
-    slug: "omar-dulaimi/prisma-zod-generator",
+      "Generates Schema schemas with input/result/pure variants, minimal/full/custom, selective emit/filtering, single/multi-file output, @schema rules, relation depth guards.",
+    slug: "omar-dulaimi/prisma-schema-generator",
   },
   {
     name: "DRZL",
     url: "https://github.com/use-drzl/drzl",
     description:
-      "Drizzle ORM toolkit that can generate Zod validators from schema(s), plus typed services and strongly typed routers (oRPC/tRPC/etc).",
+      "Drizzle ORM toolkit that can generate Schema validators from schema(s), plus typed services and strongly typed routers (oRPC/tRPC/etc).",
     slug: "use-drzl/drzl",
   },
   {
     name: "convex-helpers",
-    url: "https://github.com/get-convex/convex-helpers/blob/main/packages/convex-helpers/README.md#zod-validation",
-    description: "Generate Zod schemas from Convex validators",
+    url: "https://github.com/get-convex/convex-helpers/blob/main/packages/convex-helpers/README.md#schema-validation",
+    description: "Generate Schema schemas from Convex validators",
     slug: "get-convex/convex-helpers",
   },
   {
     name: "Hono Takibi",
     url: "https://github.com/nakita628/hono-takibi",
-    description: "Hono Takibi is a code generator from OpenAPI to @hono/zod-openapi",
+    description: "Hono Takibi is a code generator from OpenAPI to @hono/schema-openapi",
     slug: "nakita628/hono-takibi",
   },
   {
     name: "tauri-typegen",
     url: "https://github.com/thwbh/tauri-typegen",
     description:
-      "tauri-typegen allows you to generate Zod schemas and validation hooks for the Rust @tauri-apps/tauri cross-platform application framework.",
+      "tauri-typegen allows you to generate Schema schemas and validation hooks for the Rust @tauri-apps/tauri cross-platform application framework.",
     slug: "thwbh/tauri-typegen",
   },
   {
     name: "@apical-ts/craft",
     url: "https://gunzip.github.io/apical-ts/",
-    description: "An OpenAPI-to-TypeScript generator for building type-safe clients and servers with Zod.",
+    description: "An OpenAPI-to-TypeScript generator for building type-safe clients and servers with Schema.",
     slug: "gunzip/apical-ts",
   }
 ];
 
-const mockingLibraries: ZodResource[] = [
+const mockingLibraries: SchemaResource[] = [
   {
-    name: "zod-schema-faker",
-    url: "https://github.com/soc221b/zod-schema-faker",
-    description: "Generate mock data from zod schemas. Powered by @faker-js/faker and randexp.js.",
-    slug: "soc221b/zod-schema-faker",
+    name: "schema-schema-faker",
+    url: "https://github.com/soc221b/schema-schema-faker",
+    description: "Generate mock data from schema schemas. Powered by @faker-js/faker and randexp.js.",
+    slug: "soc221b/schema-schema-faker",
   },
   {
     name: "zocker",
     url: "https://zocker.sigrist.dev",
-    description: "Generates valid, semantically meaningful data for your Zod schemas.",
+    description: "Generates valid, semantically meaningful data for your Schema schemas.",
     slug: "LorisSigrist/zocker",
   },
   {
-    name: "@traversable/zod-test",
-    url: "https://github.com/traversable/schema/tree/main/packages/zod-test",
+    name: "@traversable/schema-test",
+    url: "https://github.com/traversable/schema/tree/main/packages/schema-test",
     description:
-      "Random zod schema generator built for fuzz testing; includes generators for both valid and invalid data",
+      "Random schema schema generator built for fuzz testing; includes generators for both valid and invalid data",
     slug: "traversable/schema",
   },
 ];
 
-const poweredByZodProjects: ZodResource[] = [
+const poweredBySchemaProjects: SchemaResource[] = [
   {
-    name: "zod-config",
-    url: "https://github.com/alexmarqs/zod-config",
-    description: "Load configurations across multiple sources with flexible adapters, ensuring type safety with Zod.",
-    slug: "alexmarqs/zod-config",
+    name: "schema-config",
+    url: "https://github.com/alexmarqs/schema-config",
+    description: "Load configurations across multiple sources with flexible adapters, ensuring type safety with Schema.",
+    slug: "alexmarqs/schema-config",
   },
   {
     name: "Composable Functions",
@@ -286,10 +286,10 @@ const poweredByZodProjects: ZodResource[] = [
     slug: "seasonedcc/composable-functions",
   },
   {
-    name: "zod-xlsx",
-    url: "https://github.com/sidwebworks/zod-xlsx",
-    description: "A xlsx based resource validator using Zod schemas for data imports and more",
-    slug: "sidwebworks/zod-xlsx",
+    name: "schema-xlsx",
+    url: "https://github.com/sidwebworks/schema-xlsx",
+    description: "A xlsx based resource validator using Schema schemas for data imports and more",
+    slug: "sidwebworks/schema-xlsx",
   },
   {
     name: "bupkis",
@@ -300,14 +300,14 @@ const poweredByZodProjects: ZodResource[] = [
   {
     name: "Fn Sphere",
     url: "https://github.com/lawvs/fn-sphere",
-    description: "A Zod-first toolkit for building powerful, type-safe filter experiences across web apps.",
+    description: "A Schema-first toolkit for building powerful, type-safe filter experiences across web apps.",
     slug: "lawvs/fn-sphere",
   },
   {
-    name: "zodgres",
-    url: "https://github.com/endel/zodgres",
-    description: "Postgres.js + Zod: Database collections with static type inference and automatic migrations",
-    slug: "endel/zodgres",
+    name: "schemagres",
+    url: "https://github.com/endel/schemagres",
+    description: "Postgres.js + Schema: Database collections with static type inference and automatic migrations",
+    slug: "endel/schemagres",
   },
   {
     name: "validex",
@@ -318,7 +318,7 @@ const poweredByZodProjects: ZodResource[] = [
   {
     name: "json-up",
     url: "https://github.com/Nano-Collective/json-up",
-    description: "A fast, type-safe JSON migration tool with Zod schema validation.",
+    description: "A fast, type-safe JSON migration tool with Schema schema validation.",
     slug: "Nano-Collective/json-up",
   },
   {
@@ -336,76 +336,76 @@ const poweredByZodProjects: ZodResource[] = [
   {
     name: "fullproduct.dev",
     url: "https://fullproduct.dev",
-    description: "Zod & TS-first approach to building Universal Expo + Next.js apps using schemas as single source of truth",
+    description: "Schema & TS-first approach to building Universal Expo + Next.js apps using schemas as single source of truth",
     slug: "FullProduct-dev/green-stack-starter-demo",
   },
 ];
 
-const zodUtilities: ZodResource[] = [
+const schemaUtilities: SchemaResource[] = [
   {
-    name: "zod-compiler",
-    url: "https://github.com/gajus/zod-compiler",
-    description: "Compile Zod schemas into zero-overhead validation functions at build time. Works with Vite, webpack, esbuild, Rollup, etc.",
-    slug: "gajus/zod-compiler",
+    name: "schema-compiler",
+    url: "https://github.com/gajus/schema-compiler",
+    description: "Compile Schema schemas into zero-overhead validation functions at build time. Works with Vite, webpack, esbuild, Rollup, etc.",
+    slug: "gajus/schema-compiler",
   },
   {
-    name: "babel-plugin-zod-hoist",
-    url: "https://github.com/gajus/babel-plugin-zod-hoist",
-    description: "Babel plugin that optimizes Zod performance by hoisting schema definitions to the top of the file, avoiding repeated initialization overhead.",
-    slug: "gajus/babel-plugin-zod-hoist",
+    name: "babel-plugin-schema-hoist",
+    url: "https://github.com/gajus/babel-plugin-schema-hoist",
+    description: "Babel plugin that optimizes Schema performance by hoisting schema definitions to the top of the file, avoiding repeated initialization overhead.",
+    slug: "gajus/babel-plugin-schema-hoist",
   },
   {
-    name: "eslint-plugin-import-zod",
-    url: "https://github.com/samchungy/eslint-plugin-import-zod",
-    description: "ESLint plugin to enforce namespace imports for Zod.",
-    slug: "samchungy/eslint-plugin-import-zod",
+    name: "eslint-plugin-import-schema",
+    url: "https://github.com/samchungy/eslint-plugin-import-schema",
+    description: "ESLint plugin to enforce namespace imports for Schema.",
+    slug: "samchungy/eslint-plugin-import-schema",
   },
   {
-    name: "zod-playground",
-    url: "https://github.com/marilari88/zod-playground",
-    description: "Interactive playground for testing and exploring Zod and Zod mini schemas in real-time.",
-    slug: "marilari88/zod-playground",
+    name: "schema-playground",
+    url: "https://github.com/marilari88/schema-playground",
+    description: "Interactive playground for testing and exploring Schema and Schema mini schemas in real-time.",
+    slug: "marilari88/schema-playground",
   },
   {
-    name: "eslint-zod",
-    url: "https://github.com/marcalexiei/eslint-zod",
-    description: "ESLint plugins that add custom linting rules to enforce best practices when using Zod and/or Zod Mini.",
-    slug: "marcalexiei/eslint-zod",
+    name: "eslint-schema",
+    url: "https://github.com/marcalexiei/eslint-schema",
+    description: "ESLint plugins that add custom linting rules to enforce best practices when using Schema and/or Schema Mini.",
+    slug: "marcalexiei/eslint-schema",
   },
   {
-    name: "Zod Compare",
-    url: "https://github.com/lawvs/zod-compare",
-    description: "A utility library for recursively comparing Zod schemas.",
-    slug: "lawvs/zod-compare",
+    name: "Schema Compare",
+    url: "https://github.com/lawvs/schema-compare",
+    description: "A utility library for recursively comparing Schema schemas.",
+    slug: "lawvs/schema-compare",
   },
   {
-    name: "zod-ir",
-    url: "https://github.com/Reza-kh80/zod-ir",
+    name: "schema-ir",
+    url: "https://github.com/Reza-kh80/schema-ir",
     description: "Comprehensive validation for Iranian data structures (National Code, Bank Cards, Sheba, Crypto, etc) with smart metadata extraction (Bank Names, Logos). Zero dependencies.",
-    slug: "Reza-kh80/zod-ir",
+    slug: "Reza-kh80/schema-ir",
   },
   {
-    name: "Zod AOT",
-    url: "https://github.com/wakita181009/zod-aot",
-    description: "Compile Zod schemas into zero-overhead validation functions at build time. 2-64x faster validation with no code changes.",
-    slug: "wakita181009/zod-aot",
+    name: "Schema AOT",
+    url: "https://github.com/wakita181009/schema-aot",
+    description: "Compile Schema schemas into zero-overhead validation functions at build time. 2-64x faster validation with no code changes.",
+    slug: "wakita181009/schema-aot",
   },
   {
-    name: "@chrock-studio/zod-utils",
-    url: "https://jsr.io/@chrock-studio/zod-utils",
-    description: "A collection of Zod utilities focusing on enhanced functionality (e.g. classless Rich Domain Models while maintaining pure data structures).",
-    slug: "chrock-studio/toolbox/tree/main/packages/zod-utils",
+    name: "@chrock-studio/schema-utils",
+    url: "https://jsr.io/@chrock-studio/schema-utils",
+    description: "A collection of Schema utilities focusing on enhanced functionality (e.g. classless Rich Domain Models while maintaining pure data structures).",
+    slug: "chrock-studio/toolbox/tree/main/packages/schema-utils",
   },
   {
-    name: "oxlint-plugin-import-zod",
-    url: "https://github.com/samchungy/oxlint-plugin-import-zod",
-    description: "Oxlint plugin to enforce namespace imports for Zod.",
-    slug: "samchungy/oxlint-plugin-import-zod",
+    name: "oxlint-plugin-import-schema",
+    url: "https://github.com/samchungy/oxlint-plugin-import-schema",
+    description: "Oxlint plugin to enforce namespace imports for Schema.",
+    slug: "samchungy/oxlint-plugin-import-schema",
   },
   {
     name: "shorn",
     url: "https://shorn.dev",
-    description: "Compact binary serialization that uses your Zod schema as the wire format. No IDL or codegen.",
+    description: "Compact binary serialization that uses your Schema schema as the wire format. No IDL or codegen.",
     slug: "ChiChuRita/shorn",
   },
 ];
@@ -413,21 +413,21 @@ const zodUtilities: ZodResource[] = [
 export {
   apiLibraries,
   formIntegrations,
-  zodToXConverters,
-  xToZodConverters,
+  schemaToXConverters,
+  xToSchemaConverters,
   mockingLibraries,
-  poweredByZodProjects,
-  zodUtilities,
+  poweredBySchemaProjects,
+  schemaUtilities,
 };
 
-export function Table(props: { resources: ZodResource[] }) {
+export function Table(props: { resources: SchemaResource[] }) {
   return (
     <table>
       <thead>
         <tr>
           <th>Name</th>
           <th>Stars</th>
-          {/* <th>Zod 4 support</th> */}
+          {/* <th>Schema 4 support</th> */}
           <th>Description</th>
         </tr>
       </thead>
@@ -450,7 +450,7 @@ export function Table(props: { resources: ZodResource[] }) {
 }
 
 type ResourceTableProps = {
-  resources: ZodResource[];
+  resources: SchemaResource[];
 };
 
 async function ResourceTable({ resources }: ResourceTableProps) {
@@ -467,22 +467,22 @@ export async function FormIntegrations() {
   return <ResourceTable resources={formIntegrations} />;
 }
 
-export async function ZodToX() {
-  return <ResourceTable resources={zodToXConverters} />;
+export async function SchemaToX() {
+  return <ResourceTable resources={schemaToXConverters} />;
 }
 
-export async function XToZod() {
-  return <ResourceTable resources={xToZodConverters} />;
+export async function XToSchema() {
+  return <ResourceTable resources={xToSchemaConverters} />;
 }
 
 export async function MockingLibraries() {
   return <ResourceTable resources={mockingLibraries} />;
 }
 
-export async function PoweredByZod() {
-  return <ResourceTable resources={poweredByZodProjects} />;
+export async function PoweredBySchema() {
+  return <ResourceTable resources={poweredBySchemaProjects} />;
 }
 
-export async function ZodUtilities() {
-  return <ResourceTable resources={zodUtilities} />;
+export async function SchemaUtilities() {
+  return <ResourceTable resources={schemaUtilities} />;
 }

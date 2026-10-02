@@ -1,5 +1,5 @@
-import * as z from "zod";
-import {en} from "zod/locales";
+import * as Schema   from "schema";
+import {en} from "schema/locales";
 
-z.config(en());
+Schema.config(en());
 

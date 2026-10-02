@@ -1,12 +1,12 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 test("void", () => {
-  const v = z.void();
+  const v = Schema.void();
   v.parse(undefined);
 
   expect(() => v.parse(null)).toThrow();
   expect(() => v.parse("")).toThrow();
 
-  type v = z.infer<typeof v>;
+  type v = Schema.infer<typeof v>;
   expectTypeOf<v>().toEqualTypeOf<void>();
 });

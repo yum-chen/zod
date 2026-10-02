@@ -1,22 +1,22 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
+import * as Schema from "schema/v3";
 
-const gtFive = z.bigint().gt(BigInt(5));
-const gteFive = z.bigint().gte(BigInt(5));
-const ltFive = z.bigint().lt(BigInt(5));
-const lteFive = z.bigint().lte(BigInt(5));
-const positive = z.bigint().positive();
-const negative = z.bigint().negative();
-const nonnegative = z.bigint().nonnegative();
-const nonpositive = z.bigint().nonpositive();
-const multipleOfFive = z.bigint().multipleOf(BigInt(5));
+const gtFive = Schema.bigint().gt(BigInt(5));
+const gteFive = Schema.bigint().gte(BigInt(5));
+const ltFive = Schema.bigint().lt(BigInt(5));
+const lteFive = Schema.bigint().lte(BigInt(5));
+const positive = Schema.bigint().positive();
+const negative = Schema.bigint().negative();
+const nonnegative = Schema.bigint().nonnegative();
+const nonpositive = Schema.bigint().nonpositive();
+const multipleOfFive = Schema.bigint().multipleOf(BigInt(5));
 
 test("passing validations", () => {
-  z.bigint().parse(BigInt(1));
-  z.bigint().parse(BigInt(0));
-  z.bigint().parse(BigInt(-1));
+  Schema.bigint().parse(BigInt(1));
+  Schema.bigint().parse(BigInt(0));
+  Schema.bigint().parse(BigInt(-1));
   gtFive.parse(BigInt(6));
   gteFive.parse(BigInt(5));
   gteFive.parse(BigInt(6));
@@ -47,9 +47,9 @@ test("failing validations", () => {
 });
 
 test("min max getters", () => {
-  expect(z.bigint().min(BigInt(5)).minValue).toEqual(BigInt(5));
-  expect(z.bigint().min(BigInt(5)).min(BigInt(10)).minValue).toEqual(BigInt(10));
+  expect(Schema.bigint().min(BigInt(5)).minValue).toEqual(BigInt(5));
+  expect(Schema.bigint().min(BigInt(5)).min(BigInt(10)).minValue).toEqual(BigInt(10));
 
-  expect(z.bigint().max(BigInt(5)).maxValue).toEqual(BigInt(5));
-  expect(z.bigint().max(BigInt(5)).max(BigInt(1)).maxValue).toEqual(BigInt(1));
+  expect(Schema.bigint().max(BigInt(5)).maxValue).toEqual(BigInt(5));
+  expect(Schema.bigint().max(BigInt(5)).max(BigInt(1)).maxValue).toEqual(BigInt(1));
 });

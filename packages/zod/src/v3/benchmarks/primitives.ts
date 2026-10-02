@@ -1,12 +1,12 @@
 import Benchmark from "benchmark";
 
-import { z } from "zod/v3";
+import { Schema } from "schema/v3";
 import { Mocker } from "../tests/Mocker.js";
 
 const val = new Mocker();
 
-const enumSuite = new Benchmark.Suite("z.enum");
-const enumSchema = z.enum(["a", "b", "c"]);
+const enumSuite = new Benchmark.Suite("Schema.enum");
+const enumSchema = Schema.enum(["a", "b", "c"]);
 
 enumSuite
   .add("valid", () => {
@@ -18,11 +18,11 @@ enumSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`z.enum: ${e.target}`);
+    console.log(`Schema.enum: ${e.target}`);
   });
 
-const longEnumSuite = new Benchmark.Suite("long z.enum");
-const longEnumSchema = z.enum([
+const longEnumSuite = new Benchmark.Suite("long Schema.enum");
+const longEnumSchema = Schema.enum([
   "one",
   "two",
   "three",
@@ -52,11 +52,11 @@ longEnumSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`long z.enum: ${e.target}`);
+    console.log(`long Schema.enum: ${e.target}`);
   });
 
-const undefinedSuite = new Benchmark.Suite("z.undefined");
-const undefinedSchema = z.undefined();
+const undefinedSuite = new Benchmark.Suite("Schema.undefined");
+const undefinedSchema = Schema.undefined();
 
 undefinedSuite
   .add("valid", () => {
@@ -68,13 +68,13 @@ undefinedSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`z.undefined: ${e.target}`);
+    console.log(`Schema.undefined: ${e.target}`);
   });
 
-const literalSuite = new Benchmark.Suite("z.literal");
+const literalSuite = new Benchmark.Suite("Schema.literal");
 const short = "short";
 const bad = "bad";
-const literalSchema = z.literal("short");
+const literalSchema = Schema.literal("short");
 
 literalSuite
   .add("valid", () => {
@@ -86,11 +86,11 @@ literalSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`z.literal: ${e.target}`);
+    console.log(`Schema.literal: ${e.target}`);
   });
 
-const numberSuite = new Benchmark.Suite("z.number");
-const numberSchema = z.number().int();
+const numberSuite = new Benchmark.Suite("Schema.number");
+const numberSchema = Schema.number().int();
 
 numberSuite
   .add("valid", () => {
@@ -107,13 +107,13 @@ numberSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`z.number: ${e.target}`);
+    console.log(`Schema.number: ${e.target}`);
   });
 
-const dateSuite = new Benchmark.Suite("z.date");
+const dateSuite = new Benchmark.Suite("Schema.date");
 
-const plainDate = z.date();
-const minMaxDate = z.date().min(new Date("2021-01-01")).max(new Date("2030-01-01"));
+const plainDate = Schema.date();
+const minMaxDate = Schema.date().min(new Date("2021-01-01")).max(new Date("2030-01-01"));
 
 dateSuite
   .add("valid", () => {
@@ -138,11 +138,11 @@ dateSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`z.date: ${e.target}`);
+    console.log(`Schema.date: ${e.target}`);
   });
 
-const symbolSuite = new Benchmark.Suite("z.symbol");
-const symbolSchema = z.symbol();
+const symbolSuite = new Benchmark.Suite("Schema.symbol");
+const symbolSchema = Schema.symbol();
 
 symbolSuite
   .add("valid", () => {
@@ -154,7 +154,7 @@ symbolSuite
     } catch (_e: any) {}
   })
   .on("cycle", (e: Benchmark.Event) => {
-    console.log(`z.symbol: ${e.target}`);
+    console.log(`Schema.symbol: ${e.target}`);
   });
 
 export default {

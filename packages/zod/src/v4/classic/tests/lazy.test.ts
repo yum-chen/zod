@@ -1,22 +1,22 @@
 import { expect, expectTypeOf, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("opt passthrough", () => {
-  const object = z.object({
-    a: z.lazy(() => z.string()),
-    b: z.lazy(() => z.string().optional()),
-    c: z.lazy(() => z.string().default("default")),
+  const object = Schema.object({
+    a: Schema.lazy(() => Schema.string()),
+    b: Schema.lazy(() => Schema.string().optional()),
+    c: Schema.lazy(() => Schema.string().default("default")),
   });
 
-  type ObjectTypeIn = z.input<typeof object>;
+  type ObjectTypeIn = Schema.input<typeof object>;
   expectTypeOf<ObjectTypeIn>().toEqualTypeOf<{
     a: string;
     b?: string | undefined;
     c?: string | undefined;
   }>();
 
-  type ObjectTypeOut = z.output<typeof object>;
+  type ObjectTypeOut = Schema.output<typeof object>;
   expectTypeOf<ObjectTypeOut>().toEqualTypeOf<{
     a: string;
     b?: string | undefined;
@@ -36,26 +36,26 @@ test("opt passthrough", () => {
     c: "default",
   });
 
-  expect(z.lazy(() => z.string())._zod.optin).toEqual(undefined);
-  expect(z.lazy(() => z.string())._zod.optout).toEqual(undefined);
+  expect(Schema.lazy(() => Schema.string())._schema.optin).toEqual(undefined);
+  expect(Schema.lazy(() => Schema.string())._schema.optout).toEqual(undefined);
 
-  expect(z.lazy(() => z.string().optional())._zod.optin).toEqual("optional");
-  expect(z.lazy(() => z.string().optional())._zod.optout).toEqual("optional");
+  expect(Schema.lazy(() => Schema.string().optional())._schema.optin).toEqual("optional");
+  expect(Schema.lazy(() => Schema.string().optional())._schema.optout).toEqual("optional");
 
-  expect(z.lazy(() => z.string().default("asdf"))._zod.optin).toEqual("defaulted");
-  expect(z.lazy(() => z.string().default("asdf"))._zod.optout).toEqual(undefined);
+  expect(Schema.lazy(() => Schema.string().default("asdf"))._schema.optin).toEqual("defaulted");
+  expect(Schema.lazy(() => Schema.string().default("asdf"))._schema.optout).toEqual(undefined);
 });
 
 //////////////   LAZY   //////////////
 
 test("schema getter", () => {
-  z.lazy(() => z.string()).parse("asdf");
+  Schema.lazy(() => Schema.string()).parse("asdf");
 });
 
 test("lazy proxy", () => {
-  const schema = z.lazy(() => z.string())._zod.innerType.min(6);
-  schema.parse("123456");
-  expect(schema.safeParse("12345").success).toBe(false);
+  const schema = Schema.lazy(() => Schema.string())._schema.innerType.min(6);
+  Schema.parse("123456");
+  expect(Schema.safeParse("12345").success).toBe(false);
 });
 
 interface Category {
@@ -83,11 +83,11 @@ const testCategory: Category = {
   ],
 };
 
-test("recursion with z.lazy", () => {
-  const Category: z.ZodType<Category> = z.lazy(() =>
-    z.object({
-      name: z.string(),
-      subcategories: z.array(Category),
+test("recursion with Schema.lazy", () => {
+  const Category: Schema.SchemaType<Category> = Schema.lazy(() =>
+    Schema.object({
+      name: Schema.string(),
+      subcategories: Schema.array(Category),
     })
   );
   Category.parse(testCategory);
@@ -109,12 +109,12 @@ const linkedListExample = {
   },
 };
 
-test("recursive union wit z.lazy", () => {
-  const LinkedListSchema: z.ZodType<LinkedList> = z.lazy(() =>
-    z.union([
-      z.null(),
-      z.object({
-        value: z.number(),
+test("recursive union wit Schema.lazy", () => {
+  const LinkedListSchema: Schema.SchemaType<LinkedList> = Schema.lazy(() =>
+    Schema.union([
+      Schema.null(),
+      Schema.object({
+        value: Schema.number(),
         next: LinkedListSchema,
       }),
     ])
@@ -133,16 +133,16 @@ interface B {
 }
 
 test("mutual recursion with lazy", () => {
-  const Alazy: z.ZodType<A> = z.lazy(() =>
-    z.object({
-      val: z.number(),
+  const Alazy: Schema.SchemaType<A> = Schema.lazy(() =>
+    Schema.object({
+      val: Schema.number(),
       b: Blazy,
     })
   );
 
-  const Blazy: z.ZodType<B> = z.lazy(() =>
-    z.object({
-      val: z.number(),
+  const Blazy: Schema.SchemaType<B> = Schema.lazy(() =>
+    Schema.object({
+      val: Schema.number(),
       a: Alazy.optional(),
     })
   );
@@ -181,9 +181,9 @@ test("mutual recursion with cyclical data", () => {
 });
 
 test("complicated self-recursion", () => {
-  const Category = z.object({
-    name: z.string(),
-    age: z.optional(z.number()),
+  const Category = Schema.object({
+    name: Schema.string(),
+    age: Schema.optional(Schema.number()),
     get nullself() {
       return Category.nullable();
     },
@@ -194,69 +194,69 @@ test("complicated self-recursion", () => {
       return Category;
     },
     get subcategories() {
-      return z.array(Category);
+      return Schema.array(Category);
     },
-    nested: z.object({
+    nested: Schema.object({
       get sub() {
         return Category;
       },
     }),
   });
 
-  type _Category = z.output<typeof Category>;
+  type _Category = Schema.output<typeof Category>;
 });
 
 test("lazy initialization", () => {
-  const a: any = z.lazy(() => a).optional();
-  const b: any = z.lazy(() => b).nullable();
-  const c: any = z.lazy(() => c).default({} as any);
-  const d: any = z.lazy(() => d).prefault({} as any);
-  const e: any = z.lazy(() => e).nonoptional();
-  const f: any = z.lazy(() => f).catch({} as any);
-  const g: any = z.lazy(() => z.object({ g })).readonly();
+  const a: any = Schema.lazy(() => a).optional();
+  const b: any = Schema.lazy(() => b).nullable();
+  const c: any = Schema.lazy(() => c).default({} as any);
+  const d: any = Schema.lazy(() => d).prefault({} as any);
+  const e: any = Schema.lazy(() => e).nonoptional();
+  const f: any = Schema.lazy(() => f).catch({} as any);
+  const g: any = Schema.lazy(() => Schema.object({ g })).readonly();
 
-  const baseCategorySchema = z.object({
-    name: z.string(),
+  const baseCategorySchema = Schema.object({
+    name: Schema.string(),
   });
-  type Category = z.infer<typeof baseCategorySchema> & {
+  type Category = Schema.infer<typeof baseCategorySchema> & {
     subcategories: Category[];
   };
-  const categorySchema: z.ZodType<Category> = baseCategorySchema.extend({
-    subcategories: z.lazy(() => categorySchema.array()),
+  const categorySchema: Schema.SchemaType<Category> = baseCategorySchema.extend({
+    subcategories: Schema.lazy(() => categorySchema.array()),
   });
 });
 
 test("derived internals resolve on self-referential lazy", () => {
-  const optional: any = z.lazy(() => optional.optional());
-  const pipe: any = z.lazy(() => z.pipe(z.string(), pipe));
+  const optional: any = Schema.lazy(() => optional.optional());
+  const pipe: any = Schema.lazy(() => Schema.pipe(Schema.string(), pipe));
 
-  expect(optional._zod.optin).toEqual("optional");
-  expect(optional._zod.optout).toEqual("optional");
-  expect(pipe._zod.optin).toEqual(undefined);
-  expect(pipe._zod.optout).toEqual(undefined);
+  expect(optional._schema.optin).toEqual("optional");
+  expect(optional._schema.optout).toEqual("optional");
+  expect(pipe._schema.optin).toEqual(undefined);
+  expect(pipe._schema.optout).toEqual(undefined);
 });
 
 test("a cycle-broken internal is not memoized", () => {
-  const lazyRef: any = z.lazy(() => Rec);
-  const Rec: any = z.union([z.string().optional(), lazyRef]);
+  const lazyRef: any = Schema.lazy(() => Rec);
+  const Rec: any = Schema.union([Schema.string().optional(), lazyRef]);
 
   // Reading the outer node first resolves `lazyRef`'s own `optin` through the cycle.
-  expect(Rec._zod.optin).toEqual("optional");
-  expect(lazyRef._zod.optin).toEqual("optional");
-  expect(z.object({ x: Rec, y: lazyRef }).safeParse({ x: "a" }).success).toEqual(true);
+  expect(Rec._schema.optin).toEqual("optional");
+  expect(lazyRef._schema.optin).toEqual("optional");
+  expect(Schema.object({ x: Rec, y: lazyRef }).safeParse({ x: "a" }).success).toEqual(true);
 });
 
 test("an internal computed without a cycle break is memoized", () => {
   // `undefined` is the legitimate answer here and still has to cache: these getters are read per parse, so recomputing them is a parse-path cost.
-  const union = z.union([z.string(), z.number()]);
-  expect(union._zod.optin).toEqual(undefined);
-  expect(Object.getOwnPropertyNames(union._zod)).toContain("optin");
+  const union = Schema.union([Schema.string(), Schema.number()]);
+  expect(union._schema.optin).toEqual(undefined);
+  expect(Object.getOwnPropertyNames(union._schema)).toContain("optin");
 });
 
 // A compute that throws must memoize nothing, or the second read answers undefined for a schema whose internals were never derived.
 test("a throwing lazy internal throws on every read", () => {
-  const schema = z.discriminatedUnion("type", [z.string() as any]) as any;
+  const schema = Schema.discriminatedUnion("type", [Schema.string() as any]) as any;
   for (let i = 0; i < 3; i++) {
-    expect(() => schema._zod.propValues).toThrow();
+    expect(() => Schema._schema.propValues).toThrow();
   }
 });

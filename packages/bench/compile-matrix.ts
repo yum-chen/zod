@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
-import * as z from "zod";
-import { INVALID, ZodCompileUnsupportedError, compile, compileFn } from "zod/v4/core";
+import * as Schema   from "schema";
+import { INVALID, SchemaCompileUnsupportedError, compile, compileFn } from "schema/v4/core";
 
 // Broad compiled-vs-runtime sweep across schema categories.
 //
@@ -9,22 +9,22 @@ import { INVALID, ZodCompileUnsupportedError, compile, compileFn } from "zod/v4/
 interface Case {
   group: string;
   name: string;
-  schema: z.ZodType;
+  schema: Schema.SchemaType;
   input: unknown;
 }
 
 const cases: Case[] = [];
-const add = (group: string, name: string, schema: z.ZodType, input: unknown) =>
+const add = (group: string, name: string, schema: Schema.SchemaType, input: unknown) =>
   cases.push({ group, name, schema, input });
 
 // --- primitives ---
-add("primitive", "string", z.string(), "hello world");
-add("primitive", "number", z.number(), 42.5);
-add("primitive", "boolean", z.boolean(), true);
-add("primitive", "bigint", z.bigint(), 123n);
-add("primitive", "date", z.date(), new Date());
-add("primitive", "literal", z.literal("active"), "active");
-add("primitive", "enum (4)", z.enum(["a", "b", "c", "d"]), "c");
+add("primitive", "string", Schema.string(), "hello world");
+add("primitive", "number", Schema.number(), 42.5);
+add("primitive", "boolean", Schema.boolean(), true);
+add("primitive", "bigint", Schema.bigint(), 123n);
+add("primitive", "date", Schema.date(), new Date());
+add("primitive", "literal", Schema.literal("active"), "active");
+add("primitive", "enum (4)", Schema.enum(["a", "b", "c", "d"]), "c");
 
 // --- string formats + checks ---
 add(
@@ -37,45 +37,45 @@ add(
     .regex(/^[a-z ]+$/),
   "hello world"
 );
-add("string", "email", z.email(), "user@example.com");
-add("string", "uuid", z.uuid(), "550e8400-e29b-41d4-a716-446655440000");
-add("string", "url", z.url(), "https://example.com/a/b?c=1");
-add("string", "iso.datetime", z.iso.datetime(), "2026-08-16T12:00:00Z");
-add("string", "base64", z.base64(), "aGVsbG8gd29ybGQ=");
-add("string", "creditCard", z.creditCard(), "4111111111111111");
-add("string", "iban", z.iban(), "DE89370400440532013000");
-add("string", "trim + toLowerCase", z.string().trim().toLowerCase(), "  MiXeD Case  ");
+add("string", "email", Schema.email(), "user@example.com");
+add("string", "uuid", Schema.uuid(), "550e8400-e29b-41d4-a716-446655440000");
+add("string", "url", Schema.url(), "https://example.com/a/b?c=1");
+add("string", "iso.datetime", Schema.iso.datetime(), "2026-08-16T12:00:00Z");
+add("string", "base64", Schema.base64(), "aGVsbG8gd29ybGQ=");
+add("string", "creditCard", Schema.creditCard(), "4111111111111111");
+add("string", "iban", Schema.iban(), "DE89370400440532013000");
+add("string", "trim + toLowerCase", Schema.string().trim().toLowerCase(), "  MiXeD Case  ");
 
 // --- numbers ---
-add("number", "int + range", z.number().int().min(0).max(1000), 500);
-add("number", "int32", z.int32(), 1234);
-add("number", "multipleOf", z.number().multipleOf(0.5), 12.5);
+add("number", "int + range", Schema.number().int().min(0).max(1000), 500);
+add("number", "int32", Schema.int32(), 1234);
+add("number", "multipleOf", Schema.number().multipleOf(0.5), 12.5);
 
 // --- objects ---
 const flat = { a: "x", b: 1, c: true, d: "y", e: 2 };
 add(
   "object",
   "flat (5 keys)",
-  z.object({ a: z.string(), b: z.number(), c: z.boolean(), d: z.string(), e: z.number() }),
+  Schema.object({ a: Schema.string(), b: Schema.number(), c: Schema.boolean(), d: Schema.string(), e: Schema.number() }),
   flat
 );
 add(
   "object",
   "strict (5 keys)",
-  z.strictObject({ a: z.string(), b: z.number(), c: z.boolean(), d: z.string(), e: z.number() }),
+  Schema.strictObject({ a: Schema.string(), b: Schema.number(), c: Schema.boolean(), d: Schema.string(), e: Schema.number() }),
   flat
 );
-add("object", "loose (5 keys)", z.looseObject({ a: z.string(), b: z.number() }), { a: "x", b: 1, extra: "kept" });
-add("object", "catchall", z.object({ a: z.string() }).catchall(z.number()), { a: "x", n1: 1, n2: 2 });
+add("object", "loose (5 keys)", Schema.looseObject({ a: Schema.string(), b: Schema.number() }), { a: "x", b: 1, extra: "kept" });
+add("object", "catchall", Schema.object({ a: Schema.string() }).catchall(Schema.number()), { a: "x", n1: 1, n2: 2 });
 
-const moltar = z.object({
-  number: z.number(),
-  negNumber: z.number(),
-  maxNumber: z.number(),
-  string: z.string(),
-  longString: z.string(),
-  boolean: z.boolean(),
-  deeplyNested: z.object({ foo: z.string(), num: z.number(), bool: z.boolean() }),
+const moltar = Schema.object({
+  number: Schema.number(),
+  negNumber: Schema.number(),
+  maxNumber: Schema.number(),
+  string: Schema.string(),
+  longString: Schema.string(),
+  boolean: Schema.boolean(),
+  deeplyNested: Schema.object({ foo: Schema.string(), num: Schema.number(), bool: Schema.boolean() }),
 });
 add("object", "nested (moltar)", moltar, {
   number: 1,
@@ -90,16 +90,16 @@ add("object", "nested (moltar)", moltar, {
 add(
   "object",
   "optional keys",
-  z.object({ a: z.string(), b: z.string().optional(), c: z.number().optional(), d: z.boolean().optional() }),
+  Schema.object({ a: Schema.string(), b: Schema.string().optional(), c: Schema.number().optional(), d: Schema.boolean().optional() }),
   { a: "x", c: 3 }
 );
-add("object", "defaults", z.object({ a: z.string().default("d"), b: z.number().default(7), c: z.boolean() }), {
+add("object", "defaults", Schema.object({ a: Schema.string().default("d"), b: Schema.number().default(7), c: Schema.boolean() }), {
   c: true,
 });
 add(
   "object",
   "wide (20 keys)",
-  z.object(Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, z.string()]))) as z.ZodType,
+  Schema.object(Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, Schema.string()]))) as Schema  .SchemaType,
   Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, "v"]))
 );
 
@@ -107,27 +107,27 @@ add(
 add(
   "collection",
   "array<number> x100",
-  z.array(z.number()),
+  Schema.array(Schema.number()),
   Array.from({ length: 100 }, (_, i) => i)
 );
 add(
   "collection",
   "array<string> x10",
-  z.array(z.string()),
+  Schema.array(Schema.string()),
   Array.from({ length: 10 }, (_, i) => `s${i}`)
 );
 add(
   "collection",
   "array<object> x10",
-  z.array(z.object({ id: z.number(), name: z.string() })),
+  Schema.array(Schema.object({ id: Schema.number(), name: Schema.string() })),
   Array.from({ length: 10 }, (_, i) => ({ id: i, name: `n${i}` }))
 );
-add("collection", "tuple", z.tuple([z.string(), z.number(), z.boolean()]), ["a", 1, true]);
-add("collection", "set", z.set(z.number()), new Set([1, 2, 3, 4, 5]));
+add("collection", "tuple", Schema.tuple([Schema.string(), Schema.number(), Schema.boolean()]), ["a", 1, true]);
+add("collection", "set", Schema.set(Schema.number()), new Set([1, 2, 3, 4, 5]));
 add(
   "collection",
   "map",
-  z.map(z.string(), z.number()),
+  Schema.map(Schema.string(), Schema.number()),
   new Map([
     ["a", 1],
     ["b", 2],
@@ -136,93 +136,93 @@ add(
 
 // --- records (the key-schema path) ---
 const rec20 = Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`k${i}`, i]));
-add("record", "string keys x20", z.record(z.string(), z.number()), rec20);
+add("record", "string keys x20", Schema.record(Schema.string(), Schema.number()), rec20);
 add(
   "record",
   "email keys x20",
-  z.record(z.email(), z.number()),
+  Schema.record(Schema.email(), Schema.number()),
   Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`u${i}@e.com`, i]))
 );
-add("record", "checked keys x20", z.record(z.string().min(2), z.number()), rec20);
+add("record", "checked keys x20", Schema.record(Schema.string().min(2), Schema.number()), rec20);
 add(
   "record",
   "number keys x20",
-  z.record(z.number(), z.string()),
+  Schema.record(Schema.number(), Schema.string()),
   Object.fromEntries(Array.from({ length: 20 }, (_, i) => [i, `v${i}`]))
 );
-add("record", "enum keys", z.record(z.enum(["a", "b", "c"]), z.number()), { a: 1, b: 2, c: 3 });
+add("record", "enum keys", Schema.record(Schema.enum(["a", "b", "c"]), Schema.number()), { a: 1, b: 2, c: 3 });
 add(
   "record",
   "loose email keys x20",
-  z.looseRecord(z.email(), z.number()),
+  Schema.looseRecord(Schema.email(), Schema.number()),
   Object.fromEntries(Array.from({ length: 20 }, (_, i) => [`u${i}@e.com`, i]))
 );
 
 // --- unions ---
-add("union", "primitives (3)", z.union([z.string(), z.number(), z.boolean()]), 42);
+add("union", "primitives (3)", Schema.union([Schema.string(), Schema.number(), Schema.boolean()]), 42);
 add(
   "union",
   "objects (3, last match)",
-  z.union([z.object({ a: z.string() }), z.object({ b: z.number() }), z.object({ c: z.boolean() })]),
+  Schema.union([Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() }), Schema.object({ c: Schema.boolean() })]),
   { c: true }
 );
 const du = (n: number) =>
-  z.discriminatedUnion(
+  Schema.discriminatedUnion(
     "kind",
-    Array.from({ length: n }, (_, i) => z.object({ kind: z.literal(`k${i}`), v: z.number() }))
-  ) as z.ZodType;
+    Array.from({ length: n }, (_, i) => Schema.object({ kind: Schema.literal(`k${i}`), v: Schema.number() }))
+  ) as Schema  .SchemaType;
 add("union", "discriminated (3)", du(3), { kind: "k2", v: 1 });
 add("union", "discriminated (10)", du(10), { kind: "k9", v: 1 });
 
 // --- wrappers ---
-add("wrapper", "optional", z.string().optional(), "x");
-add("wrapper", "nullable", z.string().nullable(), null);
-add("wrapper", "default (absent)", z.string().default("d"), undefined);
-add("wrapper", "readonly object", z.object({ a: z.string() }).readonly(), { a: "x" });
-add("wrapper", "catch", z.number().catch(0), "not a number");
+add("wrapper", "optional", Schema.string().optional(), "x");
+add("wrapper", "nullable", Schema.string().nullable(), null);
+add("wrapper", "default (absent)", Schema.string().default("d"), undefined);
+add("wrapper", "readonly object", Schema.object({ a: Schema.string() }).readonly(), { a: "x" });
+add("wrapper", "catch", Schema.number().catch(0), "not a number");
 
 // --- refinements / transforms ---
 add(
   "refine",
   "refine",
-  z.number().refine((n) => n > 0),
+  Schema.number().refine((n) => n > 0),
   5
 );
 add(
   "refine",
   "transform",
-  z.string().transform((s) => s.length),
+  Schema.string().transform((s) => s.length),
   "hello"
 );
 add(
   "refine",
   "overwrite",
-  z.string().overwrite((s) => s.toUpperCase()),
+  Schema.string().overwrite((s) => s.toUpperCase()),
   "hello"
 );
-add("refine", "pipe", z.string().pipe(z.string().min(2)), "hello");
+add("refine", "pipe", Schema.string().pipe(Schema.string().min(2)), "hello");
 add(
   "refine",
   "object + refine",
-  z.object({ a: z.number(), b: z.number() }).refine((o) => o.a < o.b),
+  Schema.object({ a: Schema.number(), b: Schema.number() }).refine((o) => o.a < o.b),
   { a: 1, b: 2 }
 );
 
 // --- intersections ---
-add("intersect", "two objects", z.intersection(z.object({ a: z.string() }), z.object({ b: z.number() })), {
+add("intersect", "two objects", Schema.intersection(Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() })), {
   a: "x",
   b: 1,
 });
 
 // --- known fallbacks (expect ~1x; here to prove they aren't slower) ---
-const tree: z.ZodType = z.object({
-  v: z.number(),
+const tree: Schema.SchemaType = Schema.object({
+  v: Schema.number(),
   get kids() {
-    return z.array(tree);
+    return Schema.array(tree);
   },
-}) as z.ZodType;
+}) as Schema  .SchemaType;
 add("fallback", "recursive tree", tree, { v: 1, kids: [{ v: 2, kids: [] }] });
-add("fallback", "xor", z.xor([z.object({ a: z.string() }), z.object({ b: z.number() })]) as z.ZodType, { a: "x" });
+add("fallback", "xor", Schema.xor([Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() })]) as Schema  .SchemaType, { a: "x" });
 
 // ---------------------------------------------------------------------------
 
@@ -317,7 +317,7 @@ function report(rows: Row[], problems: string[]): void {
   console.log();
 }
 
-// Every case shares one `safeParse` call site, and so do zod's own internal dispatch sites. Run all 55 in one process and those caches go megamorphic, which taxes the interpreter more than it taxes a single generated function, so the same schema reads faster compiled that way (median 2.4x) than it does measured alone (1.6x). Neither is wrong; they answer different questions, and the default is the shared one because an application holds many schemas at once and that is the number its users will see. `--isolate` runs one child process per case, which is what to use when tuning a single schema.
+// Every case shares one `safeParse` call site, and so do schema's own internal dispatch sites. Run all 55 in one process and those caches go megamorphic, which taxes the interpreter more than it taxes a single generated function, so the same schema reads faster compiled that way (median 2.4x) than it does measured alone (1.6x). Neither is wrong; they answer different questions, and the default is the shared one because an application holds many schemas at once and that is the number its users will see. `--isolate` runs one child process per case, which is what to use when tuning a single Schema.
 const arg = process.argv[2];
 const isolate = arg === "--isolate";
 const filter = isolate ? undefined : arg;
@@ -330,7 +330,7 @@ const selected = filter ? cases.filter(match) : cases;
 const rows: Row[] = [];
 const problems: string[] = [];
 
-// Parent driver: one child per case, each measuring a single schema in a fresh process. Children re-enter this file with the case id; execArgv carries the runtime flags and `--conditions`, so the child resolves zod the same way.
+// Parent driver: one child per case, each measuring a single schema in a fresh process. Children re-enter this file with the case id; execArgv carries the runtime flags and `--conditions`, so the child resolves schema the same way.
 if (!filter && isolate) {
   for (const c of cases) {
     const id = `${c.group}/${c.name}`;
@@ -362,22 +362,22 @@ for (const c of selected) {
   const pool = Array.from({ length: 64 }, () => c.input);
   let idx = 0;
   const runtimeParse = () => {
-    const r = c.schema.safeParse(pool[idx++ & 63]);
+    const r = c.Schema.safeParse(pool[idx++ & 63]);
     sink += r.success ? 1 : 0;
     escaped = r;
   };
 
-  let compiledSchema: z.ZodType | null = null;
+  let compiledSchema: Schema.SchemaType | null = null;
   let status = "compiled";
   try {
     // Strict: this table classifies refusals, so it wants the error rather than the silent uncompiled fallback.
     compiledSchema = compile(c.schema, { strict: true });
   } catch (err) {
-    status = err instanceof ZodCompileUnsupportedError ? "fallback" : `refused: ${(err as Error).name}`;
+    status = err instanceof SchemaCompileUnsupportedError ? "fallback" : `refused: ${(err as Error).name}`;
   }
 
   // Correctness gate. Benchmarking a fast path that disagrees with the runtime measures the wrong thing, so a mismatch is reported instead of timed.
-  const expected = c.schema.safeParse(c.input);
+  const expected = c.Schema.safeParse(c.input);
   if (!expected.success) {
     problems.push(`${c.group}/${c.name}: input does not parse under the runtime`);
     continue;

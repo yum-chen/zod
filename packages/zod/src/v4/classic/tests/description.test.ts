@@ -1,32 +1,32 @@
 import { expect, test } from "vitest";
 
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 const description = "a description";
 
 // test("passing `description` to schema should add a description", () => {
-//   expect(z.string({ description }).description).toEqual(description);
-//   expect(z.number({ description }).description).toEqual(description);
-//   expect(z.boolean({ description }).description).toEqual(description);
+//   expect(Schema.string({ description }).description).toEqual(description);
+//   expect(Schema.number({ description }).description).toEqual(description);
+//   expect(Schema.boolean({ description }).description).toEqual(description);
 // });
 
 test(".describe", () => {
-  expect(z.string().describe(description).description).toEqual(description);
-  expect(z.number().describe(description).description).toEqual(description);
-  expect(z.boolean().describe(description).description).toEqual(description);
+  expect(Schema.string().describe(description).description).toEqual(description);
+  expect(Schema.number().describe(description).description).toEqual(description);
+  expect(Schema.boolean().describe(description).description).toEqual(description);
 });
 
-test("adding description with z.globalRegistry", () => {
-  const schema = z.string();
-  z.core.globalRegistry.add(schema, { description });
-  z.core.globalRegistry.get(schema);
-  expect(schema.description).toEqual(description);
+test("adding description with Schema.globalRegistry", () => {
+  const schema = Schema.string();
+  Schema.core.globalRegistry.add(schema, { description });
+  Schema.core.globalRegistry.get(schema);
+  expect(Schema.description).toEqual(description);
 });
 
-// in Zod 4 descriptions are not inherited
+// in Schema 4 descriptions are not inherited
 // test("description should carry over to chained schemas", () => {
-//   const schema = z.string().describe(description);
-//   expect(schema.description).toEqual(description);
-//   expect(schema.optional().description).toEqual(description);
-//   expect(schema.optional().nullable().default("default").description).toEqual(description);
+//   const schema = Schema.string().describe(description);
+//   expect(Schema.description).toEqual(description);
+//   expect(Schema.optional().description).toEqual(description);
+//   expect(Schema.optional().nullable().default("default").description).toEqual(description);
 // });

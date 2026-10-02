@@ -1,30 +1,30 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("safeExtend chaining preserves and overrides properties", () => {
-  const schema1 = z.object({
-    email: z.string(),
+  const schema1 = Schema.object({
+    email: Schema.string(),
   });
 
   const schema2 = schema1.safeExtend({
-    email: schema1.shape.email.check(z.email()),
+    email: schema1.shape.email.check(Schema.email()),
   });
 
   const schema3 = schema2.safeExtend({
-    email: schema2.shape.email.or(z.literal("")),
+    email: schema2.shape.email.or(Schema.literal("")),
   });
 
   schema3.parse({ email: "test@example.com" });
 });
 
 test("extend with constructor field in shape", () => {
-  const baseSchema = z.object({
-    name: z.string(),
+  const baseSchema = Schema.object({
+    name: Schema.string(),
   });
 
   const extendedSchema = baseSchema.extend({
-    constructor: z.string(),
-    age: z.number(),
+    constructor: Schema.string(),
+    age: Schema.number(),
   });
 
   const result = extendedSchema.parse({
@@ -48,8 +48,8 @@ test("extend with constructor field in shape", () => {
 
   for (const testCase of testCases) {
     const anyConstructorSchema = baseSchema.extend({
-      constructor: z.any(),
-      age: z.number(),
+      constructor: Schema.any(),
+      age: Schema.number(),
     });
 
     expect(() => anyConstructorSchema.parse(testCase)).not.toThrow();

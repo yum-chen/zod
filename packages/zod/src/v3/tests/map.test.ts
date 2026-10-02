@@ -1,12 +1,12 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import * as z from "zod/v3";
-import { ZodIssueCode } from "zod/v3";
+import * as Schema from "schema/v3";
+import { SchemaIssueCode } from "schema/v3";
 import { util } from "../helpers/util.js";
 
-const stringMap = z.map(z.string(), z.string());
-type stringMap = z.infer<typeof stringMap>;
+const stringMap = Schema.map(Schema.string(), Schema.string());
+type stringMap = Schema.infer<typeof stringMap>;
 
 test("type inference", () => {
   util.assertEqual<stringMap, Map<string, string>>(true);
@@ -49,7 +49,7 @@ test("throws when a Set is given", () => {
   expect(result.success).toEqual(false);
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(1);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.invalid_type);
   }
 });
 
@@ -58,9 +58,9 @@ test("throws when the given map has invalid key and invalid input", () => {
   expect(result.success).toEqual(false);
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(2);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[0].path).toEqual([0, "key"]);
-    expect(result.error.issues[1].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[1].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[1].path).toEqual([0, "value"]);
   }
 });
@@ -79,19 +79,19 @@ test("throws when the given map has multiple invalid entries", () => {
   expect(result.success).toEqual(false);
   if (result.success === false) {
     expect(result.error.issues.length).toEqual(2);
-    expect(result.error.issues[0].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[0].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[0].path).toEqual([0, "key"]);
-    expect(result.error.issues[1].code).toEqual(ZodIssueCode.invalid_type);
+    expect(result.error.issues[1].code).toEqual(SchemaIssueCode.invalid_type);
     expect(result.error.issues[1].path).toEqual([1, "value"]);
   }
 });
 
 test("dirty", async () => {
-  const map = z.map(
-    z.string().refine((val) => val === val.toUpperCase(), {
+  const map = Schema.map(
+    Schema.string().refine((val) => val === val.toUpperCase(), {
       message: "Keys must be uppercase",
     }),
-    z.string()
+    Schema.string()
   );
   const result = await map.spa(
     new Map([
@@ -102,9 +102,9 @@ test("dirty", async () => {
   expect(result.success).toEqual(false);
   if (!result.success) {
     expect(result.error.issues.length).toEqual(2);
-    expect(result.error.issues[0].code).toEqual(z.ZodIssueCode.custom);
+    expect(result.error.issues[0].code).toEqual(Schema.SchemaIssueCode.custom);
     expect(result.error.issues[0].message).toEqual("Keys must be uppercase");
-    expect(result.error.issues[1].code).toEqual(z.ZodIssueCode.custom);
+    expect(result.error.issues[1].code).toEqual(Schema.SchemaIssueCode.custom);
     expect(result.error.issues[1].message).toEqual("Keys must be uppercase");
   }
 });

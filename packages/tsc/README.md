@@ -1,7 +1,7 @@
-# Zod perftesting
+# Schema perftesting
 
-Run `nub run generate` to generate random Zod schemas.
+Run `nub run generate` to generate random Schema schemas.
 
 Run `nub run build:bench` to run `tsc` with `extendedDiagnostics`.
 
-The workspace dependency points to the local Zod package. Rebuild Zod after changing its typings.
+The workspace dependency points to the local Schema package. Rebuild Schema after changing its typings.

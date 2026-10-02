@@ -15,7 +15,7 @@ test("", () => {});
 //   });
 //   const sourceFile = project.addSourceFileAtPath(filePath);
 
-//   test("works for object properties inferred from z.object()", () => {
+//   test("works for object properties inferred from Schema.object()", () => {
 //     // Find usage of Test.f1 property
 //     const instanceVariable =
 //       sourceFile.getVariableDeclarationOrThrow("instanceOfTest");
@@ -30,12 +30,12 @@ test("", () => {});
 //       SyntaxKind.VariableDeclaration
 //     );
 
-//     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     // Assert that find definition returned the Schema definition of Test
+//     expect(definitionOfProperty?.getText()).toEqual("f1: Schema.number()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   // test("works for first object properties inferred from z.object().merge()", () => {
+//   // test("works for first object properties inferred from Schema.object().merge()", () => {
 //   //   // Find usage of TestMerge.f1 property
 //   //   const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //   //     "instanceOfTestMerge"
@@ -51,12 +51,12 @@ test("", () => {});
 //   //     SyntaxKind.VariableDeclaration
 //   //   );
 
-//   //   // Assert that find definition returned the Zod definition of Test
-//   //   expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//   //   // Assert that find definition returned the Schema definition of Test
+//   //   expect(definitionOfProperty?.getText()).toEqual("f1: Schema.number()");
 //   //   expect(parentOfProperty?.getName()).toEqual("Test");
 //   // });
 
-//   // test("works for second object properties inferred from z.object().merge()", () => {
+//   // test("works for second object properties inferred from Schema.object().merge()", () => {
 //   //   // Find usage of TestMerge.f2 property
 //   //   const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //   //     "instanceOfTestMerge"
@@ -72,14 +72,14 @@ test("", () => {});
 //   //     SyntaxKind.VariableDeclaration
 //   //   );
 
-//   //   // Assert that find definition returned the Zod definition of TestMerge
+//   //   // Assert that find definition returned the Schema definition of TestMerge
 //   //   expect(definitionOfProperty?.getText()).toEqual(
-//   //     "f2: z.string().optional()"
+//   //     "f2: Schema.string().optional()"
 //   //   );
 //   //   expect(parentOfProperty?.getName()).toEqual("TestMerge");
 //   // });
 
-//   test("works for first object properties inferred from z.union()", () => {
+//   test("works for first object properties inferred from Schema.union()", () => {
 //     // Find usage of TestUnion.f1 property
 //     const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //       "instanceOfTestUnion"
@@ -95,12 +95,12 @@ test("", () => {});
 //       SyntaxKind.VariableDeclaration
 //     );
 
-//     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     // Assert that find definition returned the Schema definition of Test
+//     expect(definitionOfProperty?.getText()).toEqual("f1: Schema.number()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   test("works for second object properties inferred from z.union()", () => {
+//   test("works for second object properties inferred from Schema.union()", () => {
 //     // Find usage of TestUnion.f2 property
 //     const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //       "instanceOfTestUnion"
@@ -116,14 +116,14 @@ test("", () => {});
 //       SyntaxKind.VariableDeclaration
 //     );
 
-//     // Assert that find definition returned the Zod definition of TestUnion
+//     // Assert that find definition returned the Schema definition of TestUnion
 //     expect(definitionOfProperty?.getText()).toEqual(
-//       "f2: z.string().optional()"
+//       "f2: Schema.string().optional()"
 //     );
 //     expect(parentOfProperty?.getName()).toEqual("TestUnion");
 //   });
 
-//   test("works for object properties inferred from z.object().partial()", () => {
+//   test("works for object properties inferred from Schema.object().partial()", () => {
 //     // Find usage of TestPartial.f1 property
 //     const instanceVariable = sourceFile.getVariableDeclarationOrThrow(
 //       "instanceOfTestPartial"
@@ -139,12 +139,12 @@ test("", () => {});
 //       SyntaxKind.VariableDeclaration
 //     );
 
-//     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     // Assert that find definition returned the Schema definition of Test
+//     expect(definitionOfProperty?.getText()).toEqual("f1: Schema.number()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   test("works for object properties inferred from z.object().pick()", () => {
+//   test("works for object properties inferred from Schema.object().pick()", () => {
 //     // Find usage of TestPick.f1 property
 //     const instanceVariable =
 //       sourceFile.getVariableDeclarationOrThrow("instanceOfTestPick");
@@ -159,12 +159,12 @@ test("", () => {});
 //       SyntaxKind.VariableDeclaration
 //     );
 
-//     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     // Assert that find definition returned the Schema definition of Test
+//     expect(definitionOfProperty?.getText()).toEqual("f1: Schema.number()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 
-//   test("works for object properties inferred from z.object().omit()", () => {
+//   test("works for object properties inferred from Schema.object().omit()", () => {
 //     // Find usage of TestOmit.f1 property
 //     const instanceVariable =
 //       sourceFile.getVariableDeclarationOrThrow("instanceOfTestOmit");
@@ -179,8 +179,8 @@ test("", () => {});
 //       SyntaxKind.VariableDeclaration
 //     );
 
-//     // Assert that find definition returned the Zod definition of Test
-//     expect(definitionOfProperty?.getText()).toEqual("f1: z.number()");
+//     // Assert that find definition returned the Schema definition of Test
+//     expect(definitionOfProperty?.getText()).toEqual("f1: Schema.number()");
 //     expect(parentOfProperty?.getName()).toEqual("Test");
 //   });
 // });

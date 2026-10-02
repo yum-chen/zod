@@ -1,11 +1,11 @@
 // @ts-ignore TS6133
 import { expect, test } from "vitest";
 
-import { z } from "zod/v3";
+import { Schema } from "schema/v3";
 import { util } from "../helpers/util.js";
 
 test("basic defaults", () => {
-  expect(z.string().default("default").parse(undefined)).toBe("default");
+  expect(Schema.string().default("default").parse(undefined)).toBe("default");
 });
 
 test("default with transform", () => {
@@ -14,35 +14,35 @@ test("default with transform", () => {
     .transform((val) => val.toUpperCase())
     .default("default");
   expect(stringWithDefault.parse(undefined)).toBe("DEFAULT");
-  expect(stringWithDefault).toBeInstanceOf(z.ZodDefault);
-  expect(stringWithDefault._def.innerType).toBeInstanceOf(z.ZodEffects);
-  expect(stringWithDefault._def.innerType._def.schema).toBeInstanceOf(z.ZodSchema);
+  expect(stringWithDefault).toBeInstanceOf(Schema.SchemaDefault);
+  expect(stringWithDefault._def.innerType).toBeInstanceOf(Schema.SchemaEffects);
+  expect(stringWithDefault._def.innerType._def.schema).toBeInstanceOf(Schema.SchemaSchema);
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   util.assertEqual<inp, string | undefined>(true);
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   util.assertEqual<out, string>(true);
 });
 
 test("default on existing optional", () => {
-  const stringWithDefault = z.string().optional().default("asdf");
+  const stringWithDefault = Schema.string().optional().default("asdf");
   expect(stringWithDefault.parse(undefined)).toBe("asdf");
-  expect(stringWithDefault).toBeInstanceOf(z.ZodDefault);
-  expect(stringWithDefault._def.innerType).toBeInstanceOf(z.ZodOptional);
-  expect(stringWithDefault._def.innerType._def.innerType).toBeInstanceOf(z.ZodString);
+  expect(stringWithDefault).toBeInstanceOf(Schema.SchemaDefault);
+  expect(stringWithDefault._def.innerType).toBeInstanceOf(Schema.SchemaOptional);
+  expect(stringWithDefault._def.innerType._def.innerType).toBeInstanceOf(Schema.SchemaString);
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   util.assertEqual<inp, string | undefined>(true);
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   util.assertEqual<out, string>(true);
 });
 
 test("optional on default", () => {
-  const stringWithDefault = z.string().default("asdf").optional();
+  const stringWithDefault = Schema.string().default("asdf").optional();
 
-  type inp = z.input<typeof stringWithDefault>;
+  type inp = Schema.input<typeof stringWithDefault>;
   util.assertEqual<inp, string | undefined>(true);
-  type out = z.output<typeof stringWithDefault>;
+  type out = Schema.output<typeof stringWithDefault>;
   util.assertEqual<out, string | undefined>(true);
 });
 
@@ -60,20 +60,20 @@ test("complex chain example", () => {
 });
 
 test("removeDefault", () => {
-  const stringWithRemovedDefault = z.string().default("asdf").removeDefault();
+  const stringWithRemovedDefault = Schema.string().default("asdf").removeDefault();
 
-  type out = z.output<typeof stringWithRemovedDefault>;
+  type out = Schema.output<typeof stringWithRemovedDefault>;
   util.assertEqual<out, string>(true);
 });
 
 test("nested", () => {
-  const inner = z.string().default("asdf");
-  const outer = z.object({ inner }).default({
+  const inner = Schema.string().default("asdf");
+  const outer = Schema.object({ inner }).default({
     inner: undefined,
   });
-  type input = z.input<typeof outer>;
+  type input = Schema.input<typeof outer>;
   util.assertEqual<input, { inner?: string | undefined } | undefined>(true);
-  type out = z.output<typeof outer>;
+  type out = Schema.output<typeof outer>;
   util.assertEqual<out, { inner: string }>(true);
   expect(outer.parse(undefined)).toEqual({ inner: "asdf" });
   expect(outer.parse({})).toEqual({ inner: "asdf" });
@@ -81,13 +81,13 @@ test("nested", () => {
 });
 
 test("chained defaults", () => {
-  const stringWithDefault = z.string().default("inner").default("outer");
+  const stringWithDefault = Schema.string().default("inner").default("outer");
   const result = stringWithDefault.parse(undefined);
   expect(result).toEqual("outer");
 });
 
 test("factory", () => {
-  expect(z.ZodDefault.create(z.string(), { default: "asdf" }).parse(undefined)).toEqual("asdf");
+  expect(Schema.SchemaDefault.create(Schema.string(), { default: "asdf" }).parse(undefined)).toEqual("asdf");
 });
 
 test("native enum", () => {
@@ -96,17 +96,17 @@ test("native enum", () => {
     orange = "orange",
   }
 
-  const schema = z.object({
-    fruit: z.nativeEnum(Fruits).default(Fruits.apple),
+  const schema = Schema.object({
+    fruit: Schema.nativeEnum(Fruits).default(Fruits.apple),
   });
 
-  expect(schema.parse({})).toEqual({ fruit: Fruits.apple });
+  expect(Schema.parse({})).toEqual({ fruit: Fruits.apple });
 });
 
 test("enum", () => {
-  const schema = z.object({
-    fruit: z.enum(["apple", "orange"]).default("apple"),
+  const schema = Schema.object({
+    fruit: Schema.enum(["apple", "orange"]).default("apple"),
   });
 
-  expect(schema.parse({})).toEqual({ fruit: "apple" });
+  expect(Schema.parse({})).toEqual({ fruit: "apple" });
 });

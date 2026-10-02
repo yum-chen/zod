@@ -1,9 +1,9 @@
 import { expect, expectTypeOf, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
-const args1 = z.tuple([z.string()]);
-const returns1 = z.number();
-const func1 = z.function({
+const args1 = Schema.tuple([Schema.string()]);
+const returns1 = Schema.number();
+const func1 = Schema.function({
   input: args1,
 
   output: returns1,
@@ -33,12 +33,12 @@ test("function inference 1", () => {
 });
 
 test("method parsing", () => {
-  const methodObject = z.object({
-    property: z.number(),
+  const methodObject = Schema.object({
+    property: Schema.number(),
     method: z
       .function()
-      .input(z.tuple([z.string()]))
-      .output(z.number()),
+      .input(Schema.tuple([Schema.string()]))
+      .output(Schema.number()),
   });
   const methodInstance = {
     property: 3,
@@ -51,9 +51,9 @@ test("method parsing", () => {
 });
 
 test("async method parsing", async () => {
-  const methodObject = z.object({
-    property: z.number(),
-    method: z.function().input([z.string()]).output(z.promise(z.number())),
+  const methodObject = Schema.object({
+    property: Schema.number(),
+    method: Schema.function().input([Schema.string()]).output(Schema.promise(Schema.number())),
   });
   const methodInstance = {
     property: 3,
@@ -66,40 +66,40 @@ test("async method parsing", async () => {
 });
 
 test("args method", () => {
-  const t1 = z.function();
+  const t1 = Schema.function();
   type t1 = (typeof t1)["_input"];
   expectTypeOf<t1>().toEqualTypeOf<(...args_1: never[]) => unknown>();
   t1._input;
 
-  const t2args = z.tuple([z.string()], z.unknown());
+  const t2args = Schema.tuple([Schema.string()], Schema.unknown());
 
   const t2 = t1.input(t2args);
   type t2 = (typeof t2)["_input"];
   expectTypeOf<t2>().toEqualTypeOf<(arg: string, ...args_1: unknown[]) => unknown>();
 
-  const t3 = t2.output(z.boolean());
+  const t3 = t2.output(Schema.boolean());
   type t3 = (typeof t3)["_input"];
   expectTypeOf<t3>().toEqualTypeOf<(arg: string, ...args_1: unknown[]) => boolean>();
 });
 
 // test("custom args", () => {
-//   const fn = z.function().implement((_a: string, _b: number) => {
+//   const fn = Schema.function().implement((_a: string, _b: number) => {
 //     return new Date();
 //   });
 
 //   expectTypeOf(fn).toEqualTypeOf<(a: string, b: number) => Date>();
 // });
 
-const args2 = z.tuple([
-  z.object({
-    f1: z.number(),
-    f2: z.string().nullable(),
-    f3: z.array(z.boolean().optional()).optional(),
+const args2 = Schema.tuple([
+  Schema.object({
+    f1: Schema.number(),
+    f2: Schema.string().nullable(),
+    f3: Schema.array(Schema.boolean().optional()).optional(),
   }),
 ]);
-const returns2 = z.union([z.string(), z.number()]);
+const returns2 = Schema.union([Schema.string(), Schema.number()]);
 
-const func2 = z.function({
+const func2 = Schema.function({
   input: args2,
   output: returns2,
 });
@@ -131,15 +131,15 @@ test("valid function run", () => {
 });
 
 const args3 = [
-  z.object({
-    f1: z.number(),
-    f2: z.string().nullable(),
-    f3: z.array(z.boolean().optional()).optional(),
+  Schema.object({
+    f1: Schema.number(),
+    f2: Schema.string().nullable(),
+    f3: Schema.array(Schema.boolean().optional()).optional(),
   }),
 ] as const;
-const returns3 = z.union([z.string(), z.number()]);
+const returns3 = Schema.union([Schema.string(), Schema.number()]);
 
-const func3 = z.function({
+const func3 = Schema.function({
   input: args3,
   output: returns3,
 });
@@ -171,11 +171,11 @@ test("valid function run", () => {
 });
 
 test("input validation error", () => {
-  const schema = z.function({
-    input: z.tuple([z.string()]),
-    output: z.void(),
+  const schema = Schema.function({
+    input: Schema.tuple([Schema.string()]),
+    output: Schema.void(),
   });
-  const fn = schema.implement(() => 1234 as any);
+  const fn = Schema.implement(() => 1234 as any);
 
   // @ts-expect-error
   const checker = () => fn();
@@ -199,25 +199,25 @@ test("input validation error", () => {
 });
 
 test("array inputs", () => {
-  const a = z.function({
+  const a = Schema.function({
     input: [
-      z.object({
-        name: z.string(),
-        age: z.number().int(),
+      Schema.object({
+        name: Schema.string(),
+        age: Schema.number().int(),
       }),
     ],
-    output: z.string(),
+    output: Schema.string(),
   });
 
   a.implement((args) => {
     return `${args.age}`;
   });
 
-  const b = z.function({
+  const b = Schema.function({
     input: [
-      z.object({
-        name: z.string(),
-        age: z.number().int(),
+      Schema.object({
+        name: Schema.string(),
+        age: Schema.number().int(),
       }),
     ],
   });
@@ -227,11 +227,11 @@ test("array inputs", () => {
 });
 
 test("output validation error", () => {
-  const schema = z.function({
-    input: z.tuple([]),
-    output: z.string(),
+  const schema = Schema.function({
+    input: Schema.tuple([]),
+    output: Schema.string(),
   });
-  const fn = schema.implement(() => 1234 as any);
+  const fn = Schema.implement(() => 1234 as any);
   try {
     fn();
   } catch (e: any) {
@@ -251,10 +251,10 @@ test("output validation error", () => {
 test("function with async refinements", async () => {
   const schema = z
     .function()
-    .input([z.string().refine(async (val) => val.length > 10)])
-    .output(z.promise(z.number().refine(async (val) => val > 10)));
+    .input([Schema.string().refine(async (val) => val.length > 10)])
+    .output(Schema.promise(Schema.number().refine(async (val) => val > 10)));
 
-  const func = schema.implementAsync(async (val) => {
+  const func = Schema.implementAsync(async (val) => {
     return val.length;
   });
   const results = [];
@@ -276,33 +276,33 @@ test("function with async refinements", async () => {
 
 test("implement async with transforms", async () => {
   const typeGuard = (data: string): data is "1234" => data === "1234";
-  const codeSchema = z.string().transform((data, ctx) => {
+  const codeSchema = Schema.string().transform((data, ctx) => {
     if (typeGuard(data)) {
       return data;
     } else {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: Schema.SchemaIssueCode.custom,
         message: "Invalid code",
       });
-      return z.NEVER;
+      return Schema.NEVER;
     }
   });
-  const inputSchema = z.object({
+  const inputSchema = Schema.object({
     code: codeSchema,
   });
-  const outputSchema = z.object({
-    data: z.array(z.string()).default([]),
+  const outputSchema = Schema.object({
+    data: Schema.array(Schema.string()).default([]),
   });
-  const fnImplementation = async (data: z.infer<typeof inputSchema>): Promise<z.infer<typeof outputSchema>> => {
+  const fnImplementation = async (data: Schema.infer<typeof inputSchema>): Promise<Schema.infer<typeof outputSchema>> => {
     return {
       data: [data.code],
     };
   };
-  const schema = z.function().input([inputSchema]).output(outputSchema);
+  const schema = Schema.function().input([inputSchema]).output(outputSchema);
 
-  const func = schema.implementAsync(fnImplementation);
+  const func = Schema.implementAsync(fnImplementation);
   type TheInterface = {
-    myFunction: (data: z.infer<typeof inputSchema>) => Promise<z.infer<typeof outputSchema>>;
+    myFunction: (data: Schema.infer<typeof inputSchema>) => Promise<Schema.infer<typeof outputSchema>>;
   };
   const theImplementation: TheInterface = {
     myFunction: func,
@@ -329,8 +329,8 @@ test("implement async with transforms", async () => {
 test("non async function with async refinements should fail", async () => {
   const func = z
     .function()
-    .input([z.string().refine(async (val) => val.length > 10)])
-    .output(z.number().refine(async (val) => val > 10))
+    .input([Schema.string().refine(async (val) => val.length > 10)])
+    .output(Schema.number().refine(async (val) => val > 10))
     .implement((val) => {
       return val.length;
     });
@@ -349,8 +349,8 @@ test("non async function with async refinements should fail", async () => {
 test("extra parameters with rest", () => {
   const maxLength5 = z
     .function()
-    .input([z.string()], z.unknown())
-    .output(z.boolean())
+    .input([Schema.string()], Schema.unknown())
+    .output(Schema.boolean())
     .implement((str, _arg, _qewr) => {
       return str.length <= 5;
     });
@@ -360,32 +360,32 @@ test("extra parameters with rest", () => {
 });
 
 test("implement exposes the function schema at runtime", () => {
-  const schema = z.function({ input: [z.string()], output: z.number() });
-  const fn = schema.implement((s) => s.length);
+  const schema = Schema.function({ input: [Schema.string()], output: Schema.number() });
+  const fn = Schema.implement((s) => s.length);
 
-  // Deliberately absent from implement()'s return type: reaching `_zod` takes a cast, so an implemented function never reads as a schema to TypeScript even though it does at runtime.
-  type HasZod = "_zod" extends keyof typeof fn ? true : false;
-  expectTypeOf<HasZod>().toEqualTypeOf<false>();
+  // Deliberately absent from implement()'s return type: reaching `_schema` takes a cast, so an implemented function never reads as a schema to TypeScript even though it does at runtime.
+  type HasSchema = "_schema" extends keyof typeof fn ? true : false;
+  expectTypeOf<HasSchema>().toEqualTypeOf<false>();
 
-  expect((fn as any)._zod).toBe(schema._zod);
-  expect((fn as any)._zod.def.input).toBe(schema._def.input);
-  expect((fn as any)._zod.def.output).toBe(schema._def.output);
+  expect((fn as any)._schema).toBe(Schema._schema);
+  expect((fn as any)._schema.def.input).toBe(Schema._def.input);
+  expect((fn as any)._schema.def.output).toBe(Schema._def.output);
   expect(Object.keys(fn)).toEqual([]);
-  expect(Object.getOwnPropertyDescriptor(fn, "_zod")).toMatchObject({ enumerable: false, writable: false });
+  expect(Object.getOwnPropertyDescriptor(fn, "_schema")).toMatchObject({ enumerable: false, writable: false });
   expect(fn("asdf")).toBe(4);
 });
 
 test("implementAsync exposes the function schema at runtime", async () => {
-  const schema = z.function({ input: [z.string()], output: z.promise(z.number()) });
-  const fn = schema.implementAsync(async (s) => s.length);
+  const schema = Schema.function({ input: [Schema.string()], output: Schema.promise(Schema.number()) });
+  const fn = Schema.implementAsync(async (s) => s.length);
 
-  expect((fn as any)._zod).toBe(schema._zod);
+  expect((fn as any)._schema).toBe(Schema._schema);
   await expect(fn("asdf")).resolves.toBe(4);
 });
 
 test("parsing through a function schema exposes it the same way", () => {
-  const schema = z.function({ input: [z.string()], output: z.number() });
-  const { handler } = z.object({ handler: schema }).parse({ handler: (s: string) => s.length });
+  const schema = Schema.function({ input: [Schema.string()], output: Schema.number() });
+  const { handler } = Schema.object({ handler: schema }).parse({ handler: (s: string) => s.length });
 
-  expect((handler as any)._zod).toBe(schema._zod);
+  expect((handler as any)._schema).toBe(Schema._schema);
 });

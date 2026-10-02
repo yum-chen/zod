@@ -1,8 +1,8 @@
-import { makeData, randomPick, randomString, zod4 as z4lib } from "./benchUtil.js";
+import { makeData, randomPick, randomString, schema4 as z4lib } from "./benchUtil.js";
 import { metabench } from "./metabench.js";
 
-import * as z3 from "zod/v3";
-import * as z4 from "zod/v4";
+import * as z3 from "schema/v3";
+import * as z4 from "schema/v4";
 
 const z3fields = {
   data1: z3.string(),
@@ -51,44 +51,44 @@ const z3DiscUnion = z3.discriminatedUnion("type", z3Union._def.options);
 
 function makeSchema(z: typeof z4) {
   const z4fields = {
-    data1: z.string(),
-    data2: z.string(),
-    data3: z.string(),
-    // data4: z.string(),
-    // data5: z.string(),
-    // data6: z.string(),
-    // data7: z.string(),
-    // data8: z.string(),
-    // data9: z.string(),
-    // data10: z.string(),
+    data1: Schema.string(),
+    data2: Schema.string(),
+    data3: Schema.string(),
+    // data4: Schema.string(),
+    // data5: Schema.string(),
+    // data6: Schema.string(),
+    // data7: Schema.string(),
+    // data8: Schema.string(),
+    // data9: Schema.string(),
+    // data10: Schema.string(),
   };
-  const z4Union = z.union([
-    z.object({
-      type: z.literal("a"),
+  const z4Union = Schema.union([
+    Schema.object({
+      type: Schema.literal("a"),
       ...z4fields,
     }),
-    z.object({
-      type: z.literal("b"),
+    Schema.object({
+      type: Schema.literal("b"),
       ...z4fields,
     }),
-    z.object({
-      type: z.literal("c"),
+    Schema.object({
+      type: Schema.literal("c"),
       ...z4fields,
     }),
-    z.object({
-      type: z.literal("d"),
+    Schema.object({
+      type: Schema.literal("d"),
       ...z4fields,
     }),
-    z.object({
-      type: z.literal("e"),
+    Schema.object({
+      type: Schema.literal("e"),
       ...z4fields,
     }),
-    z.object({
-      type: z.literal("f"),
+    Schema.object({
+      type: Schema.literal("f"),
       ...z4fields,
     }),
-    z.object({
-      type: z.literal("g"),
+    Schema.object({
+      type: Schema.literal("g"),
       ...z4fields,
     }),
   ]);
@@ -122,13 +122,13 @@ console.dir(z4DiscUnion.parse(DATA[0]), { depth: null });
 console.dir(z4LibUnion.parse(DATA[0]), { depth: null });
 console.dir(z4LibDiscUnion.parse(DATA[0]), { depth: null });
 
-const bench = metabench("z.discriminatedUnion().parse", {
+const bench = metabench("Schema.discriminatedUnion().parse", {
   // z3() {
   //   for (const item of DATA) {
   //     z3Union.parse(item);
   //   }
   // },
-  "zod 3"() {
+  "schema 3"() {
     for (const item of DATA) {
       z3DiscUnion.parse(item);
     }
@@ -143,12 +143,12 @@ const bench = metabench("z.discriminatedUnion().parse", {
   //     z4Union.parse(item, args);
   //   }
   // },
-  "zod 4 (after)"() {
+  "schema 4 (after)"() {
     for (const item of DATA) {
       z4DiscUnion.parse(item);
     }
   },
-  "zod 4 (before)"() {
+  "schema 4 (before)"() {
     for (const item of DATA) {
       z4LibDiscUnion.parse(item);
     }

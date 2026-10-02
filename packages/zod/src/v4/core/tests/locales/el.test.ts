@@ -1,12 +1,12 @@
 import { expect, test } from "vitest";
-import { z } from "../../../../index.js";
+import { Schema } from "../../../../index.js";
 import el from "../../../locales/el.js";
 
 test("Greek locale - too_small errors", () => {
-  z.config(el());
+  Schema.config(el());
 
   // Test string type translation
-  const stringSchema = z.string().min(5);
+  const stringSchema = Schema.string().min(5);
   const stringResult = stringSchema.safeParse("abc");
   expect(stringResult.success).toBe(false);
   if (!stringResult.success) {
@@ -14,7 +14,7 @@ test("Greek locale - too_small errors", () => {
   }
 
   // Test number type translation
-  const numberSchema = z.number().min(10);
+  const numberSchema = Schema.number().min(10);
   const numberResult = numberSchema.safeParse(5);
   expect(numberResult.success).toBe(false);
   if (!numberResult.success) {
@@ -22,7 +22,7 @@ test("Greek locale - too_small errors", () => {
   }
 
   // Test array type translation
-  const arraySchema = z.array(z.string()).min(3);
+  const arraySchema = Schema.array(Schema.string()).min(3);
   const arrayResult = arraySchema.safeParse(["a", "b"]);
   expect(arrayResult.success).toBe(false);
   if (!arrayResult.success) {
@@ -30,7 +30,7 @@ test("Greek locale - too_small errors", () => {
   }
 
   // Test set type translation
-  const setSchema = z.set(z.string()).min(2);
+  const setSchema = Schema.set(Schema.string()).min(2);
   const setResult = setSchema.safeParse(new Set(["a"]));
   expect(setResult.success).toBe(false);
   if (!setResult.success) {
@@ -39,10 +39,10 @@ test("Greek locale - too_small errors", () => {
 });
 
 test("Greek locale - too_big errors", () => {
-  z.config(el());
+  Schema.config(el());
 
   // Test string type translation
-  const stringSchema = z.string().max(3);
+  const stringSchema = Schema.string().max(3);
   const stringResult = stringSchema.safeParse("abcde");
   expect(stringResult.success).toBe(false);
   if (!stringResult.success) {
@@ -50,7 +50,7 @@ test("Greek locale - too_big errors", () => {
   }
 
   // Test number type translation
-  const numberSchema = z.number().max(10);
+  const numberSchema = Schema.number().max(10);
   const numberResult = numberSchema.safeParse(15);
   expect(numberResult.success).toBe(false);
   if (!numberResult.success) {
@@ -58,7 +58,7 @@ test("Greek locale - too_big errors", () => {
   }
 
   // Test array type translation
-  const arraySchema = z.array(z.string()).max(2);
+  const arraySchema = Schema.array(Schema.string()).max(2);
   const arrayResult = arraySchema.safeParse(["a", "b", "c"]);
   expect(arrayResult.success).toBe(false);
   if (!arrayResult.success) {
@@ -67,10 +67,10 @@ test("Greek locale - too_big errors", () => {
 });
 
 test("Greek locale - invalid_type errors", () => {
-  z.config(el());
+  Schema.config(el());
 
   // Test string expected, number received
-  const stringSchema = z.string();
+  const stringSchema = Schema.string();
   const stringResult = stringSchema.safeParse(123);
   expect(stringResult.success).toBe(false);
   if (!stringResult.success) {
@@ -78,7 +78,7 @@ test("Greek locale - invalid_type errors", () => {
   }
 
   // Test number expected, string received
-  const numberSchema = z.number();
+  const numberSchema = Schema.number();
   const numberResult = numberSchema.safeParse("abc");
   expect(numberResult.success).toBe(false);
   if (!numberResult.success) {
@@ -86,7 +86,7 @@ test("Greek locale - invalid_type errors", () => {
   }
 
   // Test boolean expected, null received
-  const booleanSchema = z.boolean();
+  const booleanSchema = Schema.boolean();
   const booleanResult = booleanSchema.safeParse(null);
   expect(booleanResult.success).toBe(false);
   if (!booleanResult.success) {
@@ -94,7 +94,7 @@ test("Greek locale - invalid_type errors", () => {
   }
 
   // Test array expected, object received
-  const arraySchema = z.array(z.string());
+  const arraySchema = Schema.array(Schema.string());
   const arrayResult = arraySchema.safeParse({});
   expect(arrayResult.success).toBe(false);
   if (!arrayResult.success) {
@@ -103,10 +103,10 @@ test("Greek locale - invalid_type errors", () => {
 });
 
 test("Greek locale - other error cases", () => {
-  z.config(el());
+  Schema.config(el());
 
   // Test invalid_element with map (only "map" | "set" produce invalid_element)
-  const mapSchema = z.map(z.bigint(), z.number());
+  const mapSchema = Schema.map(Schema.bigint(), Schema.number());
   const mapResult = mapSchema.safeParse(new Map([[BigInt(123), BigInt(123)]]));
   expect(mapResult.success).toBe(false);
   if (!mapResult.success) {
@@ -115,7 +115,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_key with record (only "map" | "record" produce invalid_key)
-  const recordSchema = z.record(z.number(), z.string());
+  const recordSchema = Schema.record(Schema.number(), Schema.string());
   const recordResult = recordSchema.safeParse({ notANumber: "value" });
   expect(recordResult.success).toBe(false);
   if (!recordResult.success) {
@@ -124,7 +124,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_value with enum
-  const enumSchema = z.enum(["a", "b"]);
+  const enumSchema = Schema.enum(["a", "b"]);
   const enumResult = enumSchema.safeParse("c");
   expect(enumResult.success).toBe(false);
   if (!enumResult.success) {
@@ -132,7 +132,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test not_multiple_of
-  const multipleSchema = z.number().multipleOf(3);
+  const multipleSchema = Schema.number().multipleOf(3);
   const multipleResult = multipleSchema.safeParse(10);
   expect(multipleResult.success).toBe(false);
   if (!multipleResult.success) {
@@ -140,7 +140,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test unrecognized_keys (single key)
-  const strictSchema = z.object({ a: z.string() }).strict();
+  const strictSchema = Schema.object({ a: Schema.string() }).strict();
   const strictResult = strictSchema.safeParse({ a: "test", b: "extra" });
   expect(strictResult.success).toBe(false);
   if (!strictResult.success) {
@@ -159,7 +159,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_union
-  const unionSchema = z.union([z.string(), z.number()]);
+  const unionSchema = Schema.union([Schema.string(), Schema.number()]);
   const unionResult = unionSchema.safeParse(true);
   expect(unionResult.success).toBe(false);
   if (!unionResult.success) {
@@ -167,7 +167,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_format with regex
-  const regexSchema = z.string().regex(/^[a-z]+$/);
+  const regexSchema = Schema.string().regex(/^[a-z]+$/);
   const regexResult = regexSchema.safeParse("ABC123");
   expect(regexResult.success).toBe(false);
   if (!regexResult.success) {
@@ -177,7 +177,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_format with startsWith
-  const startsWithSchema = z.string().startsWith("hello");
+  const startsWithSchema = Schema.string().startsWith("hello");
   const startsWithResult = startsWithSchema.safeParse("world");
   expect(startsWithResult.success).toBe(false);
   if (!startsWithResult.success) {
@@ -185,7 +185,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_format with endsWith
-  const endsWithSchema = z.string().endsWith("world");
+  const endsWithSchema = Schema.string().endsWith("world");
   const endsWithResult = endsWithSchema.safeParse("hello");
   expect(endsWithResult.success).toBe(false);
   if (!endsWithResult.success) {
@@ -193,7 +193,7 @@ test("Greek locale - other error cases", () => {
   }
 
   // Test invalid_format with includes
-  const includesSchema = z.string().includes("test");
+  const includesSchema = Schema.string().includes("test");
   const includesResult = includesSchema.safeParse("hello");
   expect(includesResult.success).toBe(false);
   if (!includesResult.success) {
@@ -202,10 +202,10 @@ test("Greek locale - other error cases", () => {
 });
 
 test("Greek locale - invalid_type with instanceof (class-name expected)", () => {
-  z.config(el());
+  Schema.config(el());
 
   // When `expected` starts with a capital letter, render an `instanceof` message, matching the convention used by most other locales (de, es, fr, it, etc.).
-  const dateSchema = z.instanceof(Date);
+  const dateSchema = Schema.instanceof(Date);
   const dateResult = dateSchema.safeParse("not a date");
   expect(dateResult.success).toBe(false);
   if (!dateResult.success) {

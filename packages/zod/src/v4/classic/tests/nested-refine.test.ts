@@ -1,10 +1,10 @@
 import { expect, test } from "vitest";
-import * as z from "zod/v4";
+import * as Schema from "schema/v4";
 
 test("nested refinements", () => {
-  const zodSchema = z
+  const schemaSchema = z
     .object({
-      password: z.string().min(1),
+      password: Schema.string().min(1),
       nested: z
         .object({
           confirm: z
@@ -38,9 +38,9 @@ test("nested refinements", () => {
     password: "bar",
     nested: { confirm: "" },
   };
-  expect(zodSchema.safeParse(DATA)).toMatchInlineSnapshot(`
+  expect(schemaSchema.safeParse(DATA)).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "string",
         "code": "too_small",
@@ -81,9 +81,9 @@ test("nested refinements", () => {
     }
   `);
 
-  expect(zodSchema.safeParse(DATA, { jitless: true })).toMatchInlineSnapshot(`
+  expect(schemaSchema.safeParse(DATA, { jitless: true })).toMatchInlineSnapshot(`
     {
-      "error": [ZodError: [
+      "error": [SchemaError: [
       {
         "origin": "string",
         "code": "too_small",
@@ -124,7 +124,7 @@ test("nested refinements", () => {
     }
   `);
 
-  expect(zodSchema["~standard"].validate(DATA)).toMatchInlineSnapshot(`
+  expect(schemaSchema["~standard"].validate(DATA)).toMatchInlineSnapshot(`
     {
       "issues": [
         {

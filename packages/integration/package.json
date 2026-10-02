@@ -1,5 +1,5 @@
 {
-  "name": "@zod/integration",
+  "name": "@schema/integration",
   "type": "module",
   "private": true,
   "version": "1.0.0",
@@ -9,16 +9,16 @@
     "@types/node": "^22.13.13",
     "ai": "^6.0.5",
     "drizzle-orm": "^0.45.2",
-    "drizzle-zod": "^0.8.3",
+    "drizzle-schema": "^0.8.3",
     "typescript": "^5.8.2"
   },
   "scripts": {
     "test:all": "nub run test:source && nub run test:built",
-    "test:source": "nub exec --node tsc --project fixtures/drizzle-zod/tsconfig.json 2>&1 | (! grep -q 'excessively deep') && nub exec --node tsc --project fixtures/ai-sdk/tsconfig.json",
+    "test:source": "nub exec --node tsc --project fixtures/drizzle-schema/tsconfig.json 2>&1 | (! grep -q 'excessively deep') && nub exec --node tsc --project fixtures/ai-sdk/tsconfig.json",
     "test:built": "nub exec --node tsc --project fixtures/internal-types/tsconfig.bundler.json && nub exec --node tsc --project fixtures/internal-types/tsconfig.nodenext.json && nub exec --node tsc --project fixtures/internal-types/tsconfig.node16-cjs.json"
   },
   "dependencies": {
-    "zod": "workspace:*",
-    "@zod/mini": "workspace:*"
+    "schema": "workspace:*",
+    "@schema/mini": "workspace:*"
   }
 }

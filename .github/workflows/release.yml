@@ -43,8 +43,8 @@ jobs:
       - run: nub run build
       - run: nub add typescript@${{ matrix.typescript }} -Dw
       - run: nub run test
-      - run: nub run --filter @zod/resolution test:all
-      - run: nub run --filter @zod/integration test:all
+      - run: nub run --filter @schema/resolution test:all
+      - run: nub run --filter @schema/integration test:all
 
   lint:
     runs-on: ubuntu-latest
@@ -87,7 +87,7 @@ jobs:
       contents: read
       id-token: write
     outputs:
-      zod: ${{ steps.version.outputs.zod }}
+      schema: ${{ steps.version.outputs.schema }}
       mini: ${{ steps.version.outputs.mini }}
       # both versions are served already (a re-dispatch after the approval), so there is nothing to wait for and `approval` is skipped
       served: ${{ steps.served.outputs.served }}
@@ -117,9 +117,9 @@ jobs:
       - run: nub install --frozen-lockfile
       - run: nub run build
       - run: nub run test
-      - run: nub run --filter @zod/resolution test:all
+      - run: nub run --filter @schema/resolution test:all
       - run: nub run prepublishOnly
-        working-directory: ./packages/zod
+        working-directory: ./packages/schema
       - run: nub run prepublishOnly
         working-directory: ./packages/mini
 
@@ -127,17 +127,17 @@ jobs:
       - name: Resolve the versions
         id: version
         run: |
-          echo "zod=$(nub --node -p "require('./packages/zod/package.json').version")" >> "$GITHUB_OUTPUT"
+          echo "schema=$(nub --node -p "require('./packages/schema/package.json').version")" >> "$GITHUB_OUTPUT"
           echo "mini=$(nub --node -p "require('./packages/mini/package.json').version")" >> "$GITHUB_OUTPUT"
 
       # This job cannot publish. Both trusted publishers are stage-only, so all it can do is put a version in npm's staged queue, where it is not installable and its number is reserved; a maintainer then approves it with 2FA. A credential that reaches this workflow can therefore fill a queue and nothing else.
-      - name: Stage zod on npm
+      - name: Stage schema on npm
         env:
-          VERSION: ${{ steps.version.outputs.zod }}
-        run: bash .github/scripts/npm-stage-publish.sh packages/zod --provenance
+          VERSION: ${{ steps.version.outputs.schema }}
+        run: bash .github/scripts/npm-stage-publish.sh packages/schema --provenance
 
-      # @zod/mini ships in lockstep with zod and is a no-op when its version is already on the registry, so it runs unconditionally (the first release of the scoped package rides on a merge that does not bump zod itself). It is staged here, next to zod and before the wait, so both versions are in the queue when the maintainer sits down: one approval session covers the pair, and `pnpm stage approve` takes them under a single one-time password. Under the old irreversible publish this step ran last, so that a failed @zod/mini publish could not cost zod its tag; staging removes that hazard, because a failure here leaves zod staged and unapproved rather than live and unmatched.
-      - name: Stage @zod/mini on npm
+      # @schema/mini ships in lockstep with schema and is a no-op when its version is already on the registry, so it runs unconditionally (the first release of the scoped package rides on a merge that does not bump schema itself). It is staged here, next to schema and before the wait, so both versions are in the queue when the maintainer sits down: one approval session covers the pair, and `pnpm stage approve` takes them under a single one-time password. Under the old irreversible publish this step ran last, so that a failed @schema/mini publish could not cost schema its tag; staging removes that hazard, because a failure here leaves schema staged and unapproved rather than live and unmatched.
+      - name: Stage @schema/mini on npm
         env:
           VERSION: ${{ steps.version.outputs.mini }}
         run: bash .github/scripts/npm-stage-publish.sh packages/mini --provenance --access public
@@ -145,12 +145,12 @@ jobs:
       - name: Check whether npm serves both versions
         id: served
         env:
-          ZOD_VERSION: ${{ steps.version.outputs.zod }}
+          ZOD_VERSION: ${{ steps.version.outputs.schema }}
           MINI_VERSION: ${{ steps.version.outputs.mini }}
         run: |
-          if curl -sf "https://registry.npmjs.org/zod/$ZOD_VERSION" > /dev/null && curl -sf "https://registry.npmjs.org/@zod%2fmini/$MINI_VERSION" > /dev/null; then
+          if curl -sf "https://registry.npmjs.org/schema/$ZOD_VERSION" > /dev/null && curl -sf "https://registry.npmjs.org/@schema%2fmini/$MINI_VERSION" > /dev/null; then
             echo "served=true" >> "$GITHUB_OUTPUT"
-            echo "zod@$ZOD_VERSION and @zod/mini@$MINI_VERSION are both served; no approval to wait for"
+            echo "schema@$ZOD_VERSION and @schema/mini@$MINI_VERSION are both served; no approval to wait for"
           else
             echo "served=false" >> "$GITHUB_OUTPUT"
           fi
@@ -158,7 +158,7 @@ jobs:
       - name: Say how to approve
         if: steps.served.outputs.served != 'true'
         env:
-          ZOD_VERSION: ${{ steps.version.outputs.zod }}
+          ZOD_VERSION: ${{ steps.version.outputs.schema }}
           MINI_VERSION: ${{ steps.version.outputs.mini }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
@@ -166,17 +166,17 @@ jobs:
           {
             echo "## Staged on npm, waiting for approval"
             echo
-            echo "- \`zod@$ZOD_VERSION\`"
-            echo "- \`@zod/mini@$MINI_VERSION\`"
+            echo "- \`schema@$ZOD_VERSION\`"
+            echo "- \`@schema/mini@$MINI_VERSION\`"
             echo
             echo 'Neither version is installable until a maintainer approves it with 2FA. This run is now held on the `release-approval` environment, with no runner, for up to 30 days. It resumes when that deployment is approved, and `finish` then waits for npm to serve both versions before it tags, releases and publishes to JSR.'
             echo
             echo '```'
-            echo "stager approve 'zod@$ZOD_VERSION' '@zod/mini@$MINI_VERSION'   # approve both in the browser, then resume this run"
-            echo "stager reject 'zod@$ZOD_VERSION' '@zod/mini@$MINI_VERSION'    # drop both staged versions and fail this run"
+            echo "stager approve 'schema@$ZOD_VERSION' '@schema/mini@$MINI_VERSION'   # approve both in the browser, then resume this run"
+            echo "stager reject 'schema@$ZOD_VERSION' '@schema/mini@$MINI_VERSION'    # drop both staged versions and fail this run"
             echo '```'
             echo
-            echo "Without stager: read the stage ids with \`npm stage list zod\` and \`npm stage list @zod/mini\`, then approve each with \`npm stage approve <id>\`; \`pnpm stage approve\` takes both in one interactive picker under a single one-time password, as does the Staged Packages tab on npmjs.com. Then approve the pending \`release-approval\` deployment on $RUN_URL."
+            echo "Without stager: read the stage ids with \`npm stage list schema\` and \`npm stage list @schema/mini\`, then approve each with \`npm stage approve <id>\`; \`pnpm stage approve\` takes both in one interactive picker under a single one-time password, as does the Staged Packages tab on npmjs.com. Then approve the pending \`release-approval\` deployment on $RUN_URL."
           } >> "$GITHUB_STEP_SUMMARY"
 
   approval:
@@ -188,9 +188,9 @@ jobs:
     permissions: {}
     steps:
       - env:
-          ZOD_VERSION: ${{ needs.stage.outputs.zod }}
+          ZOD_VERSION: ${{ needs.stage.outputs.schema }}
           MINI_VERSION: ${{ needs.stage.outputs.mini }}
-        run: echo "resuming; finish checks that npm serves zod@$ZOD_VERSION and @zod/mini@$MINI_VERSION"
+        run: echo "resuming; finish checks that npm serves schema@$ZOD_VERSION and @schema/mini@$MINI_VERSION"
 
   finish:
     needs: [stage, approval]
@@ -207,7 +207,7 @@ jobs:
       # THE HUMAN GATE. The run resumes on the environment approval, which says nothing about npm, so the tag, the GitHub release and both JSR publishes wait here until the registry serves both versions; nothing public ever describes a version npm did not ship. The loop also absorbs the automated review npm runs once a version is approved, which held 4.5.0 for 16 minutes, 4.5.3 for 25 and 4.6.0 for 116; none of those is an upper bound. If the approval comes later, re-run this job.
       - name: Wait for npm to serve both versions
         env:
-          ZOD_VERSION: ${{ needs.stage.outputs.zod }}
+          ZOD_VERSION: ${{ needs.stage.outputs.schema }}
           MINI_VERSION: ${{ needs.stage.outputs.mini }}
         run: |
           deadline=$(( $(date +%s) + 340 * 60 ))
@@ -224,8 +224,8 @@ jobs:
             done
             echo "$label is live"
           }
-          wait_for "zod@$ZOD_VERSION" "https://registry.npmjs.org/zod/$ZOD_VERSION"
-          wait_for "@zod/mini@$MINI_VERSION" "https://registry.npmjs.org/@zod%2fmini/$MINI_VERSION"
+          wait_for "schema@$ZOD_VERSION" "https://registry.npmjs.org/schema/$ZOD_VERSION"
+          wait_for "@schema/mini@$MINI_VERSION" "https://registry.npmjs.org/@schema%2fmini/$MINI_VERSION"
 
       - uses: actions/checkout@v7
         with:
@@ -260,7 +260,7 @@ jobs:
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.stage.outputs.zod }}
+          VERSION: ${{ needs.stage.outputs.schema }}
           CHANGELOG: ${{ steps.github_release.outputs.changelog }}
         run: |
           if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
@@ -279,25 +279,25 @@ jobs:
       # last so a jsr outage can't cost the tag — and it aborts on a dirty tree, so nothing above it may leave the workspace dirty
       - name: Publish to JSR
         env:
-          VERSION: ${{ needs.stage.outputs.zod }}
-        working-directory: ./packages/zod
+          VERSION: ${{ needs.stage.outputs.schema }}
+        working-directory: ./packages/schema
         run: |
-          if curl -sf "https://jsr.io/@zod/zod/${VERSION}_meta.json" > /dev/null; then
-            echo "@zod/zod@$VERSION is already on JSR"
+          if curl -sf "https://jsr.io/@schema/schema/${VERSION}_meta.json" > /dev/null; then
+            echo "@schema/schema@$VERSION is already on JSR"
             exit 0
           fi
           nub exec --node jsr publish --allow-slow-types # --dry-run
 
       # JSR refuses a version that already exists, so the step checks first; this also lets the first JSR publish of a version already on npm ride on a merge that publishes nothing to npm
-      - name: Publish @zod/mini to JSR
+      - name: Publish @schema/mini to JSR
         working-directory: ./packages/mini
         run: |
           VERSION=$(nub --node -p 'require("./jsr.json").version')
-          if curl -sfL "https://jsr.io/@zod/mini/${VERSION}_meta.json" > /dev/null; then
-            echo "@zod/mini@$VERSION is already on JSR"
+          if curl -sfL "https://jsr.io/@schema/mini/${VERSION}_meta.json" > /dev/null; then
+            echo "@schema/mini@$VERSION is already on JSR"
           else
             nub exec --node jsr publish --allow-slow-types
           fi
 
-      # every zod release from 4.5.0 on must have an @zod/mini twin on npm, whichever of the two stagings above ran
+      # every schema release from 4.5.0 on must have an @schema/mini twin on npm, whichever of the two stagings above ran
       - run: nub run check:lockstep --wait

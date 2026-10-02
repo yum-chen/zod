@@ -2,7 +2,7 @@ import { layoutProps } from "@/app/(doc)/layout";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 import { DocsPage } from "fumadocs-ui/page";
 
-export const metadata = { title: "Page not found | Zod" };
+export const metadata = { title: "Page not found | Schema" };
 
 export default function NotFound() {
   return (

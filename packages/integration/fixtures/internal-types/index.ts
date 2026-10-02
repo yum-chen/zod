@@ -1,20 +1,20 @@
-// This fixture tests that Zod's built types have no internal errors
+// This fixture tests that Schema's built types have no internal errors
 // when compiled with skipLibCheck: false
 
-import { z } from "zod";
+import { Schema } from "schema";
 
 // Basic schema usage
-const userSchema = z.object({
-  name: z.string(),
-  age: z.number().int().positive(),
-  email: z.string().email(),
-  tags: z.array(z.string()),
-  role: z.enum(["admin", "user", "guest"]),
-  metadata: z.record(z.string(), z.unknown()),
-  createdAt: z.date(),
+const userSchema = Schema.object({
+  name: Schema.string(),
+  age: Schema.number().int().positive(),
+  email: Schema.string().email(),
+  tags: Schema.array(Schema.string()),
+  role: Schema.enum(["admin", "user", "guest"]),
+  metadata: Schema.record(Schema.string(), Schema.unknown()),
+  createdAt: Schema.date(),
 });
 
-type User = z.infer<typeof userSchema>;
+type User = Schema.infer<typeof userSchema>;
 
 // Parse some data
 const result = userSchema.safeParse({
@@ -33,26 +33,26 @@ if (result.success) {
 }
 
 // Test various schema types
-const complexSchema = z.union([
-  z.object({ type: z.literal("a"), value: z.string() }),
-  z.object({ type: z.literal("b"), value: z.number() }),
+const complexSchema = Schema.union([
+  Schema.object({ type: Schema.literal("a"), value: Schema.string() }),
+  Schema.object({ type: Schema.literal("b"), value: Schema.number() }),
 ]);
 
-const tupleSchema = z.tuple([z.string(), z.number(), z.boolean()]);
-const intersectionSchema = z.intersection(z.object({ a: z.string() }), z.object({ b: z.number() }));
+const tupleSchema = Schema.tuple([Schema.string(), Schema.number(), Schema.boolean()]);
+const intersectionSchema = Schema.intersection(Schema.object({ a: Schema.string() }), Schema.object({ b: Schema.number() }));
 
 // Refinements and transforms
-const _refinedSchema = z.string().refine((s) => s.length > 0);
-const _transformedSchema = z.string().transform((s) => s.toUpperCase());
-const _pipedSchema = z.string().pipe(z.string().min(1));
+const _refinedSchema = Schema.string().refine((s) => s.length > 0);
+const _transformedSchema = Schema.string().transform((s) => s.toUpperCase());
+const _pipedSchema = Schema.string().pipe(Schema.string().min(1));
 
 // Optional/nullable
-const _optionalSchema = z.object({
-  required: z.string(),
-  optional: z.string().optional(),
-  nullable: z.string().nullable(),
-  nullish: z.string().nullish(),
-  withDefault: z.string().default("default"),
+const _optionalSchema = Schema.object({
+  required: Schema.string(),
+  optional: Schema.string().optional(),
+  nullable: Schema.string().nullable(),
+  nullish: Schema.string().nullish(),
+  withDefault: Schema.string().default("default"),
 });
 
 export { userSchema, complexSchema, tupleSchema, intersectionSchema };
